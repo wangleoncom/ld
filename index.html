@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>鹿🦌的QA</title>
+  <meta name="description" content="鹿🦌的QA：可搜尋、分頁、展開動畫，內建智能麋鹿（Beta）" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%22.9em%22 font-size=%2296%22>🦌</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🦌</span>
+      <h1 class="title">鹿的 QA</h1>
+      <span class="beta-tag" aria-label="Beta">Beta</span>
+    </div>
+    <p class="subtitle">新版QA程式</p>
+  </header>
+
+  <main class="container">
+    <!-- 搜尋列 -->
+    <section class="search-section" aria-label="搜尋">
+      <div class="search-box">
+        <input id="searchInput" type="text" placeholder="輸入關鍵字即時篩選（嚴格字串包含）" aria-label="搜尋問題關鍵字" />
+        <button id="clearSearch" class="ghost-btn" aria-label="清除搜尋">清除</button>
+      </div>
+      <div class="meta-line">
+        <span id="resultCount">載入中…</span>
+        <span class="sep">•</span>
+        <span>每頁顯示 30 筆</span>
+      </div>
+    </section>
+
+    <!-- QA 列表 -->
+    <section id="qaList" class="qa-list" aria-live="polite" aria-busy="true">
+      <!-- 由 app.js 動態注入 -->
+    </section>
+
+    <!-- 分頁 -->
+    <nav id="pagination" class="pagination" aria-label="分頁">
+      <!-- 由 app.js 動態注入 -->
+    </nav>
+  </main>
+
+  <!-- 智能麋鹿（Beta） -->
+  <button id="deerFab" class="deer-fab" aria-label="開啟智能麋鹿（Beta）" title="智能麋鹿（Beta）">
+    <span class="deer-emoji" aria-hidden="true">🦌</span>
+    <span class="fab-label">智能麋鹿</span>
+    <span class="mini-beta">Beta</span>
+  </button>
+
+  <section id="deerChat" class="deer-chat" aria-hidden="true" aria-label="智能麋鹿聊天窗">
+    <header class="chat-header">
+      <div class="agent">
+        <span class="avatar" aria-hidden="true">🦌</span>
+        <div class="agent-meta">
+          <strong>智能麋鹿</strong>
+          <span class="badge">Beta</span>
+        </div>
+      </div>
+      <button id="closeChat" class="icon-btn" aria-label="關閉聊天窗" title="關閉">✕</button>
+    </header>
+
+    <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
+
+    <form id="chatForm" class="chat-input" autocomplete="off">
+      <input id="chatText" type="text" placeholder="問我任何與本頁 QA 相關的問題…" aria-label="輸入給智能麋鹿的訊息" />
+      <button class="primary-btn" type="submit" aria-label="送出">送出</button>
+    </form>
+
+    <div class="chat-hint">
+      說明：智能麋鹿僅依本頁 QA 的內容進行「字面關鍵字」解析與回覆；若無相符，會提出可能相關的問題建議。
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <small>© 2025 鹿的 QA · 前端純靜態頁面 · 無外部 API</small>
+  </footer>
+
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
