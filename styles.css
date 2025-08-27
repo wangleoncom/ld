@@ -282,3 +282,48 @@ mark.hl{
   .title{ font-size: 26px; }
   .qa-a{ font-size: 15px; }
 }
+/* 通用連結樣式 */
+a {
+  color: #1e90ff; /* 連結文字顏色，可換你喜歡的色 */
+  text-decoration: none; /* 去掉底線 */
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #ff4500; /* 滑鼠懸停顏色 */
+  text-decoration: underline;
+}
+
+/* 頁首 QA 錯誤回報連結 */
+header smail + a {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.9rem;
+  background-color: #f0f8ff; /* 背景色 */
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* 頁尾聯絡信箱連結 */
+footer a {
+  color: #32cd32; /* 綠色，突顯聯絡信箱 */
+  font-size: 1rem;
+  margin-left: 0.3rem;
+}
+
+footer a:hover {
+  color: #228b22; /* 滑鼠懸停顏色 */
+  text-decoration: underline;
+}
+
+/* 調整頁尾文字與連結對齊 */
+footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #555;
+}
