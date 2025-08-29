@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>鹿🦌的QA</title>
-  <meta name="description" content="鹿🦌的QA：可搜尋、分頁、展開動畫，內建智能麋鹿（Beta）" />
+  <meta name="description" content="鹿🦌的QA：可搜尋、分頁、展開動畫，內建AI麋鹿（Beta）" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%22.9em%22 font-size=%2296%22>🦌</text></svg>">
 </head>
@@ -15,14 +15,15 @@
       <span class="beta-tag" aria-label="Beta">New</span>
     </div>
     <p class="subtitle">在這個網站你可以看到所有資料庫有的問題以及獲得解答</p>
-    <p>若網站的QA有錯誤請協助我們修正，點擊下方連結打開表單：</p><a href="https://forms.gle/8uswN6xjjgsLpXeG7">QA錯誤回報表單</a>
+    <p>若網站的QA有錯誤請協助我們修正，點擊下方連結打開表單：</p>
+    <a href="https://forms.gle/8uswN6xjjgsLpXeG7">QA錯誤回報表單</a>
   </header>
 
   <main class="container">
     <!-- 搜尋列 -->
     <section class="search-section" aria-label="搜尋">
       <div class="search-box">
-        <input id="searchInput" type="text" placeholder="輸入關鍵字即時篩選（嚴格字串包含）" aria-label="搜尋問題關鍵字" />
+        <input id="searchInput" type="text" placeholder="輸入關鍵字即時篩選（模糊比對）" aria-label="搜尋問題關鍵字" />
         <button id="clearSearch" class="ghost-btn" aria-label="清除搜尋">清除</button>
       </div>
       <div class="meta-line">
@@ -43,43 +44,66 @@
     </nav>
   </main>
 
-  <!-- 智能麋鹿（Beta） -->
-  <button id="deerFab" class="deer-fab" aria-label="開啟智能麋鹿（Beta）" title="智能麋鹿（Beta）">
+  <!-- AI麋鹿（Beta） -->
+  <button id="deerFab" class="deer-fab" aria-label="開啟AI麋鹿（Beta）" title="AI麋鹿（Beta）">
     <span class="deer-emoji" aria-hidden="true">🦌</span>
-    <span class="fab-label">智能麋鹿</span>
+    <span class="fab-label">AI麋鹿</span>
     <span class="mini-beta">Beta</span>
   </button>
 
-  <section id="deerChat" class="deer-chat" aria-hidden="true" aria-label="智能麋鹿聊天窗">
+  <section id="deerChat" class="deer-chat" aria-hidden="true" aria-label="AI麋鹿聊天窗">
     <header class="chat-header">
       <div class="agent">
         <span class="avatar" aria-hidden="true">🦌</span>
         <div class="agent-meta">
-          <strong>智能麋鹿</strong>
+          <strong>AI麋鹿</strong>
           <span class="badge">Beta</span>
         </div>
       </div>
       <button id="closeChat" class="icon-btn" aria-label="關閉聊天窗" title="關閉">✕</button>
     </header>
-    
 
     <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
 
     <form id="chatForm" class="chat-input" autocomplete="off">
-      <input id="chatText" type="text" placeholder="問我任何與本頁 QA 相關的問題…" aria-label="輸入給智能麋鹿的訊息" />
+      <input id="chatText" type="text" placeholder="問我任何與本頁 QA 相關的問題…" aria-label="輸入給AI麋鹿的訊息" />
       <button class="primary-btn" type="submit" aria-label="送出">送出</button>
     </form>
 
     <div class="chat-hint">
-      說明：智能麋鹿僅依本頁 QA 的內容進行「字面關鍵字」解析與回覆；若無相符，會提出可能相關的問題建議。
+      說明：AI麋鹿會先找 QA 清單，再搜尋隱藏知識庫。若無精確相符，會提出可能相關的問題建議。
     </div>
   </section>
 
   <footer class="site-footer">
-    <small>若有任何問題請聯絡：</small><a href="https://mail.google.com/mail/u/0/#inbox">wanglien214@gnail.com</a>
+    <small>若有任何問題請聯絡：</small>
+    <a href="mailto:wanglien214@gnail.com">wanglien214@gnail.com</a>
   </footer>
 
-  <script src="./data.js"></script>
+
+<!-- 更新訊息 Modal -->
+<div id="updateModalBg" class="card-modal-bg" aria-hidden="true">
+  <div class="card-modal">
+    <h2>📰 V1.2更新公告</h2>
+    <p><strong>日期：</strong>2025-08-30</p>
+    <h3>本次更新內容：</h3>
+    <ul>
+      <li>AI模型邏輯強化，能夠更理解用戶想表達的意思。</li>
+      <li>新增點按AI麋鹿所給的文字能夠查看詳細內容</li>
+      <li>新增推薦問題，並提供按鈕點按詢問</li>
+      <li>新增隱藏資料庫，能夠回打用戶不關鹿🦌的問題</li>
+      <li>修正已知錯誤。</li>
+      <li>強化網頁UI、物件動畫</li>
+    </ul>
+    <p>💡 網頁提示：使用AI麋鹿時可能會提供錯誤資訊，請詢問AI過後點擊回覆的訊息可以查看原始問題。</p>
+    <button id="closeUpdateModal" class="close-modal">我知道了，關閉視窗</button>
+  </div>
+</div>
+
+
+  <!-- 資料來源 -->
+  <script src="./data.js"></script> <!-- 公開QA資料 -->
+  <script src="./botData.js"></script> <!-- 隱藏知識庫，不會顯示在QA列表 -->
   <script src="./app.js"></script>
 </body>
 </html>

@@ -178,7 +178,7 @@ mark.hl{
 }
 
 /* =========
-   浮動助理（智能麋鹿）
+   浮動助理（AI麋鹿）
    ========= */
 .deer-fab{
   position: fixed; right: 18px; bottom: 18px; z-index: 50;
@@ -359,4 +359,173 @@ footer {
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* 基本按鈕樣式 */
+.button {
+  display: inline-block;
+  padding: 0.6em 1.4em;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333; /* 文字顏色 */
+  background-color: #f5f5f5; /* 按鈕底色 */
+  border: 1px solid #ccc; /* 邊框 */
+  border-radius: 6px; /* 圓角 */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  user-select: none;
+}
+
+/* Hover 效果 */
+.button:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+/* 點擊時的按壓效果 */
+.button:active {
+  background-color: #d6d6d6;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(1px);
+}
+
+/* Disabled 狀態 */
+.button:disabled {
+  color: #aaa;
+  background-color: #f0f0f0;
+  border-color: #ddd;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 訊息卡片黑底白字 */
+.msg .card-front,
+.msg .card-back {
+  position: relative;
+  width: 100%;
+  backface-visibility: hidden;
+  padding: 0.6em 1em;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background-color: #12131a; /* 黑底 */
+  color: #eef0ff; /* 白字 */
+  font-size: 0.95rem;
+}
+
+/* 翻轉動畫 */
+.msg .card {
+  perspective: 1000px;
+  cursor: pointer;
+}
+.msg .card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.6s var(--ease);
+  transform-style: preserve-3d;
+}
+.msg .card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+/* 卡片背面 */
+.msg .card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #fff;
+}
+
+/* ========= 版本更新提示 ========= */
+.update-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.update-modal {
+  background: #171a2e;
+  color: #fff;
+  padding: 24px 32px;
+  border-radius: 16px;
+  max-width: 500px;
+  text-align: left;
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.3s ease;
+}
+
+.update-modal h2 {
+  margin-top: 0; margin-bottom: 12px;
+}
+
+.update-modal p {
+  margin-bottom: 16px;
+}
+
+.update-modal button {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #111;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========= 聊天訊息間距調整 ========= */
+.msg { 
+  display: grid; 
+  gap: 4px;  /* 以前間距大，改小 */
+  margin: 2px 0;
+}
+
+.msg.user { justify-self: end; }
+.msg.bot { justify-self: start; }
+
+.msg .from { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+
+/* ========= 自訂訊息 Modal（卡片翻轉太長） ========= */
+.card-modal-bg {
+  position: fixed; inset:0;
+  background: rgba(0,0,0,0.7);
+  display: flex; justify-content:center; align-items:center;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.card-modal-bg.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.card-modal {
+  background: #171a2e;
+  color: #fff;
+  padding: 24px 32px;
+  border-radius: 16px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.card-modal button.close-modal {
+  position: absolute;
+  top: 12px; right: 12px;
+  border:none; background: rgba(255,255,255,0.1);
+  color:#fff; font-weight:700; font-size:14px;
+  border-radius:6px; padding:4px 8px; cursor:pointer;
 }
