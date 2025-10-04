@@ -1,111 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>鹿🦌的QA</title>
-  <meta name="description" content="鹿🦌的QA：可搜尋、分頁、展開動畫，內建AI麋鹿（Beta）" />
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%22.9em%22 font-size=%2296%22>🦌</text></svg>">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>鹿🦌的QA網站</title>
+  <meta name="theme-color" content="#0f1220" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <h1 class="title">鹿🦌的QA網站</h1>
-    </div>
-    <p class="subtitle">在這個網站你可以看到所有資料庫有的問題以及獲得解答</p>
-    <p>若網站的QA有錯誤請協助我們修正，點擊下方連結打開表單：</p>
-    <a href="https://forms.gle/8uswN6xjjgsLpXeG7">QA錯誤回報表單</a>
-  </header>
-
-  <main class="container">
-    <!-- 搜尋列 -->
-    <section class="search-section" aria-label="搜尋">
-      <div class="search-box">
-        <input id="searchInput" type="text" placeholder="輸入關鍵字即時篩選（精準比對）" aria-label="搜尋問題關鍵字" />
-        <button id="clearSearch" class="ghost-btn" aria-label="清除搜尋">清除</button>
+  <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="cg-title">🦌 V<span id="ver">1.8</span> 更新公告</h2>
+        <button id="cg-close" class="btn ghost">我知道了，關閉視窗</button>
       </div>
-      <div class="meta-line">
-        <span id="resultCount">載入中…</span>
-        <span class="sep">•</span>
-        <span>每頁顯示 30 筆</span>
+      <div class="modal-body">
+        <p class="muted">日期：<span id="cg-date"></span></p>
+        <ul class="bullet">
+          <li>修復建議按鈕會觸發來源視窗的 bug</li>
+          <li>信心計算改為動態校正，不再卡在高分</li>
+          <li>檢索變聰明：Jaccard + 近似 TF-IDF + 覆蓋率 + 位置/精確加分 + 別名濾除</li>
+          <li>網站圖與 AI 頭像改由同一資料庫：IMAGES.網站圖 / IMAGES.AI圖</li>
+        </ul>
       </div>
-    </section>
-
-    <!-- QA 列表 -->
-    <section id="qaList" class="qa-list" aria-live="polite" aria-busy="true">
-      <!-- 由 app.js 動態注入 -->
-    </section>
-
-    <!-- 分頁 -->
-    <nav id="pagination" class="pagination" aria-label="分頁">
-      <!-- 由 app.js 動態注入 -->
-    </nav>
-  </main>
-
-  <!-- AI麋鹿（Beta） -->
-  <button id="deerFab" class="deer-fab" aria-label="開啟AI麋鹿（Beta）" title="AI麋鹿（Beta）">
-    <span class="deer-emoji" aria-hidden="true">🦌</span>
-    <span class="fab-label">AI麋鹿</span>
-    <span class="mini-beta">Beta</span>
-  </button>
-
-  <section id="deerChat" class="deer-chat" aria-hidden="true" aria-label="AI麋鹿聊天窗">
-    <header class="chat-header">
-      <div class="agent">
-        <span class="avatar" aria-hidden="true">🦌</span>
-        <div class="agent-meta">
-          <strong>AI麋鹿</strong>
-          <span class="badge">Beta</span>
-        </div>
-      </div>
-      <button id="closeChat" class="icon-btn" aria-label="關閉聊天窗" title="關閉">✕</button>
-    </header>
-
-    <div id="chatLog" class="chat-log" role="log" aria-live="polite"></div>
-
-    <form id="chatForm" class="chat-input" autocomplete="off">
-      <input id="chatText" type="text" placeholder="問我任何與本頁 QA 相關的問題…" aria-label="輸入給AI麋鹿的訊息" />
-      <button class="primary-btn" type="submit" aria-label="送出">送出</button>
-    </form>
-
-    <div class="chat-hint">
-      說明：AI麋鹿會先找 QA 清單，再搜尋隱藏知識庫。若無精確相符，會提出可能相關的問題建議。
-    </div>
-  </section>
-
-  <footer class="site-footer">
-    <small>若有任何問題請聯絡：</small>
-    <a href="mailto:wanglien214@gnail.com">wanglien214@gnail.com</a>
-  </footer>
-
-
-    <div id="updateModalBg" class="card-modal-bg" aria-hidden="true">
-    <div class="card-modal">
-      <h2>📰 V1.4更新公告</h2>
-      <p><strong>日期：</strong>2025-08-30</p>
-      <h3>本次更新內容：</h3>
-      <ul>
-        <li>更新資料庫。id：3、4</li>
-        <li>新增資料庫。id：68、69、70、71、72、73、74、75、76</li>
-        <li>AI模型邏輯強化，能夠更理解用戶想表達的意思。</li>
-        <li>修正已知錯誤。</li>
-        <li>強化網頁UI、物件動畫</li>
-      </ul>
-      <h2>‼️ 訂閱者重要通知</h2>
-      <ul>
-        <p>如果發現有被重複扣款TikTok訂閱者，可以嘗試與TikTok官方客服取得聯繫，並進行退款動作</p>
-        <p>有任何問題可以在社群發問。</p>
-      </ul>
-      <p>💡 網頁提示：使用AI麋鹿時可點擊AI回覆你的問題可以查看準確率（可能會有出現N/A的情況）。</p>
-      <button id="closeUpdateModal" class="close-modal">我知道了，關閉視窗</button>
     </div>
   </div>
 
+  <header class="hero">
+    <div class="brand">
+      <!-- 由 app.js 指派 src，自同一資料庫 IMAGES.網站圖 取得 -->
+      <img id="logo-img" class="logo-img" alt="鹿 Logo" />
+      <div>
+        <h1>鹿🦌的QA網站</h1>
+        <p class="muted">查詢資料庫中的問題與答案。若有錯誤，請回報工程師。</p>
+      </div>
+    </div>
 
-  <!--連結資料庫-->
-  <script src="./data.js"></script> <!-- 公開QA資料 -->
-  <script src="./botData.js"></script> <!-- 隱藏知識庫，不會顯示在QA列表 -->
-  <script src="./app.js"></script>
+    <div class="search-wrap">
+      <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
+      <button id="clear" class="btn ghost">清除</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
+      <div class="stat"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
+      <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
+      <div class="stat"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="qa-list" class="accordion"></section>
+
+    <nav class="pager" aria-label="分頁導覽">
+      <button id="prev" class="btn">上一頁</button>
+      <span><input id="page" type="number" min="1" value="1" aria-label="跳至頁碼"> / <span id="pages">1</span></span>
+      <button id="next" class="btn">下一頁</button>
+    </nav>
+
+    <footer class="footer">
+      <button id="ft-share" class="btn">分享網站</button>
+      <button id="ft-install" class="btn">加入主畫面</button>
+      <a class="btn" href="mailto:wanglien214@gmail.com">聯絡工程師</a>
+    </footer>
+  </main>
+
+  <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿" title="AI麋鹿">
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/>
+    </svg>
+  </button>
+
+  <aside id="ai-panel" class="ai-panel hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+    <header class="ai-header">
+      <h2 id="ai-title">AI麋鹿 <span class="badge">本地</span></h2>
+      <button id="ai-close" class="btn ghost">關閉</button>
+    </header>
+    <div id="ai-messages" class="ai-messages"></div>
+    <form id="ai-form" class="ai-input" autocomplete="off">
+      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="對 AI 發問">
+      <button class="btn primary" type="submit">送出</button>
+    </form>
+  </aside>
+
+  <div id="install-tip" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ins-title">
+    <div class="modal-card small">
+      <div class="modal-header"><h2 id="ins-title">加入主畫面</h2><button id="ins-close" class="btn ghost">關閉</button></div>
+      <div class="modal-body"><p>在瀏覽器的分享或更多功能中，選「加入主畫面」。</p></div>
+    </div>
+  </div>
+
+  <script src="deer-qa.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
