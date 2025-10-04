@@ -46,7 +46,7 @@ function init(){
   initStats();
   render();
   firstTour();
-  showChangelogIfNew("1.8.6");
+  showChangelogIfNew("2.1");
 }
 
 /* ---- 安全綁定 ---- */
