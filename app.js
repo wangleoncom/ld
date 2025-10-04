@@ -17,16 +17,70 @@ const IMAGES = {
   'AI圖': 'AI.png'
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  const logo = document.getElementById('logo-img');
-  if (logo) logo.src = IMAGES['網站圖'];
+// 安全版 app.js：避免 null.addEventListener 錯誤
+document.addEventListener('DOMContentLoaded', init);
 
+function init() {
+  safeOn('search', 'input', e => {
+    STATE.highlight = e.target.value.trim();
+    applyFilter(STATE.highlight);
+  });
+  safeOn('clear', 'click', () => {
+    id('search').value = '';
+    STATE.highlight = '';
+    applyFilter('');
+  });
+
+  safeOn('prev', 'click', () => gotoPage(STATE.page - 1));
+  safeOn('next', 'click', () => gotoPage(STATE.page + 1));
+  safeOn('page', 'change', e => gotoPage(parseInt(e.target.value || '1', 10)));
+
+  safeOn('cg-close', 'click', closeChangelog);
+  safeOn('ft-share', 'click', shareSite);
+  safeOn('ft-install', 'click', openInstallTip);
+  safeOn('ins-close', 'click', closeInstallTip);
+
+  safeOn('ai-fab', 'click', openAI);
+  safeOn('ai-close', 'click', closeAI);
+  safeOn('ai-form', 'submit', onAsk);
+
+  const aiMsgs = id('ai-messages');
+  if (aiMsgs) {
+    aiMsgs.addEventListener('click', e => {
+      const btn = e.target.closest('.s-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        id('ai-text').value = btn.dataset.sug;
+        id('ai-form').dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+  }
+
+  // 其他初始化
+  if (id('logo-img')) id('logo-img').src = IMAGES['網站圖'];
   initStats();
   render();
-  bindUI();
   firstTour();
-  showChangelogIfNew("1.8.2");
-});
+  showChangelogIfNew("1.8.3");
+}
+
+/* ---- 安全事件綁定函式 ---- */
+function safeOn(elId, evt, fn) {
+  const el = document.getElementById(elId);
+  if (el) el.addEventListener(evt, fn);
+}
+
+/* ---- 其他輔助函式保留原樣 ---- */
+function id(s) { return document.getElementById(s); }
+function qs(s) { return document.querySelector(s); }
+function qsa(s) { return [...document.querySelectorAll(s)]; }
+function norm(s) { return (s || '').toLowerCase().trim(); }
+function clamp(a, b, x) { return Math.max(a, Math.min(b, x)); }
+
+/* ====== 以下內容可直接保留你前一版的所有函式，如 applyFilter()、render()、openAI()、onAsk() 等 ======
+   不需要改動功能，只要在事件綁定階段使用 safeOn() 即可。
+*/
 
 function bindUI(){
   id('search').addEventListener('input', e => { STATE.highlight = e.target.value.trim(); applyFilter(STATE.highlight); });
@@ -159,7 +213,7 @@ function closeInstallTip(){ const m=id('install-tip'); if(m) m.classList.add('hi
 function openAI(){
   const p=id('ai-panel'); p.classList.remove('hidden'); requestAnimationFrame(()=>p.classList.add('show'));
   if(!p.dataset.boot){
-    pushMsg('assistant', '嗨，我是 AI麋鹿。輸入你的問題，我會先把別名移除後再做聰明比對。');
+    pushMsg('assistant', '嗨用戶你好，輸入你的問題，我幫你在資料庫中找答案，我不是鹿🦌本人，我只是工程師開發出來的AI麋鹿。');
     p.dataset.boot='1';
   }
 }
