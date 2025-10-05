@@ -1,5 +1,10 @@
-/* ===== Deer Video Minimal v3.0 =====
- * 修正：長連結換行、禁止影片區滑動、隨機鈕在標題上方、AI麋鹿答目前影片、網站分享鈕
+/* ===== Deer Video Minimal v3.3 =====
+ * - 遮罩推薦、底部防滑
+ * - Tabs 樣式與切換
+ * - 隨機影片在標題上方
+ * - 右上角全站分享
+ * - 影片資訊：長連結換行、音檔超連結
+ * - AI麋鹿：回答目前影片基本問題
  */
 (function(){
   const tabQA = document.getElementById('tab-qa');
@@ -26,7 +31,7 @@
   let videos = [];
   let current = null;
 
-  // Tab 切換
+  // Tabs
   tabQA?.addEventListener('click',()=>switchTab('qa'));
   tabVideo?.addEventListener('click',()=>switchTab('video'));
   function switchTab(which){
@@ -35,7 +40,6 @@
       tabQA.classList.remove('active'); tabQA.setAttribute('aria-selected','false');
       videoPanel.classList.remove('hidden'); qaPanel.classList.add('hidden');
       qaToolbar.style.display='none'; qaStats.style.display='none';
-      // 顯示目前影片簡述到 AI
       if(current) aiHintForCurrent();
     }else{
       tabQA.classList.add('active'); tabQA.setAttribute('aria-selected','true');
@@ -45,7 +49,7 @@
     }
   }
 
-  // 網站分享
+  // 全站分享
   shareBtn?.addEventListener('click', async ()=>{
     const url = 'https://wangleoncom.github.io/ld/';
     try{
@@ -58,8 +62,9 @@
     }catch{}
   });
 
-  // 載入 CSV
+  // 初始化
   init().catch(()=>{ frameWrap.textContent='無法載入 videos.csv'; });
+
   async function init(){
     const csv = await fetch('videos.csv',{cache:'no-store'}).then(r=>r.text());
     const rows = parseCSV(csv);
@@ -74,8 +79,7 @@
       const id   = (link.match(/\/video\/(\d+)/)||[])[1];
       if(!id) return null;
       return {
-        id,
-        link,
+        id, link,
         desc : (r[iDesc]  || '').trim(),
         tags : (r[iTags]  || '').trim(),
         date : (r[iDate]  || '').trim(),
@@ -91,26 +95,12 @@
     infoBtn.addEventListener('click',()=>{ if(current) showInfo(current); });
     modalClose.addEventListener('click',()=>modal.classList.add('hidden'));
     modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.add('hidden'); });
-    randomBtn.addEventListener('click',()=>{ const v = videos[Math.floor(Math.random()*videos.length)]; play(v); });
+    randomBtn.addEventListener('click',()=>{ const v=videos[Math.floor(Math.random()*videos.length)]; play(v); });
 
-    // 禁止影片區滑動
+    // 禁止影片區滑動：擋底部 220px（iframe 內事件無法攔截，只能遮擋）
     ['wheel','touchmove'].forEach(ev=>{
-      frameWrap.addEventListener(ev, e=>{ e.preventDefault(); }, {passive:false});
+      document.querySelector('.iframe-shield')?.addEventListener(ev, e=>{ e.preventDefault(); }, {passive:false});
     });
-
-    // AI麋鹿：攔截影片相關問句
-    if(aiForm && aiInput && aiMsgs){
-      aiForm.addEventListener('submit', e=>{
-        const q = String(aiInput.value||'').trim();
-        if(!current || !q) return; // 無影片或空問題 → 交給原邏輯
-        if(isVideoQuestion(q)){
-          e.preventDefault(); e.stopImmediatePropagation();
-          appendMsg('user', q);
-          appendMsg('assistant', answerFor(q, current));
-          aiInput.value='';
-        }
-      }, true); // capture=true 以阻止其他處理
-    }
   }
 
   function renderList(arr){
@@ -120,7 +110,6 @@
         <button class="info-btn small" data-id="${v.id}" title="影片資訊">ℹ️</button>
       </div>
     `).join('');
-    // 點整條播放
     list.querySelectorAll('.video-item').forEach(item=>{
       item.addEventListener('click',e=>{
         if(e.target.classList.contains('info-btn')) return;
@@ -129,7 +118,6 @@
         if(v){ play(v); switchTab('video'); }
       });
     });
-    // 尾端 ℹ️
     list.querySelectorAll('.info-btn.small').forEach(btn=>{
       btn.addEventListener('click',e=>{
         e.stopPropagation();
@@ -143,11 +131,15 @@
   function play(v){
     current=v;
     title.textContent = v.title;
-    frameWrap.innerHTML = `<iframe allowfullscreen loading="lazy"
-      allow="clipboard-write; encrypted-media; picture-in-picture; fullscreen"
-      referrerpolicy="strict-origin-when-cross-origin"
-      sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
-      src="https://www.tiktok.com/embed/v2/${v.id}"></iframe>`;
+    frameWrap.querySelector('iframe')?.remove();
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('allowfullscreen','');
+    iframe.setAttribute('loading','lazy');
+    iframe.setAttribute('allow','clipboard-write; encrypted-media; picture-in-picture; fullscreen');
+    iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+    iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
+    iframe.src = `https://www.tiktok.com/embed/v2/${v.id}`;
+    frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
     aiHintForCurrent();
   }
 
@@ -164,16 +156,24 @@
     modal.classList.remove('hidden');
   }
 
-  // AI：把當前影片摘要丟進對話視窗（被動提示）
+  /* AI：影片資訊提示與問答（基礎） */
   function aiHintForCurrent(){
     if(!aiMsgs || !current) return;
     appendMsg('assistant',
       `目前影片\n標題：${current.title}\n上傳日期：${current.date||'未知'}\n連結：${current.link}`);
   }
-
-  // AI：是否屬於影片簡問
-  function isVideoQuestion(q){
-    return /(標題|叫什麼|片名|什麼時候|何時|上傳|日期|連結|網址|音檔|配樂|標籤|tag|置頂)/i.test(q);
+  if(aiForm && aiInput && aiMsgs){
+    aiForm.addEventListener('submit', e=>{
+      const q = String(aiInput.value||'').trim();
+      if(!current || !q) return;
+      if(/(標題|片名|叫什麼)/i.test(q) || /(何時|什麼時候|上傳|日期)/i.test(q) ||
+         /(連結|網址)/i.test(q) || /(音檔|配樂)/i.test(q) || /(標籤|tag)/i.test(q) || /(置頂)/i.test(q)){
+        e.preventDefault(); e.stopImmediatePropagation();
+        appendMsg('user', q);
+        appendMsg('assistant', answerFor(q,current));
+        aiInput.value='';
+      }
+    }, true);
   }
   function answerFor(q,v){
     if(/標題|片名|叫什麼/i.test(q)) return `標題：${v.title}`;
@@ -185,14 +185,13 @@
     return `目前影片：${v.title}（${v.date||'未知'}）`;
   }
 
-  // ---- 小工具 ----
+  /* 工具 */
   function escapeHTML(s){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
   function linkifyIfURL(text){
-    const urlMatch = String(text).match(/https?:\/\/[^\s]+/i);
-    if(!urlMatch) return escapeHTML(text);
-    const url = urlMatch[0];
-    const before = String(text).slice(0, urlMatch.index);
-    const after  = String(text).slice(urlMatch.index + url.length);
+    const m = String(text).match(/https?:\/\/[^\s]+/i);
+    if(!m) return escapeHTML(text);
+    const url=m[0]; const i=m.index||0;
+    const before=String(text).slice(0,i); const after=String(text).slice(i+url.length);
     return `${escapeHTML(before)}<a href="${url}" target="_blank" rel="noopener">${escapeHTML(url)}</a>${escapeHTML(after)}`;
   }
   function appendMsg(role, text){
@@ -208,7 +207,7 @@
     aiMsgs.scrollTop = aiMsgs.scrollHeight;
   }
 
-  // CSV 解析（含引號）
+  /* CSV 解析（含引號） */
   function parseCSV(text){
     const out=[], row=[], N=text.length; let i=0, field='', quoted=false;
     text = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
