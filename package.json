@@ -1,0 +1,16 @@
+{
+  "name": "deer-qa-site",
+  "version": "1.0.0",
+  "description": "特色：   - 最新的資訊 - 最準確的資訊 - 最強的AI麋鹿",
+  "main": "ai.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "p-limit": "^7.1.1",
+    "playwright": "^1.55.1"
+  }
+}

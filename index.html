@@ -12,37 +12,39 @@
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="cg-title">🦌 V<span id="ver">2.2</span> 網站更新公告</h2>
+        <h2 id="cg-title">🦌 V2.3 網站更新公告</h2>
         <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
       </div>
       <div class="modal-body">
-        <p class="bullet">日期：2025/10/5 15:16</span></p>
+        <p class="bullet">日期：2025/10/5</p>
         <ul class="bullet">
-          <li>AI麋鹿：修復建議按鈕會觸發來源視窗的 bug</li>
-          <li>AI麋鹿：檢索變聰明：Jaccard + 近似 TF-IDF + 覆蓋率 + 位置/精確加分 + 別名濾除</li>
-          <li>網站：更新、添加資料庫內容</li>
-          <li>網站：加入icon</li>
+          <li>新增「鹿🦌影片」專區：支援 TikTok / mp4</li>
+          <li>功能：資料庫最新、隨機、搜尋、標籤、收藏、留言、分享、劇院、PiP、自動播放</li>
         </ul>
       </div>
     </div>
   </div>
 
   <header class="hero">
-  <div class="brand">
-    <!-- 注意：加上 id="logo-img" -->
-    <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
-    <div>
-      <h1>鹿🦌的QA網站</h1>
-      <p class="muted">查詢資料庫中的問題與答案。若有錯誤，請回報工程師。</p>
+    <div class="brand">
+      <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
+      <div>
+        <h1>鹿🦌的QA網站</h1>
+        <p class="muted">查詢資料庫與觀看影片。若有錯誤，請回報工程師。</p>
+      </div>
     </div>
-  </div>
 
-    <div class="search-wrap">
+    <nav class="tabs" role="tablist" aria-label="主要功能">
+      <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">QA</button>
+      <button id="tab-video" class="tab" role="tab" aria-selected="false" aria-controls="video-panel">影片</button>
+    </nav>
+
+    <div id="qa-toolbar" class="search-wrap">
       <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
       <button id="clear" class="btn ghost">清除</button>
     </div>
 
-    <div class="stats">
+    <div class="stats" id="qa-stats">
       <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
       <div class="stat"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
       <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
@@ -51,47 +53,93 @@
   </header>
 
   <main class="container">
-    <section id="qa-list" class="accordion"></section>
+    <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
+      <section id="qa-list" class="accordion"></section>
+      <nav class="pager" aria-label="分頁導覽">
+        <button id="prev" class="btn">上一頁</button>
+        <span><input id="page" type="number" min="1" value="1" aria-label="跳至頁碼"> / <span id="pages">1</span></span>
+        <button id="next" class="btn">下一頁</button>
+      </nav>
+      <footer class="footer">
+        <button id="ft-share" class="btn">分享網站</button>
+        <button id="ft-install" class="btn">加入主畫面</button>
+        <a class="btn" href="mailto:wanglien214@gmail.com">聯絡工程師</a>
+      </footer>
+    </section>
 
-    <nav class="pager" aria-label="分頁導覽">
-      <button id="prev" class="btn">上一頁</button>
-      <span><input id="page" type="number" min="1" value="1" aria-label="跳至頁碼"> / <span id="pages">1</span></span>
-      <button id="next" class="btn">下一頁</button>
-    </nav>
+    <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
+      <div class="video-toolbar">
+        <div class="video-search">
+          <input id="v-search" class="input" placeholder="搜尋標題或標籤" aria-label="搜尋影片">
+        </div>
+        <div class="video-actions">
+          <button id="v-latest" class="btn primary">資料庫最新</button>
+          <button id="v-random" class="btn">隨機</button>
+          <select id="v-sort" class="input" aria-label="排序">
+            <option value="newest">由新到舊</option>
+            <option value="oldest">由舊到新</option>
+            <option value="title">標題 A→Z</option>
+          </select>
+          <label class="toggle"><input id="v-autoplay" type="checkbox"> 自動播放下一支</label>
+          <button id="v-show-fav" class="btn ghost">★ 收藏</button>
+        </div>
+      </div>
 
-    <footer class="footer">
-      <button id="ft-share" class="btn">分享網站</button>
-      <button id="ft-install" class="btn">加入主畫面</button>
-      <a class="btn" href="mailto:wanglien214@gmail.com">聯絡工程師</a>
-    </footer>
+      <section class="player">
+        <div class="player-header">
+          <h3 id="v-title" class="v-title">未選擇影片</h3>
+          <div class="player-ops">
+            <button id="v-like" class="btn">👍 <span id="v-like-count">0</span></button>
+            <button id="v-fav" class="btn">★ 收藏</button>
+            <button id="v-theater" class="btn">劇院</button>
+            <button id="v-pip" class="btn">PiP</button>
+            <button id="v-copy" class="btn">分享</button>
+          </div>
+        </div>
+        <div id="v-frame" class="player-frame"></div>
+        <div class="player-meta">
+          <span id="v-date" class="muted"></span>
+          <div id="v-tags" class="tags"></div>
+        </div>
+      </section>
+
+      <section>
+        <div id="v-tags-filter" class="tags"></div>
+        <div id="v-list" class="v-grid"></div>
+        <nav class="pager">
+          <button id="v-prev" class="btn">上一頁</button>
+          <span><input id="v-page" type="number" min="1" value="1"> / <span id="v-pages">1</span></span>
+          <button id="v-next" class="btn">下一頁</button>
+        </nav>
+      </section>
+
+      <section class="comments">
+        <h4>留言</h4>
+        <div id="c-list" class="c-list"></div>
+        <form id="c-form" class="c-form" autocomplete="off">
+          <input id="c-name" class="input" placeholder="暱稱（選填）">
+          <textarea id="c-text" class="input" placeholder="寫下你的想法…" required></textarea>
+          <button class="btn primary" type="submit">送出留言</button>
+        </form>
+      </section>
+    </section>
   </main>
 
-  <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿" title="AI麋鹿">
-    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/>
-    </svg>
+  <button id="ai-fab" class="ai-fab">
+    <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
   </button>
 
-  <aside id="ai-panel" class="ai-panel hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
-    <header class="ai-header">
-      <h2 id="ai-title">AI麋鹿 <span class="badge">本地</span></h2>
-      <button id="ai-close" class="btn ghost">❌關閉</button>
-    </header>
+  <aside id="ai-panel" class="ai-panel hidden">
+    <header class="ai-header"><h2>AI麋鹿</h2><button id="ai-close" class="btn ghost">❌</button></header>
     <div id="ai-messages" class="ai-messages"></div>
     <form id="ai-form" class="ai-input" autocomplete="off">
-      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="對 AI麋鹿 發問">
+      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出">
       <button class="btn primary" type="submit">送出</button>
     </form>
   </aside>
 
-  <div id="install-tip" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ins-title">
-    <div class="modal-card small">
-      <div class="modal-header"><h2 id="ins-title">➕加入主畫面</h2><button id="ins-close" class="btn ghost">❌關閉</button></div>
-      <div class="modal-body"><p>在瀏覽器的分享或更多功能中，選「加入主畫面」。</p></div>
-    </div>
-  </div>
-
   <script src="deer-qa.js"></script>
   <script src="app.js"></script>
+  <script src="deer-videos.js"></script>
 </body>
 </html>
