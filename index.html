@@ -7,36 +7,20 @@
   <title>鹿🦌的QA網站</title>
   <meta name="theme-color" content="#0f1220" />
   <link rel="stylesheet" href="styles.css" />
-  <!-- 影片專區額外樣式 -->
-  <style>
-    .video-layout{display:flex;gap:20px;align-items:flex-start;max-width:1200px;margin:0 auto;padding:20px;}
-    .video-left{flex:3;min-width:0}
-    .video-right{flex:1;display:flex;flex-direction:column;gap:10px;max-height:700px;overflow:auto}
-    .video-frame iframe{width:100%;height:640px;border-radius:16px;background:#0c0f1c;box-shadow:0 0 30px rgba(0,0,0,.4)}
-    .video-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-    .video-title{font-weight:700;font-size:1rem}
-    .info-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;cursor:pointer;padding:4px 8px}
-    .info-btn:hover{background:rgba(255,255,255,.3)}
-    .info-btn.small{padding:2px 6px;font-size:.85rem}
-    .video-item{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border-radius:12px;padding:10px 12px;cursor:pointer;transition:.2s var(--ease)}
-    .video-item:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f1220}
-    .video-label{font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80%}
-    .video-controls{margin-top:10px}
-  </style>
 </head>
 <body>
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="cg-title">🦌 V3.1 網站更新公告</h2>
+        <h2 id="cg-title">🦌 V3.2 網站更新公告</h2>
         <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
       </div>
       <div class="modal-body">
         <p class="bullet">日期：2025/10/6</p>
         <ul class="bullet">
-          <li>新增「鹿🦌影片」專區</li>
-          <li>修正有錯誤的資料庫內容。</li>
-          <li>優化資料庫的表達。</li>
+          <li>影片專區：右側清單、標題左上顯示、ℹ️ 資訊框、隨機影片（標題上方）</li>
+          <li>長連結換行、影片區禁止滑動、頂部網站分享鈕</li>
+          <li>AI麋鹿可回答目前影片的基本問題</li>
         </ul>
       </div>
     </div>
@@ -50,6 +34,8 @@
         <p class="muted">查詢資料庫與觀看影片。若有錯誤，請回報工程師。</p>
       </div>
     </div>
+
+    <button id="site-share" class="btn ghost share-top" title="分享網站">分享</button>
 
     <nav class="tabs" role="tablist" aria-label="主要功能">
       <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">QA</button>
@@ -70,7 +56,7 @@
   </header>
 
   <main class="container">
-    <!-- QA 區 -->
+    <!-- QA -->
     <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager" aria-label="分頁導覽">
@@ -85,25 +71,25 @@
       </footer>
     </section>
 
-    <!-- 影片專區（點「影片」才顯示，並隱藏 QA） -->
+    <!-- 影片 -->
     <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
       <div class="video-layout">
         <div class="video-left">
+          <div class="video-controls top">
+            <button id="v-random" class="btn">隨機影片</button>
+          </div>
           <div class="video-header">
             <span id="v-title" class="video-title">未選擇影片</span>
             <button id="v-info-btn" class="info-btn" title="影片資訊">ℹ️</button>
           </div>
           <div id="v-frame" class="video-frame"></div>
-          <div class="video-controls">
-            <button id="v-random" class="btn">隨機影片</button>
-          </div>
         </div>
         <div class="video-right" id="v-list"></div>
       </div>
     </section>
   </main>
 
-  <!-- 資訊框（自訂樣式 modal） -->
+  <!-- 影片資訊 Modal -->
   <div id="info-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card small">
       <div class="modal-header">
