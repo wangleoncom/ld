@@ -7,6 +7,22 @@
   <title>鹿🦌的QA網站</title>
   <meta name="theme-color" content="#0f1220" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- 影片專區額外樣式 -->
+  <style>
+    .video-layout{display:flex;gap:20px;align-items:flex-start;max-width:1200px;margin:0 auto;padding:20px;}
+    .video-left{flex:3;min-width:0}
+    .video-right{flex:1;display:flex;flex-direction:column;gap:10px;max-height:700px;overflow:auto}
+    .video-frame iframe{width:100%;height:640px;border-radius:16px;background:#0c0f1c;box-shadow:0 0 30px rgba(0,0,0,.4)}
+    .video-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .video-title{font-weight:700;font-size:1rem}
+    .info-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;cursor:pointer;padding:4px 8px}
+    .info-btn:hover{background:rgba(255,255,255,.3)}
+    .info-btn.small{padding:2px 6px;font-size:.85rem}
+    .video-item{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);border-radius:12px;padding:10px 12px;cursor:pointer;transition:.2s var(--ease)}
+    .video-item:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f1220}
+    .video-label{font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80%}
+    .video-controls{margin-top:10px}
+  </style>
 </head>
 <body>
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
@@ -54,6 +70,7 @@
   </header>
 
   <main class="container">
+    <!-- QA 區 -->
     <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager" aria-label="分頁導覽">
@@ -68,75 +85,34 @@
       </footer>
     </section>
 
-    <!-- ===== 影片專區 v1.0 ===== -->
-<section id="video-section" class="video-section">
-  <h2>🎬 鹿🦌影片專區</h2>
-  <div id="video-container" class="video-container">
-    <div id="video-frame" class="video-frame">載入中...</div>
-    <button id="info-btn" class="btn ghost" title="影片資訊">ℹ️</button>
-    <div id="video-info" class="video-info hidden"></div>
-  </div>
-</section>
-
-<script src="deer-video-min.js"></script>
-
+    <!-- 影片專區（點「影片」才顯示，並隱藏 QA） -->
     <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
-      <div class="video-toolbar">
-        <div class="video-search">
-          <input id="v-search" class="input" placeholder="搜尋標題或標籤" aria-label="搜尋影片">
-        </div>
-        <div class="video-actions">
-          <button id="v-latest" class="btn primary">資料庫最新</button>
-          <button id="v-random" class="btn">隨機</button>
-          <select id="v-sort" class="input" aria-label="排序">
-            <option value="newest">由新到舊</option>
-            <option value="oldest">由舊到新</option>
-            <option value="title">標題 A→Z</option>
-          </select>
-          <label class="toggle"><input id="v-autoplay" type="checkbox"> 自動播放下一支</label>
-          <button id="v-show-fav" class="btn ghost">★ 收藏</button>
-        </div>
-      </div>
-
-      <section class="player">
-        <div class="player-header">
-          <h3 id="v-title" class="v-title">未選擇影片</h3>
-          <div class="player-ops">
-            <button id="v-like" class="btn">👍 <span id="v-like-count">0</span></button>
-            <button id="v-fav" class="btn">★ 收藏</button>
-            <button id="v-theater" class="btn">劇院</button>
-            <button id="v-pip" class="btn">PiP</button>
-            <button id="v-copy" class="btn">分享</button>
+      <div class="video-layout">
+        <div class="video-left">
+          <div class="video-header">
+            <span id="v-title" class="video-title">未選擇影片</span>
+            <button id="v-info-btn" class="info-btn" title="影片資訊">ℹ️</button>
+          </div>
+          <div id="v-frame" class="video-frame"></div>
+          <div class="video-controls">
+            <button id="v-random" class="btn">隨機影片</button>
           </div>
         </div>
-        <div id="v-frame" class="player-frame"></div>
-        <div class="player-meta">
-          <span id="v-date" class="muted"></span>
-          <div id="v-tags" class="tags"></div>
-        </div>
-      </section>
-
-      <section>
-        <div id="v-tags-filter" class="tags"></div>
-        <div id="v-list" class="v-grid"></div>
-        <nav class="pager">
-          <button id="v-prev" class="btn">上一頁</button>
-          <span><input id="v-page" type="number" min="1" value="1"> / <span id="v-pages">1</span></span>
-          <button id="v-next" class="btn">下一頁</button>
-        </nav>
-      </section>
-
-      <section class="comments">
-        <h4>留言</h4>
-        <div id="c-list" class="c-list"></div>
-        <form id="c-form" class="c-form" autocomplete="off">
-          <input id="c-name" class="input" placeholder="暱稱（選填）">
-          <textarea id="c-text" class="input" placeholder="寫下你的想法…" required></textarea>
-          <button class="btn primary" type="submit">送出留言</button>
-        </form>
-      </section>
+        <div class="video-right" id="v-list"></div>
+      </div>
     </section>
   </main>
+
+  <!-- 資訊框（自訂樣式 modal） -->
+  <div id="info-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card small">
+      <div class="modal-header">
+        <h3>影片資訊</h3>
+        <button id="modal-close" class="btn ghost">❌</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
 
   <button id="ai-fab" class="ai-fab">
     <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
