@@ -12,16 +12,16 @@
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="cg-title">🦌 V<span id="ver">2.1</span> 更新公告</h2>
+        <h2 id="cg-title">🦌 V<span id="ver">2.1</span> 網站更新公告</h2>
         <button id="cg-close" class="btn ghost">我知道了，關閉視窗</button>
       </div>
       <div class="modal-body">
-        <p class="muted">日期：<span id="cg-date"></span></p>
+        <p class="bullet">日期：2025/10/5 14:44</span></p>
         <ul class="bullet">
           <li>AI麋鹿：修復建議按鈕會觸發來源視窗的 bug</li>
           <li>AI麋鹿：信心計算改為動態校正，不再卡在高分</li>
           <li>AI麋鹿：檢索變聰明：Jaccard + 近似 TF-IDF + 覆蓋率 + 位置/精確加分 + 別名濾除</li>
-          <li>網站：更新資料庫</li>
+          <li>網站：更新、添加資料庫內容</li>
           <li>網站：加入icon</li>
         </ul>
       </div>
@@ -80,7 +80,7 @@
     </header>
     <div id="ai-messages" class="ai-messages"></div>
     <form id="ai-form" class="ai-input" autocomplete="off">
-      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="對 AI 發問">
+      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="對 AI麋鹿 發問">
       <button class="btn primary" type="submit">送出</button>
     </form>
   </aside>
