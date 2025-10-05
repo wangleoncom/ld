@@ -12,14 +12,15 @@
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="cg-title">🦌 V2.3 網站更新公告</h2>
+        <h2 id="cg-title">🦌 V3.1 網站更新公告</h2>
         <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
       </div>
       <div class="modal-body">
-        <p class="bullet">日期：2025/10/5</p>
+        <p class="bullet">日期：2025/10/6</p>
         <ul class="bullet">
-          <li>新增「鹿🦌影片」專區：支援 TikTok / mp4</li>
-          <li>功能：資料庫最新、隨機、搜尋、標籤、收藏、留言、分享、劇院、PiP、自動播放</li>
+          <li>新增「鹿🦌影片」專區</li>
+          <li>修正有錯誤的資料庫內容。</li>
+          <li>優化資料庫的表達。</li>
         </ul>
       </div>
     </div>
@@ -66,6 +67,18 @@
         <a class="btn" href="mailto:wanglien214@gmail.com">聯絡工程師</a>
       </footer>
     </section>
+
+    <!-- ===== 影片專區 v1.0 ===== -->
+<section id="video-section" class="video-section">
+  <h2>🎬 鹿🦌影片專區</h2>
+  <div id="video-container" class="video-container">
+    <div id="video-frame" class="video-frame">載入中...</div>
+    <button id="info-btn" class="btn ghost" title="影片資訊">ℹ️</button>
+    <div id="video-info" class="video-info hidden"></div>
+  </div>
+</section>
+
+<script src="deer-video-min.js"></script>
 
     <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
       <div class="video-toolbar">
@@ -140,6 +153,6 @@
 
   <script src="deer-qa.js"></script>
   <script src="app.js"></script>
-  <script src="deer-videos.js"></script>
+  <script src="deer-video-min.js"></script>
 </body>
 </html>
