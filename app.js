@@ -157,6 +157,7 @@ function openAI(){
   p.classList.remove('hidden'); requestAnimationFrame(()=>p.classList.add('show'));
   if(!p.dataset.boot){
     pushMsg('assistant','嗨～麋鹿你好，你可以告訴我你的問題，我會根據資料庫找出答案或提供你類似的問題。我不是鹿🦌本人，我只是工程師開發出來的AI機器人。祝你有個美好的一天😊');
+    pushMsg('assistant','小提醒：在這個網站都叫做鹿🦌所以在問問題時綽號請使用「鹿🦌」。例如：❌主播多高？ ❌鹿比醬多高？  ✅鹿🦌多高？  ✅️鹿鹿多高？');
     p.dataset.boot='1';
   }
 }
