@@ -8,81 +8,40 @@
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <link rel="stylesheet" href="styles.css?v=20251008" />
   <style>
-    /* ====== 核心樣式（覆蓋/補強） ====== */
-    .page-overlay{
-      position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
-      background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-      opacity:1; transition:opacity .35s ease; pointer-events:auto;
-    }
-    .page-overlay.hide{ opacity:0; pointer-events:none }
-    .page-overlay .card{
-      width:min(360px,86vw);
-      background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);
-      border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:20px; text-align:center; color:#f6f8ff;
-      box-shadow:0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
-    }
-    .page-overlay .spinner{ display:grid; place-items:center; margin:12px auto 8px }
-    .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
-
-    #page-loading{ position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
-      background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-      opacity:1; transition:opacity .35s ease; }
-    #page-loading.hide{ opacity:0; pointer-events:none }
-    #page-loading .card{
-      width:min(360px,86vw);
-      background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);
-      border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:20px; text-align:center; color:#f6f8ff;
-      box-shadow:0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
-    }
-    #page-loading .spinner{ display:grid; place-items:center; margin:12px auto 8px }
-    #page-loading .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
-
-    .mini-overlay{
-      position:absolute; inset:0; display:grid; place-items:center; z-index:4;
-      background:rgba(7,11,22,.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-    }
-    .video-embed{ position:relative }
-
-    .toast{
-      position:fixed; z-index:10000; padding:8px 12px; border-radius:10px;
-      background:rgba(15,18,32,.9); color:#fff; font-weight:700; font-size:.9rem;
-      box-shadow:0 10px 30px rgba(0,0,0,.35); transform:translate(-50%,0);
-      animation:toast-in .18s ease-out, toast-out .28s ease-in 1.5s forwards;
-    }
-    @keyframes toast-in{ from{ opacity:0; transform:translate(-50%,-6px) } to{ opacity:1; transform:translate(-50%,0) } }
-    @keyframes toast-out{ to{ opacity:0; transform:translate(-50%,-6px) } }
-
-    .tool{ cursor:pointer; user-select:none }
-    .tool.copied{ transform:scale(1.06); transition:transform .18s ease }
-
-    #site-share{ white-space:nowrap; padding-left:12px; padding-right:12px; }
-
-    #overlay-modal{
-      position:fixed; inset:0; z-index:9998; display:grid; place-items:center;
-      background:rgba(5,8,16,.68); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-    }
-    #overlay-modal .modal-card{
-      width:min(560px,92vw);
-      background:linear-gradient(180deg,rgba(22,26,48,.92) 0%, rgba(28,33,62,.92) 100%);
-      border:1px solid rgba(255,255,255,.14); border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.45);
-    }
-    #overlay-modal .modal-header{ display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.12) }
-    #overlay-modal .modal-body{ padding:14px }
-    #overlay-modal .btn{ cursor:pointer }
-
-    /* 反複製/長按（全站）——QA 列表內仍允許選取 */
-    html,body{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
-    img{ -webkit-user-drag:none; pointer-events:none }
-    #logo-img{ pointer-events:auto } /* 讓 Logo 仍可點擊 */
-    #qa-list, #qa-list *{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default }
-    @media print{ body{ display:none !important } } /* 阻擋列印輸出 */
-
-    /* 手機影片抽屜（可依你的 CSS 再細修） */
-    body.vlist-open #v-list{ transform:translateX(0) !important }
+    .page-overlay{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(7,11,22,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:1;transition:opacity .35s ease;pointer-events:auto}
+    .page-overlay.hide{opacity:0;pointer-events:none}
+    .page-overlay .card{width:min(360px,86vw);background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;text-align:center;color:#f6f8ff;box-shadow:0 24px 60px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.30)}
+    .page-overlay .spinner{display:grid;place-items:center;margin:12px auto 8px}
+    .loading-img{width:84px;height:84px;border-radius:50%;display:block;object-fit:cover}
+    #page-loading{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(7,11,22,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:1;transition:opacity .35s ease}
+    #page-loading.hide{opacity:0;pointer-events:none}
+    #page-loading .card{width:min(360px,86vw);background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;text-align:center;color:#f6f8ff;box-shadow:0 24px 60px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.30)}
+    #page-loading .spinner{display:grid;place-items:center;margin:12px auto 8px}
+    #page-loading .loading-img{width:84px;height:84px;border-radius:50%;display:block;object-fit:cover}
+    .mini-overlay{position:absolute;inset:0;display:grid;place-items:center;z-index:4;background:rgba(7,11,22,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+    .video-embed{position:relative}
+    .toast{position:fixed;z-index:10000;padding:8px 12px;border-radius:10px;background:rgba(15,18,32,.9);color:#fff;font-weight:700;font-size:.9rem;box-shadow:0 10px 30px rgba(0,0,0,.35);transform:translate(-50%,0);animation:toast-in .18s ease-out,toast-out .28s ease-in 1.5s forwards}
+    @keyframes toast-in{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
+    @keyframes toast-out{to{opacity:0;transform:translate(-50%,-6px)}}
+    .tool{cursor:pointer;user-select:none}
+    .tool.copied{transform:scale(1.06);transition:transform .18s ease}
+    #site-share{white-space:nowrap;padding-left:12px;padding-right:12px}
+    #overlay-modal{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(5,8,16,.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    #overlay-modal .modal-card{width:min(560px,92vw);background:linear-gradient(180deg,rgba(22,26,48,.92) 0%, rgba(28,33,62,.92) 100%);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+    #overlay-modal .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+    #overlay-modal .modal-body{padding:14px}
+    #overlay-modal .btn{cursor:pointer}
+    /* 反複製/長按（全站）— QA 區白名單 */
+    html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+    img{-webkit-user-drag:none;pointer-events:none}
+    #logo-img{pointer-events:auto}
+    #qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+    @media print{body{display:none !important}}
+    /* 手機影片抽屜（class 控制即可） */
+    body.vlist-open #v-list{transform:translateX(0)!important}
   </style>
 </head>
 <body>
-  <!-- 首次進站 Loading -->
   <div id="page-loading" aria-live="polite" aria-busy="true">
     <div class="card">
       <div class="spinner"><img src="轉圈圈.png" alt="載入中" class="loading-img"></div>
@@ -91,7 +50,6 @@
     </div>
   </div>
 
-  <!-- 版本紀錄 -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -102,7 +60,6 @@
     </div>
   </div>
 
-  <!-- 公告 -->
   <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -123,13 +80,9 @@
     </div>
 
     <div class="top-actions">
-      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">
-        🔔 <span class="muted" style="font-size:.9rem">公告</span>
-      </button>
+      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
       <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
-      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">
-        📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span>
-      </a>
+      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
     </div>
 
     <nav class="tabs" role="tablist" aria-label="主要功能">
@@ -151,7 +104,6 @@
   </header>
 
   <main class="container">
-    <!-- QA -->
     <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager" aria-label="分頁導覽">
@@ -164,7 +116,6 @@
       <footer class="footer" aria-hidden="true" style="visibility:hidden;height:0;padding:0;margin:0"></footer>
     </section>
 
-    <!-- 影片 -->
     <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
       <div class="video-layout">
         <div class="video-left">
@@ -182,7 +133,6 @@
     </section>
   </main>
 
-  <!-- 影片資訊 Modal -->
   <div id="info-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card small">
       <div class="modal-header">
@@ -193,7 +143,6 @@
     </div>
   </div>
 
-  <!-- AI麋鹿 -->
   <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿">
     <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
   </button>
@@ -211,163 +160,55 @@
     </form>
   </aside>
 
-  <!-- 既有腳本 -->
   <script src="deer-qa.js"></script>
   <script src="app.js"></script>
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
 
-  <!-- 補強腳本（所有進階功能） -->
   <script>
-/* ========= Loader 圖片對照表 ========= */
-const LOADER_IMG = {
-  global : '轉圈圈.png',
-  page   : '轉圈圈.png',
-  'tab-qa'   : '轉圈圈.png',
-  'tab-video': '轉圈圈.png',
-  video  : '轉圈圈.png',
-  'ai-open' : '轉圈圈2.png',
-  'ai-close': '轉圈圈2.png'
-};
+/* ============ 基本工具/Loader ============ */
+const LOADER_IMG={global:'轉圈圈.png',page:'轉圈圈.png','tab-qa':'轉圈圈.png','tab-video':'轉圈圈.png',video:'轉圈圈.png','ai-open':'轉圈圈2.png','ai-close':'轉圈圈2.png'};
+window.escapeHTML||=(s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.scrollBottom||=()=>{const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight;};
 
-/* ========= 基礎工具 ========= */
-window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
-
-/* ========= 公告 Overlay ========= */
-const Ann = (function(){
-  function open({title='訊息', html=''}) {
-    close();
-    const el = document.createElement('div');
-    el.id = 'overlay-modal';
-    el.innerHTML = `
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2 style="margin:0;font-size:1.05rem">${title}</h2>
-          <button id="ov-close" class="btn ghost">關閉</button>
-        </div>
-        <div class="modal-body">${html||'<p class="muted">目前沒有公告。</p>'}</div>
-      </div>`;
-    document.body.appendChild(el);
-    document.body.style.overflow='hidden';
-    el.addEventListener('click', (e)=>{ if(e.target===el) close(); });
-    el.querySelector('#ov-close')?.addEventListener('click', close);
-  }
-  function close(){
-    const el = document.getElementById('overlay-modal');
-    if(el){ el.remove(); document.body.style.overflow=''; }
-  }
-  return { open, close };
-})();
-const ANNOUNCEMENTS = [
-  { id:'welcome-410', title:'V4.1 上線', body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。', start:'2025-10-07' }
-];
-(function wireAnnouncements(){
-  const bell = document.getElementById('site-bell');
-  if(!bell) return;
-  bell.addEventListener('click', ()=>{
-    const now = Date.now();
-    const active = ANNOUNCEMENTS.filter(a=>{
-      const st=a.start?new Date(a.start).getTime():-Infinity;
-      const ed=a.end?new Date(a.end).getTime():Infinity;
-      return now>=st && now<=ed;
-    });
-    const html = active.length
-      ? `<div class="ann-list">${active.map(a=>`
-           <article class="ann-item" style="margin:10px 0">
-             <h4 style="margin:.2rem 0">${a.title}</h4>
-             <div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div>
-             <p style="margin:.4rem 0 0">${a.body}</p>
-           </article>`).join('')}</div>`
-      : `<p class="muted">目前沒有公告。</p>`;
-    Ann.open({title:'網站公告', html});
-  });
-})();
-
-/* ========= 首次 Loading ========= */
 (function bootLoader(){
-  const root = document.getElementById('page-loading'); if(!root) return;
-  const img = root.querySelector('.loading-img'); if(img) img.src = LOADER_IMG.global || img.src;
+  const root=document.getElementById('page-loading'); if(!root) return;
+  const img=root.querySelector('.loading-img'); if(img) img.src=LOADER_IMG.global||img.src;
   document.body.style.overflow='hidden';
-  const start = Date.now(), MIN=2200;
-  function kill(){
-    const wait = Math.max(0, MIN - (Date.now()-start));
-    setTimeout(()=>{
-      root.classList.add('hide');
-      root.addEventListener('transitionend', ()=>{
-        root.remove(); document.body.style.overflow='';
-      }, {once:true});
-    }, wait);
-  }
-  window.addEventListener('load', kill, {once:true});
-  setTimeout(kill, 6000);
+  const start=Date.now(),MIN=2200;
+  function kill(){const wait=Math.max(0,MIN-(Date.now()-start));
+    setTimeout(()=>{root.classList.add('hide');root.addEventListener('transitionend',()=>{root.remove();document.body.style.overflow='';},{once:true});},wait);}
+  window.addEventListener('load',kill,{once:true}); setTimeout(kill,6000);
+})();
+const Loading=(()=>{const MIN=2200,map=new Map();
+  function lock(on){document.body.style.overflow=on?'hidden':'';}
+  function ensure(id,text='載入中，請稍候…',key='global'){let el=document.getElementById(id);const src=LOADER_IMG[key]||LOADER_IMG.global||'轉圈圈.png';
+    if(!el){el=document.createElement('div');el.id=id;el.className='page-overlay';el.setAttribute('aria-live','polite');el.setAttribute('aria-busy','true');
+      el.innerHTML=`<div class="card"><div class="spinner"><img src="${src}" alt="" class="loading-img"></div><div class="title">${text}</div><div class="muted" style="font-size:.9rem">正在準備資料與介面</div></div>`;
+      document.body.appendChild(el);} else {el.querySelector('.loading-img').src=src; const ttl=el.querySelector('.title'); if(ttl) ttl.textContent=text;}
+    return el;}
+  function show(key='global',text){const id=`ov-${key}`;const el=ensure(id,text||'載入中，請稍候…',key); el.classList.remove('hide'); map.set(id,Date.now()); lock(true); return id;}
+  function hide(key='global'){const id=`ov-${key}`;const el=document.getElementById(id); if(!el) return; const st=map.get(id)||Date.now(); const wait=Math.max(0,MIN-(Date.now()-st));
+    setTimeout(()=>{el.classList.add('hide');el.addEventListener('transitionend',()=>{el.remove(); if(!document.querySelector('.page-overlay')&&!document.getElementById('page-loading')) lock(false);},{once:true}); map.delete(id);},wait);}
+  function videoShow(){const host=document.getElementById('v-frame'); if(!host) return Date.now(); let m=host.querySelector('.mini-overlay'); const src=LOADER_IMG.video||LOADER_IMG.global||'轉圈圈.png';
+    if(!m){m=document.createElement('div');m.className='mini-overlay';m.innerHTML=`<div class="spinner"><img src="${src}" alt="" class="loading-img"></div>`; host.appendChild(m);} else {m.querySelector('.loading-img').src=src;}
+    return Date.now();}
+  function videoHide(mark){const host=document.getElementById('v-frame'); if(!host) return; const m=host.querySelector('.mini-overlay'); if(!m) return; const left=Math.max(0,1200-(Date.now()-(mark||Date.now()))); setTimeout(()=>m.remove(),left);}
+  return {show,hide,videoShow,videoHide};
 })();
 
-/* ========= Loading 模組 ========= */
-const Loading = (() => {
-  const MIN = 2200;
-  const map = new Map();
-  function lock(on){ document.body.style.overflow = on ? 'hidden' : ''; }
-  function ensure(id, text='載入中，請稍候…', key='global'){
-    let el = document.getElementById(id);
-    const src = LOADER_IMG[key] || LOADER_IMG.global || '轉圈圈.png';
-    if(!el){
-      el = document.createElement('div');
-      el.id = id; el.className = 'page-overlay'; el.setAttribute('aria-live','polite'); el.setAttribute('aria-busy','true');
-      el.innerHTML = `
-        <div class="card">
-          <div class="spinner"><img src="${src}" alt="載入中" class="loading-img"></div>
-          <div class="title">${text}</div>
-          <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
-        </div>`;
-      document.body.appendChild(el);
-    }else{
-      const img = el.querySelector('.loading-img'); if(img) img.src = src;
-      const ttl = el.querySelector('.title'); if(ttl) ttl.textContent = text;
-    }
-    return el;
-  }
-  function show(key='global', text){
-    const id=`ov-${key}`; const el=ensure(id, text||'載入中，請稍候…', key);
-    el.classList.remove('hide'); map.set(id, Date.now()); lock(true); return id;
-  }
-  function hide(key='global'){
-    const id=`ov-${key}`; const el=document.getElementById(id); if(!el) return;
-    const start=map.get(id)||Date.now(); const wait=Math.max(0, MIN-(Date.now()-start));
-    setTimeout(()=>{
-      el.classList.add('hide');
-      el.addEventListener('transitionend', ()=>{
-        el.remove();
-        if(!document.querySelector('.page-overlay') && !document.getElementById('page-loading')) lock(false);
-      }, {once:true});
-      map.delete(id);
-    }, wait);
-  }
-  function videoShow(){
-    const host=document.getElementById('v-frame'); if(!host) return Date.now();
-    let m=host.querySelector('.mini-overlay');
-    const src = LOADER_IMG.video || LOADER_IMG.global || '轉圈圈.png';
-    if(!m){
-      m=document.createElement('div'); m.className='mini-overlay';
-      m.innerHTML=`<div class="spinner"><img src="${src}" alt="" class="loading-img"></div>`;
-      host.appendChild(m);
-    }else{
-      const img=m.querySelector('.loading-img'); if(img) img.src=src;
-    }
-    return Date.now();
-  }
-  function videoHide(mark){
-    const host=document.getElementById('v-frame'); if(!host) return;
-    const m=host.querySelector('.mini-overlay'); if(!m) return;
-    const left=Math.max(0, 1200 - (Date.now() - (mark||Date.now())));
-    setTimeout(()=> m.remove(), left);
-  }
-  return { show, hide, videoShow, videoHide, ensure };
+/* ============ 公告簡易彈層 ============ */
+const Ann=(()=>{function open({title='訊息',html=''}){close();const el=document.createElement('div');el.id='overlay-modal';el.innerHTML=`<div class="modal-card"><div class="modal-header"><h2 style="margin:0;font-size:1.05rem">${title}</h2><button id="ov-close" class="btn ghost">關閉</button></div><div class="modal-body">${html||'<p class="muted">目前沒有公告。</p>'}</div></div>`; document.body.appendChild(el); document.body.style.overflow='hidden'; el.addEventListener('click',e=>{if(e.target===el) close();}); el.querySelector('#ov-close')?.addEventListener('click',close);}
+  function close(){const el=document.getElementById('overlay-modal'); if(el){el.remove(); document.body.style.overflow='';}}
+  return {open,close};
 })();
+const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸入與朗讀。',start:'2025-10-07'}];
+(function(){const bell=document.getElementById('site-bell'); if(!bell) return; bell.addEventListener('click',()=>{const now=Date.now(); const active=ANNOUNCEMENTS.filter(a=>{const st=a.start?new Date(a.start).getTime():-Infinity; const ed=a.end?new Date(a.end).getTime():Infinity; return now>=st&&now<=ed;});
+  const html=active.length?`<div class="ann-list">${active.map(a=>`<article class="ann-item" style="margin:10px 0"><h4 style="margin:.2rem 0">${a.title}</h4><div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div><p style="margin:.4rem 0 0">${a.body}</p></article>`).join('')}</div>`:`<p class="muted">目前沒有公告。</p>`; Ann.open({title:'網站公告',html});});})();
 
-/* ========= QA 複製按鈕（保留） ========= */
+/* ============ QA 複製（按鈕白名單） ============ */
 (function setupQACopy(){
-  const list = document.getElementById('qa-list'); if(!list) return;
+  const list=document.getElementById('qa-list'); if(!list) return;
   function ensureCopyButtons(root=list){
     root.querySelectorAll('.item').forEach(item=>{
       if(item.querySelector('.tool.copy-qa')) return;
@@ -377,313 +218,140 @@ const Loading = (() => {
       tools.appendChild(btn);
     });
   }
-  function toastAt(text, rect){
-    const tip=document.createElement('div'); tip.className='toast'; tip.textContent=text;
-    const y=Math.max(12, window.scrollY + rect.top - 14);
-    const x=Math.min(window.innerWidth-12, Math.max(12, window.scrollX + rect.left + rect.width/2));
-    tip.style.top=`${y}px`; tip.style.left=`${x}px`; tip.style.transform='translate(-50%,0)';
-    document.body.appendChild(tip); setTimeout(()=>tip.remove(), 1650);
-  }
-  async function doCopy(fromEl, btn){
-    const item=fromEl.closest('.item'); const txt=item?.querySelector('.a-inner')?.innerText?.trim(); if(!txt) return;
-    await navigator.clipboard.writeText(txt); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'), 420);
-    toastAt('已複製 QA', btn.getBoundingClientRect());
-  }
-  document.addEventListener('click', e=>{ const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return; e.preventDefault(); doCopy(btn, btn); }, true);
-  document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){ e.preventDefault(); doCopy(e.target, e.target);} }, true);
-  ensureCopyButtons();
-  new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{ if(n.nodeType===1) ensureCopyButtons(n); }))).observe(list, {childList:true, subtree:true});
+  function toastAt(text,rect){const tip=document.createElement('div'); tip.className='toast'; tip.textContent=text; const y=Math.max(12,window.scrollY+rect.top-14); const x=Math.min(window.innerWidth-12,Math.max(12,window.scrollX+rect.left+rect.width/2)); tip.style.top=`${y}px`; tip.style.left=`${x}px`; tip.style.transform='translate(-50%,0)'; document.body.appendChild(tip); setTimeout(()=>tip.remove(),1650);}
+  async function doCopy(fromEl,btn){const item=fromEl.closest('.item'); const txt=item?.querySelector('.a-inner')?.innerText?.trim(); if(!txt) return; await navigator.clipboard.writeText(txt); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'),420); toastAt('已複製 QA', btn.getBoundingClientRect());}
+  document.addEventListener('click',e=>{const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return; e.preventDefault(); doCopy(btn,btn);},true);
+  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('.tool.copy-qa')){e.preventDefault(); doCopy(e.target,e.target);}},true);
+  ensureCopyButtons(); new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType===1) ensureCopyButtons(n);}))).observe(list,{childList:true,subtree:true});
 })();
 
-/* ========= 影片點擊：只渲染一次 + 小遮罩 ========= */
+/* ============ 影片：一次渲染 + 小遮罩 ============ */
 (function videoClickOnce(){
-  const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title');
-  if(!list||!frame) return;
-  let lock=false, lastKey='';
-  list.addEventListener('click', (e)=>{
+  const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title'); if(!list||!frame) return;
+  let lock=false,lastKey='';
+  list.addEventListener('click',e=>{
     const item=e.target.closest('[data-video]'); if(!item) return;
     if(lock) return; lock=true; setTimeout(()=>lock=false,600);
     try{
       const data=JSON.parse(item.dataset.video||'{}'); const key=(data.id||data.url||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
-      frame.innerHTML='';
-      const wrap=document.createElement('div'); wrap.className='video-embed';
-      wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
-      const mark=Loading.videoShow();
-      const timer=setInterval(()=>{
-        const ifr=frame.querySelector('iframe');
-        if(ifr){ clearInterval(timer); ifr.addEventListener('load',()=>Loading.videoHide(mark), {once:true}); setTimeout(()=>Loading.videoHide(mark), 5000); }
-      }, 60);
-      setTimeout(()=>clearInterval(timer),2000);
+      frame.innerHTML=''; const wrap=document.createElement('div'); wrap.className='video-embed'; wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`; frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
+      const mark=Loading.videoShow(); const timer=setInterval(()=>{const ifr=frame.querySelector('iframe'); if(ifr){clearInterval(timer); ifr.addEventListener('load',()=>Loading.videoHide(mark),{once:true}); setTimeout(()=>Loading.videoHide(mark),5000);}},60); setTimeout(()=>clearInterval(timer),2000);
     }catch{}
-  }, true);
+  },true);
 })();
 
-/* ========= QA 分頁：全頁遮罩 + 捲頂 ========= */
+/* ============ QA 分頁遮罩 + 捲頂 ============ */
 (function qaPagingOverlay(){
   const ids=['prev','next','page'], list=document.getElementById('qa-list'); if(!list) return;
-  function armHide(){
-    const mo=new MutationObserver(()=>{
-      clearTimeout(armHide.t); armHide.t=setTimeout(()=>Loading.hide('page'), 240);
-    });
-    mo.observe(list, {childList:true, subtree:true}); setTimeout(()=>{ mo.disconnect(); Loading.hide('page'); }, 8000);
-  }
-  ids.forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    const evt=(id==='page')?'change':'click';
-    el.addEventListener(evt, ()=>{
-      Loading.show('page','切換頁面中，請稍候…'); armHide();
-      window.scrollTo({top:0,behavior:'smooth'});
-    });
-  });
+  function armHide(){const mo=new MutationObserver(()=>{clearTimeout(armHide.t); armHide.t=setTimeout(()=>Loading.hide('page'),240);}); mo.observe(list,{childList:true,subtree:true}); setTimeout(()=>{mo.disconnect(); Loading.hide('page');},8000);}
+  ids.forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=(id==='page')?'change':'click'; el.addEventListener(evt,()=>{Loading.show('page','切換頁面中，請稍候…'); armHide(); window.scrollTo({top:0,behavior:'smooth'});});});
 })();
-
-/* ========= AI 面板開關遮罩 ========= */
 (function aiPanelOverlay(){
-  const fab   = document.getElementById('ai-fab');
-  const close = document.getElementById('ai-close');
-  const panel = document.getElementById('ai-panel');
-  function waitUntil(testFn, key){
-    const start = Date.now();
-    const it = setInterval(()=>{
-      if (testFn()) { clearInterval(it); Loading.hide(key); }
-      else if (Date.now() - start > 5000) { clearInterval(it); Loading.hide(key); }
-    }, 60);
-  }
-  fab?.addEventListener('click', ()=>{
-    Loading.show('ai-open', '開啟 AI 中，請稍候…');
-    waitUntil(()=> !panel.classList.contains('hidden') || panel.classList.contains('show'), 'ai-open');
-  });
-  close?.addEventListener('click', ()=>{
-    Loading.show('ai-close', '關閉 AI 中…');
-    waitUntil(()=> panel.classList.contains('hidden') && !panel.classList.contains('show'), 'ai-close');
-  });
+  const fab=document.getElementById('ai-fab'), close=document.getElementById('ai-close'), panel=document.getElementById('ai-panel');
+  function waitUntil(testFn,key){const st=Date.now(); const it=setInterval(()=>{if(testFn()){clearInterval(it); Loading.hide(key);} else if(Date.now()-st>5000){clearInterval(it); Loading.hide(key);}},60);}
+  fab?.addEventListener('click',()=>{Loading.show('ai-open','開啟 AI 中，請稍候…'); waitUntil(()=>!panel.classList.contains('hidden')||panel.classList.contains('show'),'ai-open');});
+  close?.addEventListener('click',()=>{Loading.show('ai-close','關閉 AI 中…'); waitUntil(()=>panel.classList.contains('hidden')&&!panel.classList.contains('show'),'ai-close');});
 })();
 
-/* ========= 禁一般複製/右鍵/截圖鍵（QA 白名單） ========= */
+/* ============ 禁一般複製/右鍵/截圖（QA 白名單） ============ */
+/* ============ 反複製/右鍵/截圖（全面封鎖；QA 僅允許按鈕複製） ============ */
 (function antiCopy(){
-  const allowQA = (e)=> !!e.target.closest('#qa-list');
-  ['copy','cut','contextmenu'].forEach(evt=>{
-    document.addEventListener(evt, e=>{ if(!allowQA(e)) e.preventDefault(); }, true);
-  });
+  // 1) 全站禁止右鍵（避免「檢查」與行動裝置模擬的入口）
+  document.addEventListener('contextmenu', e=>e.preventDefault(), true);
+
+  // 2) 全站禁止 copy/cut（QA 區仍可選取文字，但不能直接複製；改用我們的「📋 複製」按鈕）
+  document.addEventListener('copy', e=>e.preventDefault(), true);
+  document.addEventListener('cut',  e=>e.preventDefault(), true);
+
+  // 3) 禁拖拉圖片、長按存圖
   document.addEventListener('dragstart', e=>e.preventDefault(), true);
-  document.addEventListener('keydown', async e=>{
-    const k=(e.key||'').toLowerCase();
-    if(k==='printscreen' || k==='snapshot'){ e.preventDefault(); try{ await navigator.clipboard.writeText(''); }catch{} }
-  }, true);
   const logo=document.getElementById('logo-img');
   logo?.setAttribute('draggable','false');
-})();
 
-/* ========= DevTools/F12 守門：開就重整 ========= */
-(function devtoolsGuard(){
-  let tripped=false;
-  const kick=()=>{ if(tripped) return; tripped=true; location.reload(); };
-  const check=()=>{
-    const w=window.outerWidth - window.innerWidth;
-    const h=window.outerHeight - window.innerHeight;
-    if(w>160 || h>160) kick();
-  };
-  setInterval(check, 600);
-  document.addEventListener('keydown', e=>{
-    const K=(e.key||'').toUpperCase();
-    if(K==='F12' || (e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(K))){ e.preventDefault(); kick(); }
+  // 4) 鍵盤快速鍵再加一道保險（和 devtoolsGuard 相輔相成）
+  document.addEventListener('keydown', async e=>{
+    const k=(e.key||'').toLowerCase();
+    // 阻擋常見複製／另存和開發者工具快捷鍵
+    if (
+      (e.ctrlKey && (k==='c' || k==='x' || k==='s' || k==='u')) || // Ctrl+C/X/S/U
+      (e.metaKey && (k==='c' || k==='x' || k==='s' || k==='u')) || // Cmd+C/X/S/U
+      (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)) ||    // Ctrl+Shift+I/J/C
+      k==='f12'
+    ){
+      e.preventDefault();
+    }
+    // 嘗試清空螢幕截圖到剪貼簿（某些瀏覽器會擋）
+    if (k==='printscreen' || k==='snapshot'){
+      e.preventDefault();
+      try{ await navigator.clipboard.writeText(''); }catch{}
+    }
   }, true);
 })();
 
-/* ========= Loader Kill Switch（工程模式用） ========= */
-const LoaderKillSwitch = {
-  armed:false,
-  arm(){ this.armed=true; },
-  apply(){
-    if(!this.armed) return;
-    try{
-      const tag=document.createElement('style');
-      tag.textContent='.spinner .loading-img{animation:none!important}';
-      document.head.appendChild(tag);
-      document.querySelectorAll('#page-loading,.page-overlay,.mini-overlay').forEach(n=>n.remove());
-      document.body.style.overflow='';
-      if(window.Loading){
-        if(Loading.show)      Loading.show      = function(){ return null; };
-        if(Loading.videoShow) Loading.videoShow = function(){ return Date.now(); };
-      }else{
-        Object.defineProperty(window,'Loading',{
-          configurable:true,
-          set(v){
-            if(v && typeof v==='object'){
-              v.show=function(){return null;};
-              v.videoShow=function(){return Date.now();};
-            }
-            Object.defineProperty(window,'Loading',{value:v,writable:false,configurable:false});
-          }
-        });
-      }
-    }catch{}
-  }
-};
-
-/* ========= 手機影片抽屜（3–5 秒轉圈、選片後自動收合） ========= */
-const MobileVideoDrawer = {
-  inited:false,
-  init(){
-    if(this.inited) return; this.inited=true;
-    const mq = window.matchMedia('(max-width: 768px)');
-    const list = document.getElementById('v-list');
-    const header = document.querySelector('.video-controls.top');
-    if(!list || !header) return;
-    const setup=()=>{
-      if(!mq.matches){ document.body.classList.remove('vlist-open'); return; }
-      if(!document.getElementById('v-toggle')){
-        const btn=document.createElement('button');
-        btn.id='v-toggle'; btn.className='btn'; btn.textContent='影片清單';
-        header.appendChild(btn);
-        btn.addEventListener('click', ()=>{
-          const key='vlist';
-          if(window.Loading?.show){
-            Loading.show(key,'載入清單中，請稍候…');
-            const dur=3000 + Math.floor(Math.random()*2000); // 3–5 秒
-            setTimeout(()=>{ document.body.classList.add('vlist-open'); Loading.hide(key); }, dur);
-          }else{
-            document.body.classList.add('vlist-open');
-          }
-        });
-      }
-    };
-    setup();
-    mq.addEventListener?.('change', setup);
-    list.addEventListener('click', (e)=>{
-      if(e.target.closest('[data-video]')) document.body.classList.remove('vlist-open');
-    });
-  }
-};
-
-/* ========= 10 下點 Logo → 10 碼 PIN（寫死） → 執行功能 ========= */
-/* 在這裡設定你的 PIN 與功能對應表（key=10 碼數字） */
-const PIN_ROUTES = {
-  '1234567890': ['ENG_ON','NOSPIN','SHOW_TABLE'],  // 工程模式 + 停轉圈 + 顯示大全表
-  '9988776655': ['ENG_ON'],                        // 只開工程模式
-  '1122334455': ['VID_MOBILE','SHOW_TABLE'],       // 手機影片抽屜 + 大全表
-  '5566778899': ['RESET','SHOW_TABLE']             // 重置 + 大全表
-};
-/* 中文功能說明 */
-const PIN_HELP = {
-  'ENG_ON'   : '工程模式：停用遮罩流程、加速操作。',
-  'NOSPIN'   : '停止所有轉圈圈、禁止再顯示遮罩（全站）。',
-  'VID_MOBILE':'手機影片抽屜：清單收合 + 開啟顯示前 3–5 秒轉圈圈。',
-  'RESET'    : '重置：關閉工程模式、恢復預設行為。',
-  'SHOW_TABLE':'顯示 PIN 大全表（目前設定）。'
-};
-function buildPinTable(){
-  const rows = Object.entries(PIN_ROUTES).map(([pin, acts])=>{
-    const names = acts.map(a=>PIN_HELP[a]||a).join('、');
-    return `<tr><td style="font-family:monospace">${pin}</td><td>${names}</td></tr>`;
-  }).join('');
-  return `
-    <div>
-      <h3 style="margin:.4rem 0">PIN 大全表</h3>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr><th style="text-align:left;padding:6px 4px">10 碼 PIN</th><th style="text-align:left;padding:6px 4px">功能</th></tr></thead>
-        <tbody>${rows||'<tr><td colspan="2">尚未設定</td></tr>'}</tbody>
-      </table>
-      <p class="muted" style="margin-top:.6rem">提示：PIN 寫死在程式碼，使用者無法透過 Console 變更。</p>
-    </div>`;
-}
-(function pinEntry(){
-  const FLAG='deerENG';
-  const logo=document.getElementById('logo-img');
-  if(logo) logo.setAttribute('draggable','false');
-  let taps=0, t=null;
-  const valid10 = v => /^\d{10}$/.test(v||'');
-
-  function runActions(actions){
-    if(!actions || !actions.length) return;
-    actions.forEach(a=>{
-      switch(a){
-        case 'ENG_ON':
-          sessionStorage.setItem(FLAG,'1');
-          break;
-        case 'NOSPIN':
-          LoaderKillSwitch.arm(); LoaderKillSwitch.apply();
-          break;
-        case 'VID_MOBILE':
-          MobileVideoDrawer.init();
-          break;
-        case 'RESET':
-          sessionStorage.removeItem(FLAG);
-          location.reload();
-          break;
-        case 'SHOW_TABLE':
-          if(window.Ann && typeof Ann.open==='function'){
-            Ann.open({ title:'PIN 大全表', html: buildPinTable() });
-          }else{
-            alert('PIN 大全表：\n' + Object.entries(PIN_ROUTES).map(([pin, acts])=>'• '+pin+' → '+acts.map(a=>PIN_HELP[a]||a).join('、')).join('\n'));
-          }
-          break;
-      }
-    });
-    if(actions.includes('ENG_ON') && !actions.includes('RESET')) location.reload();
-  }
-
-  logo?.addEventListener('click', ()=>{
-    taps++; clearTimeout(t); t=setTimeout(()=>taps=0, 1000);
-    if(taps>=10){
-      taps=0;
-      const input = prompt('請輸入 10 碼工程碼');
-      if(!valid10(input)){ alert('格式錯誤（需 10 碼數字）'); return; }
-      const actions = PIN_ROUTES[input];
-      if(!actions){ alert('工程碼不正確'); return; }
-      runActions(actions);
-    }
-  });
-
-  // 進站即為工程模式 → 立即套用停轉圈與手機抽屜
-  if(sessionStorage.getItem(FLAG)==='1'){
-    LoaderKillSwitch.arm(); LoaderKillSwitch.apply();
-    MobileVideoDrawer.init();
-  }
+/* ============ DevTools/F12 守門：觸發即重整 ============ */
+(function devtoolsGuard(){
+  let tripped=false; const kick=()=>{if(tripped) return; tripped=true; location.reload();};
+  const check=()=>{const w=window.outerWidth-window.innerWidth; const h=window.outerHeight-window.innerHeight; if(w>160||h>160) kick();};
+  setInterval(check,600);
+  document.addEventListener('keydown',e=>{const K=(e.key||'').toUpperCase(); if(K==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(K))){e.preventDefault(); kick();}},true);
 })();
 
-/* ========= 分頁切換遮罩 ========= */
-(function tabsOverlay(){
-  const tabVideo=document.getElementById('tab-video');
-  const tabQA=document.getElementById('tab-qa');
-  const videoPanel=document.getElementById('video-panel');
-  const qaPanel=document.getElementById('qa-panel');
-  function waitPanelReady(panel, selector, key){
-    const mo = new MutationObserver(()=>{
-      if(panel.querySelector(selector)){ mo.disconnect(); Loading.hide(key); }
-    });
-    mo.observe(panel,{childList:true,subtree:true});
-    setTimeout(()=>{ mo.disconnect(); Loading.hide(key); }, 5000);
-  }
-  tabVideo?.addEventListener('click', ()=>{
-    Loading.show('tab-video','載入影片頁面中，請稍候…');
-    setTimeout(()=> waitPanelReady(videoPanel, '#v-list *, iframe', 'tab-video'), 0);
-  });
-  tabQA?.addEventListener('click', ()=>{
-    Loading.show('tab-qa','載入 QA 頁面中，請稍候…');
-    setTimeout(()=> waitPanelReady(qaPanel, '.item', 'tab-qa'), 0);
-  });
-})();
+/* ============ 工程模式：停轉圈/展開 QA/手機影片抽屜 ============ */
+const LoaderKillSwitch={armed:false,arm(){this.armed=true;},apply(){if(!this.armed) return; try{const tag=document.createElement('style'); tag.textContent='.spinner .loading-img{animation:none!important}'; document.head.appendChild(tag);
+  document.querySelectorAll('#page-loading,.page-overlay,.mini-overlay').forEach(n=>n.remove()); document.body.style.overflow='';
+  if(window.Loading){ if(Loading.show) Loading.show=function(){return null}; if(Loading.videoShow) Loading.videoShow=function(){return Date.now()}; }
+}catch{}}};
+function unfurlAllQA(){document.querySelectorAll('#qa-list .item').forEach(it=>{it.classList.add('open'); const a=it.querySelector('.a'); if(a) a.style.height='auto';});}
+const MobileVideoDrawer={inited:false,init(){if(this.inited) return; this.inited=true; const mq=window.matchMedia('(max-width:768px)'); const list=document.getElementById('v-list'); const header=document.querySelector('.video-controls.top'); if(!list||!header) return;
+  const setup=()=>{if(!mq.matches){document.body.classList.remove('vlist-open'); return;} if(!document.getElementById('v-toggle')){const btn=document.createElement('button'); btn.id='v-toggle'; btn.className='btn'; btn.textContent='影片清單'; header.appendChild(btn);
+    btn.addEventListener('click',()=>{const key='vlist'; if(window.Loading?.show){Loading.show(key,'載入清單中，請稍候…'); const dur=3000+Math.floor(Math.random()*2000); setTimeout(()=>{document.body.classList.add('vlist-open'); Loading.hide(key);},dur);} else {document.body.classList.add('vlist-open');}});}};
+  setup(); mq.addEventListener?.('change',setup); list.addEventListener('click',e=>{if(e.target.closest('[data-video]')) document.body.classList.remove('vlist-open');});}};
 
-/* ========= 分享（縮短文案） ========= */
-(function shareFix(){
-  const btn=document.getElementById('site-share'); if(!btn) return;
-  btn.addEventListener('click', async ()=>{
-    const data={title:document.title, text:'鹿🦌的QA網站', url:location.href};
-    try{
-      if(navigator.share){ await navigator.share(data); }
-      else{ await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200); }
-    }catch{
-      const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);
-    }
-  });
-})();
-['prev','next','page'].forEach(id=>{
-  const el=document.getElementById(id); if(!el) return;
-  const evt=id==='page'?'change':'click';
-  el.addEventListener(evt, ()=> window.scrollTo({top:0,behavior:'smooth'}));
+/* ============ 隱藏式 PIN 驗證（不透露任何資訊） ============ */
+/* 簡單 FNV-1a 雜湊（回傳 8 位十六進位字串） */
+function hashPin(s){let h=0x811c9dc5>>>0; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,0x01000193);} return ('0000000'+(h>>>0).toString(16)).slice(-8);}
+
+/* 將你的「亂碼 PIN 明碼」離線算出 hashPin(明碼) 後，把結果貼到這裡；程式只比對雜湊，不存明碼。 */
+const PIN_ROUTES_HASHED = Object.freeze({
+  /* 範例（請自行替換以下雜湊，不要放明碼） */
+  "a1b2c3d4": Object.freeze(["ENG_ON","NOSPIN","UNFURL","VID_MOBILE"]), // 全開
+  "9f8e7d6c": Object.freeze(["ENG_ON","UNFURL"]),                      // 只開工程+展開QA
+  "13572468": Object.freeze(["RESET"])                                 // 重置
 });
+
+/* 工程動作 */
+function runEngineerActions(acts){
+  const FLAG='deerENG';
+  acts.forEach(a=>{
+    if(a==="ENG_ON"){sessionStorage.setItem(FLAG,'1');}
+    else if(a==="NOSPIN"){LoaderKillSwitch.arm(); LoaderKillSwitch.apply();}
+    else if(a==="UNFURL"){unfurlAllQA();}
+    else if(a==="VID_MOBILE"){MobileVideoDrawer.init();}
+    else if(a==="RESET"){sessionStorage.removeItem(FLAG); location.reload();}
+  });
+  if(acts.includes("ENG_ON") && !acts.includes("RESET")) location.reload();
+}
+
+/* 點 Logo 多次 → 輸入工程碼（不顯示位數、不顯示任何提示） */
+(function engineerGate(){
+  const logo=document.getElementById('logo-img'); if(logo) logo.setAttribute('draggable','false');
+  let taps=0,t=null;
+  function ask(){const input=prompt('請輸入工程碼'); if(!input){alert('工程碼不正確'); return;}
+    const h=hashPin(input); const acts=PIN_ROUTES_HASHED[h]; if(!acts){alert('工程碼不正確'); return;} runEngineerActions(acts);}
+  logo?.addEventListener('click',()=>{taps++; clearTimeout(t); t=setTimeout(()=>taps=0,1000); if(taps>=10){taps=0; ask();}});
+  if(sessionStorage.getItem('deerENG')==='1'){LoaderKillSwitch.arm(); LoaderKillSwitch.apply(); unfurlAllQA(); MobileVideoDrawer.init();}
+})();
+
+/* ============ 分頁切換遮罩/分享 ============ */
+(function tabsOverlay(){
+  const tabVideo=document.getElementById('tab-video'), tabQA=document.getElementById('tab-qa');
+  const videoPanel=document.getElementById('video-panel'), qaPanel=document.getElementById('qa-panel');
+  function waitPanelReady(panel,selector,key){const mo=new MutationObserver(()=>{if(panel.querySelector(selector)){mo.disconnect(); Loading.hide(key);}}); mo.observe(panel,{childList:true,subtree:true}); setTimeout(()=>{mo.disconnect(); Loading.hide(key);},5000);}
+  tabVideo?.addEventListener('click',()=>{Loading.show('tab-video','載入影片頁面中，請稍候…'); setTimeout(()=>waitPanelReady(videoPanel,'#v-list *, iframe','tab-video'),0);});
+  tabQA?.addEventListener('click',()=>{Loading.show('tab-qa','載入 QA 頁面中，請稍候…'); setTimeout(()=>waitPanelReady(qaPanel,'.item','tab-qa'),0);});
+})();
+(function shareFix(){const btn=document.getElementById('site-share'); if(!btn) return; btn.addEventListener('click',async()=>{const data={title:document.title,text:'鹿🦌的QA網站',url:location.href}; try{if(navigator.share){await navigator.share(data);} else {await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200);}}catch{const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);}});})();
+['prev','next','page'].forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=id==='page'?'change':'click'; el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));});
   </script>
 </body>
 </html>
