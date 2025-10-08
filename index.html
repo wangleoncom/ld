@@ -7,52 +7,19 @@
   <meta name="theme-color" content="#0f1220" />
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <link rel="stylesheet" href="styles.css?v=20251008" />
-  <style>
-    /* 右上角功能群 */
-    .top-actions{position:absolute;right:24px;top:22px;display:flex;gap:10px;align-items:center}
-    .btn.icon{display:inline-flex;align-items:center;gap:8px;padding:8px 14px}
-    .btn.icon svg{width:18px;height:18px}
-    /* 公告鈴鐺紅點 */
-    #site-bell[data-has]::after{
-      content:attr(data-has);position:absolute;top:-6px;right:-6px;background:#ff4d4f;color:#fff;
-      font-size:.72rem;line-height:1;padding:2px 6px;border-radius:999px;box-shadow:0 0 0 2px #070b16;
-    }
-    /* 公告列表 */
-    .ann-list{display:grid;gap:12px}
-    .ann-item{background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
-      border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:12px}
-    .ann-item h4{margin:.2rem 0}.ann-item .meta{font-size:.85rem;color:var(--muted)}
-    /* 影片容器：手機可見、16:9 自適應 */
-    .video-embed{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;background:#0b0f1e}
-    .video-embed>iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-    /* AI訊息：左右排列、避免超出、長字換行 */
-    .ai-messages{display:flex;flex-direction:column;gap:8px;padding:12px}
-    .msg{display:flex;align-items:flex-end;gap:8px;width:100%}
-    .msg .body{max-width:100%}
-    .msg .bubble{
-      display:inline-block;width:fit-content;max-width:72%;
-      padding:10px 12px;border-radius:12px;line-height:1.5;
-      word-break:break-word;overflow-wrap:anywhere;
-    }
-    .msg.assistant{justify-content:flex-start}
-    .msg.assistant .bubble{background:#1b2a58;color:#fff}
-    .msg.user{justify-content:flex-end}
-    .msg.user .bubble{background:#0f2748;color:#fff}
-    @media (max-width:360px){.msg .bubble{max-width:86%}}
-    /* iOS 100vh 修正可用：height:calc(var(--vh)*100)；此頁面主要由外部 CSS 控制 */
-  </style>
 </head>
 <body>
   <!-- Loading -->
-<div id="page-loading">
+  <div id="page-loading">
   <div class="card">
     <div class="spinner">
-      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <img src="轉圈圈.png" alt="載入中" class="loading-img">
     </div>
     <div class="title">網頁載入中，請稍候…</div>
     <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
   </div>
 </div>
+
   <!-- 版本紀錄（保留節點，不自動彈出） -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
@@ -182,183 +149,225 @@
 
   <!-- 頁內補強腳本（都放最後，覆蓋舊行為） -->
   <script>
-/* ========= 基礎工具 ========= */
-window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
+// === QA 複製：自動補上「複製」按鈕＋動畫＋Toast＋滑鼠手勢 ===
+(function setupQACopy(){
+  const list = document.getElementById('qa-list');
+  if(!list) return;
 
-/* ========= Loading：轉圈圈顯示/關閉 ========= */
-/* 小補：確保有淡出動畫 */
-(function ensureLoaderStyles(){
-  const css = `
-    #page-loading{opacity:1;transition:opacity .35s ease}
-    #page-loading.hide{opacity:0;pointer-events:none}
-  `;
-  const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
-})();
-function hideLoader(){
-  const l=document.getElementById('page-loading'); if(!l) return;
-  l.classList.add('hide'); setTimeout(()=>l.remove(), 420);
-}
-window.addEventListener('load', hideLoader);
-/* 保險：若某些資源阻塞，2.5 秒也會自動關 */
-document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(hideLoader, 2500); });
+  function ensureCopyButtons(root=list){
+    root.querySelectorAll('.item').forEach(item=>{
+      if(item.querySelector('.tool.copy-qa')) return;
+      const header = item.querySelector('.q'); if(!header) return;
 
-/* ========= 只允許數字的頁碼輸入 ========= */
-const pageInput = document.getElementById('page');
-pageInput?.addEventListener('input',()=>{ pageInput.value = pageInput.value.replace(/[^\d]/g,''); });
+      const tools = header.querySelector('.tools') || (()=> {
+        const t=document.createElement('div');
+        t.className='tools'; t.style.marginLeft='auto';
+        t.style.display='flex'; t.style.gap='8px';
+        header.appendChild(t); return t;
+      })();
 
-/* ========= 桌機自動展開聊天面板 ========= */
-document.addEventListener('DOMContentLoaded',()=>{ if (window.matchMedia('(min-width:1024px)').matches) { window.openAI?.(); } });
-
-/* ========= 單例 Overlay（公告/版本/信心共用） ========= */
-const Overlay = (() => {
-  let el = null, lock = 0;
-  const lockBody = () => { if(!lock){ document.body.style.overflow='hidden'; } lock++; };
-  const unlockBody = () => { lock=Math.max(0,lock-1); if(!lock){ document.body.style.overflow=''; } };
-  function ensure(){
-    if(el) el.remove();
-    el = document.createElement('div');
-    el.id='overlay-modal'; el.role='dialog'; el.ariaModal='true';
-    el.style.cssText=`position:fixed;inset:0;z-index:99999;background:rgba(5,8,16,.68);backdrop-filter:blur(18px);display:grid;place-items:center`;
-    el.innerHTML=`
-      <div class="modal-card small" style="width:min(560px,92vw);background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);border:1px solid rgba(255,255,255,.14);border-radius:20px;box-shadow:var(--shadow);">
-        <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.10)">
-          <h2 class="title" style="margin:0;font-size:1.05rem">訊息</h2>
-          <button id="ov-close" class="btn ghost">關閉</button>
-        </div>
-        <div id="ov-body" class="modal-body" style="padding:16px"></div>
-      </div>`;
-    document.body.appendChild(el);
-    lockBody();
-    el.addEventListener('click',e=>{ if(e.target===el) Overlay.close(); });
-    el.querySelector('#ov-close').addEventListener('click',Overlay.close);
-    return el;
+      const btn=document.createElement('span');
+      btn.className='tool copy-qa';
+      btn.setAttribute('role','button');
+      btn.setAttribute('tabindex','0');
+      btn.title='複製這則 QA';
+      btn.textContent='📋 複製';
+      tools.appendChild(btn);
+    });
   }
-  return {
-    open({title='訊息',html=''}){ const box=ensure(); box.querySelector('.title').textContent=title; box.querySelector('#ov-body').innerHTML=html; },
-    close(){ if(el){ el.remove(); el=null; unlockBody(); } },
-    isOpen(){ return !!el; }
-  };
-})();
 
-/* ========= 公告：點鈴鐺才開 ========= */
-(function wireAnnouncements(){
-  const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。',start:'2025-10-07T00:00:00+08:00'}];
-  const bell=document.getElementById('site-bell');
-  const now=Date.now();
-  const isActive=a=>{const st=a.start?new Date(a.start).getTime():-Infinity;const ed=a.end?new Date(a.end).getTime():Infinity;return now>=st&&now<=ed;};
-  const active=ANNOUNCEMENTS.filter(isActive);
-  if(active.length) bell?.setAttribute('data-has',active.length); else bell?.removeAttribute('data-has');
-  bell?.addEventListener('click',()=>{
-    const html = active.length
-      ? `<div class="ann-list">${active.map(a=>`
-          <article class="ann-item">
-            <h4>${a.title}</h4>
-            <div class="meta">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div>
-            <p>${a.body}</p>
-          </article>`).join('')}</div>`
-      : `<p class="muted">目前沒有公告。</p>`;
-    Overlay.open({title:'網站公告', html});
+  function toastAt(text, rect){
+    const tip=document.createElement('div');
+    tip.className='toast'; tip.textContent=text;
+    const y = Math.max(12, window.scrollY + rect.top - 14);
+    const x = Math.min(window.innerWidth-12, Math.max(12, window.scrollX + rect.left + rect.width/2));
+    tip.style.top = `${y}px`; tip.style.left = `${x}px`;
+    tip.style.transform = 'translate(-50%, 0)';
+    document.body.appendChild(tip);
+    setTimeout(()=>tip.remove(), 1650);
+  }
+
+  async function doCopy(fromEl, btn){
+    const item = fromEl.closest('.item');
+    const txt = item?.querySelector('.a-inner')?.innerText?.trim();
+    if(!txt) return;
+    await navigator.clipboard.writeText(txt);
+    btn.classList.add('copied');
+    setTimeout(()=>btn.classList.remove('copied'), 420);
+    toastAt('已複製 QA', btn.getBoundingClientRect());
+  }
+
+  // 事件代理：點擊或鍵盤操作
+  document.addEventListener('click', e=>{
+    const btn = e.target.closest('.tool.copy-qa,[data-copy]');
+    if(!btn) return;
+    e.preventDefault(); doCopy(btn, btn);
   });
-})();
-
-/* ========= 分享 ========= */
-(function wireShare(){
-  const btn=document.getElementById('site-share');
-  btn?.addEventListener('click', async ()=>{
-    const data={title:document.title,text:'鹿🦌的QA網站',url:location.href};
-    try{ if(navigator.share){ await navigator.share(data); } else { await navigator.clipboard.writeText(location.href); btn.textContent='已複製連結'; setTimeout(()=>btn.textContent='分享',1200);} }catch{}
+  document.addEventListener('keydown', e=>{
+    if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){
+      e.preventDefault(); doCopy(e.target, e.target);
+    }
   });
+
+  // 初次與動態渲染時都補按鈕
+  ensureCopyButtons();
+  const mo=new MutationObserver(muts=>{
+    muts.forEach(m=>m.addedNodes.forEach(n=>{
+      if(n.nodeType===1) ensureCopyButtons(n);
+    }))
+  });
+  mo.observe(list, {childList:true, subtree:true});
 })();
 
-/* ========= iOS 100vh 修正 ========= */
-const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
-window.addEventListener('resize', setVH); setVH();
+// === 影片：點一次只渲染一次（避免連續兩則相同資訊） ===
+(function videoClickOnce(){
+  const list = document.getElementById('v-list');
+  const frame = document.getElementById('v-frame');
+  const title = document.getElementById('v-title');
+  if(!list || !frame) return;
+  let lock=false, lastKey='';
+  list.addEventListener('click', (e)=>{
+    const item=e.target.closest('[data-video]'); if(!item) return;
+    if(lock) return; lock=true; setTimeout(()=>lock=false,600);
+    try{
+      const data=JSON.parse(item.dataset.video||'{}'); // {title,url,desc,id}
+      const key = (data.id||data.url||'') + '|' + (data.title||'');
+      if(key===lastKey) return; lastKey=key;
+      frame.innerHTML='';
+      const wrap=document.createElement('div'); wrap.className='video-embed';
+      wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      frame.appendChild(wrap);
+      if(title) title.textContent=data.title||'影片';
+    }catch{}
+  }, true);
+})();
 
-/* ========= 影片清單：點一次只渲染一次 ========= */
-const videoList = document.getElementById('v-list');
-const videoFrame = document.getElementById('v-frame');
-const videoTitle = document.getElementById('v-title');
-let selectingVideo = false;
-videoList?.addEventListener('click', (e)=>{
-  const item=e.target.closest('[data-video]'); if(!item||selectingVideo) return; selectingVideo=true;
-  try{
-    const data=JSON.parse(item.dataset.video||'{}');  // {title,url,desc}
-    // 清空舊內容 → 塞新 iframe（只做一次）
-    videoFrame.innerHTML='';
-    const wrap=document.createElement('div'); wrap.className='video-embed';
-    wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-    videoFrame.appendChild(wrap);
-    if(videoTitle) videoTitle.textContent=data.title||'影片';
-  }finally{ selectingVideo=false; }
+// === 換頁後回到最上面（prev/next/直接輸入） ===
+['prev','next','page'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  const evt = id==='page' ? 'change' : 'click';
+  el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));
 });
 
-/* ========= 分頁：換頁後回到最上面 ========= */
-document.getElementById('prev')?.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-document.getElementById('next')?.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-document.getElementById('page')?.addEventListener('change',()=>window.scrollTo({top:0,behavior:'smooth'}));
+// === AI 訊息去重（相鄰兩則一樣 → 移除較新的那則） ===
+(function dedupeAssistant(){
+  const box = document.getElementById('ai-messages');
+  if(!box) return;
+  let t=null;
+  const mo = new MutationObserver(()=>{
+    clearTimeout(t);
+    t = setTimeout(()=>{
+      const bubbles = [...box.querySelectorAll('.msg.assistant .bubble')];
+      if(bubbles.length < 2) return;
+      const a = bubbles[bubbles.length-2]?.textContent?.trim();
+      const b = bubbles[bubbles.length-1]?.textContent?.trim();
+      if(a && b && a === b){
+        bubbles[bubbles.length-1].closest('.msg.assistant')?.remove();
+      }
+    }, 50);
+  });
+  mo.observe(box, {childList:true, subtree:true});
+})();
 
-/* ========= 語音：麥克風(STT) + 喇叭(TTS) ========= */
-const Voice = {
-  rec:null, recOn:false, ttsOn:false,
-  init(){
-    /* STT：SpeechRecognition */
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(SR){
-      this.rec = new SR();
-      this.rec.lang='zh-TW';
-      this.rec.interimResults=false;
-      this.rec.continuous=false;
-      this.rec.addEventListener('result',(e)=>{
-        const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
-        const input = document.getElementById('ai-text'); if(input) input.value = text;
-        document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
-      });
-      this.rec.addEventListener('end',()=>{ this.recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); });
-    }
-    document.getElementById('ai-mic')?.addEventListener('click',()=>this.toggleRec());
+// === 語音：只保留這個版本（麥克風/喇叭修復，避免重複宣告） ===
+window.Voice ??= (() => {
+  let rec = null, recOn = false, ttsOn = false, inited = false;
 
-    /* TTS：speechSynthesis */
-    document.getElementById('ai-tts')?.addEventListener('click',()=>this.toggleTTS());
-
-    /* 監聽聊天室訊息：新 AI 泡泡出現時自動朗讀（避免依賴外部事件） */
-    const list = document.getElementById('ai-messages');
-    if(list){
-      const obs = new MutationObserver(()=>{
-        if(!this.ttsOn) return;
-        const last = list.querySelector('.msg.assistant:last-of-type .bubble');
-        const text = last?.textContent?.trim(); if(text) this.speak(text);
-      });
-      obs.observe(list, { childList:true, subtree:true });
-    }
-  },
-  toggleRec(){
-    if(!this.rec){ alert('此瀏覽器不支援語音輸入'); return; }
-    if(this.recOn){ this.rec.stop(); this.recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); return; }
-    try{ this.rec.start(); this.recOn=true; document.getElementById('ai-mic')?.classList.add('rec'); }catch{}
-  },
-  toggleTTS(){
-    this.ttsOn=!this.ttsOn;
-    const btn=document.getElementById('ai-tts');
-    btn?.classList.toggle('on', this.ttsOn);
-    if(!this.ttsOn && 'speechSynthesis' in window) speechSynthesis.cancel();
-  },
-  speak(text){
+  function toggleRec(){
+    if(!rec){ alert('此瀏覽器不支援語音輸入'); return; }
+    if(recOn){ rec.stop(); recOn=false; btnMic()?.classList.remove('rec'); return; }
+    try{ rec.start(); recOn=true; btnMic()?.classList.add('rec'); }catch{}
+  }
+  function toggleTTS(){
+    ttsOn = !ttsOn;
+    btnTTS()?.classList.toggle('on', ttsOn);
     if(!('speechSynthesis' in window)) return;
+    if(!ttsOn) speechSynthesis.cancel();
+    if(ttsOn){
+      const txt=lastAssistantText();
+      if(txt) speak(txt);
+    }
+  }
+  function lastAssistantText(){
+    return document.querySelector('#ai-messages .msg.assistant:last-of-type .bubble')?.textContent?.trim();
+  }
+  function speak(text){
+    if(!('speechSynthesis' in window) || !text) return;
+    speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    const pick=(voices)=>{
+    const useVoice = (voices)=>{
       const v = voices.find(v=>/zh[-_]?TW/i.test(v.lang)) || voices.find(v=>/zh/i.test(v.lang)) || voices[0];
       if(v) u.voice=v; speechSynthesis.speak(u);
     };
     const voices = speechSynthesis.getVoices();
-    if(voices.length) pick(voices);
-    else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); pick(speechSynthesis.getVoices()); });
+    if(voices.length) useVoice(voices);
+    else speechSynthesis.addEventListener('voiceschanged', function onv(){
+      speechSynthesis.removeEventListener('voiceschanged', onv);
+      useVoice(speechSynthesis.getVoices());
+    });
   }
-};
-document.addEventListener('DOMContentLoaded', ()=>Voice.init());
 
-/* ========= 手機輸入時滾底，減少跳動 ========= */
-document.getElementById('ai-text')?.addEventListener('focus',()=>setTimeout(scrollBottom,50));
+  function btnMic(){ return document.getElementById('ai-mic'); }
+  function btnTTS(){ return document.getElementById('ai-tts'); }
+
+  function init(){
+    if(inited) return; inited = true;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(SR){
+      rec = new SR();
+      rec.lang='zh-TW'; rec.interimResults=false; rec.continuous=false;
+      rec.addEventListener('result',(e)=>{
+        const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
+        const input = document.getElementById('ai-text'); if(input) input.value = text;
+        document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+      });
+      rec.addEventListener('end',()=>{ recOn=false; btnMic()?.classList.remove('rec'); });
+    }
+    btnMic()?.addEventListener('click', toggleRec);
+    btnTTS()?.addEventListener('click', toggleTTS);
+
+    // 新訊息自動朗讀（當喇叭為開）
+    const list=document.getElementById('ai-messages');
+    if(list){
+      const obs = new MutationObserver(()=>{
+        if(!ttsOn) return;
+        const txt=lastAssistantText(); if(txt) speak(txt);
+      });
+      obs.observe(list, { childList:true, subtree:true });
+    }
+  }
+  return { init, toggleRec, toggleTTS, speak };
+})();
+document.addEventListener('DOMContentLoaded', () => window.Voice.init());
+
+(function loaderFix(){
+  const el = document.getElementById('page-loading');
+  if(!el) return;
+
+  // 先確保可見
+  el.style.opacity = '1';
+  el.style.pointerEvents = 'auto';
+  el.classList.remove('hide');
+
+  let done = false;
+  function kill(){
+    if(done) return; done = true;
+    el.classList.add('hide');
+    const onEnd = ()=>{ 
+      el.removeEventListener('transitionend', onEnd);
+      if(el.parentNode) el.parentNode.removeChild(el);
+    };
+    el.addEventListener('transitionend', onEnd);
+    setTimeout(()=>{ if(document.body.contains(el)) el.remove(); }, 800);
+  }
+
+  // 確保 DOM 全部出現後再啟動倒數
+  window.addEventListener('load', ()=> setTimeout(kill, 1800), { once:true });
+  // 如果 load 沒觸發，也在 3 秒後強制收掉
+  setTimeout(kill, 3000);
+})();
+// === Loading：已有卡片＋轉圈圈；載入完成自動淡出（你的現有 hideLoader 已涵蓋） ===
 </script>
 </body>
 </html>

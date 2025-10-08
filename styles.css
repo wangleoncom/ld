@@ -26,12 +26,13 @@
   /* Chat 每行字元上限（會配合容器比例取最小） */
   --linech:34ch; /* Mobile 預設 */
 }
+@media (min-width:768px){ :root{ --linech:46ch } }
 @media (prefers-reduced-motion: reduce){ #page-loading .dot{ animation:none } }
 
 /* ---- 全域 ---- */
 *{box-sizing:border-box;transition:all .25s var(--ease)}
 html,body{height:100%}
-html,body{overflow-x:hidden} /* 全站避免橫向捲動 */
+html,body{overflow-x:hidden}
 body{
   margin:0;color:var(--text);
   font-family:ui-sans-serif,system-ui,"Inter","Noto Sans TC",sans-serif;
@@ -52,40 +53,22 @@ a{color:var(--accent)}
 .brand{display:flex;gap:14px;align-items:center}
 .logo-img{width:56px;height:56px;border-radius:16px;box-shadow:0 0 34px rgba(122,162,255,.45);background:linear-gradient(145deg,var(--accent),var(--accent2))}
 h1{
-  margin:0;
-  font-size:2rem;
+  margin:0;font-size:2rem;
   background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3),var(--accent2));
-  background-clip:text;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  color:transparent;
+  background-clip:text; -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
   font-weight:800;
 }
 
 /* ---- 右上角 actions ---- */
-.top-actions {
-  position:absolute;
-  right:24px;
-  top:22px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
+.top-actions{position:absolute;right:24px;top:22px;display:flex;gap:10px;align-items:center}
 #site-share{position:static !important}
 #site-bell{position:relative}
 #site-bell[data-has]::after{
-  content:attr(data-has);
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:#ff4d4f;
-  color:#fff;
-  font-size:.72rem;
-  line-height:1;
-  padding:2px 6px;
-  border-radius:999px;
-  box-shadow:0 0 0 2px #070b16;
+  content:attr(data-has);position:absolute;top:-6px;right:-6px;background:#ff4d4f;color:#fff;
+  font-size:.72rem;line-height:1;padding:2px 6px;border-radius:999px;box-shadow:0 0 0 2px #070b16;
 }
+
 /* ---- Tabs ---- */
 .tabs{display:flex;gap:10px;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -183,7 +166,6 @@ h1{
 .pager .btn{font-weight:700}
 .pager .slash{opacity:.6}
 .pager .pages-badge{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10)}
-/* 統一外觀的數字輸入 */
 .page-input,
 .pager input[type="number"]{
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
@@ -203,7 +185,7 @@ h1{
 }
 
 /* ---- Modal ---- */
-.modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(5,8,16,.65);backdrop-filter:blur(18px);z-index:60}
+.modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(5,8,16,.65);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:60}
 .modal.hidden{display:none}
 .modal-card{
   width:min(760px,92vw);
@@ -224,7 +206,7 @@ h1{
   color:#0f1220;border:none;box-shadow:0 18px 40px rgba(122,162,255,.35);cursor:pointer;z-index:55;
 }
 
-/* ---- AI Panel（背景實色，防穿透） ---- */
+/* ---- AI Panel ---- */
 .ai-panel{
   position:fixed;right:16px;bottom:16px;width:min(420px,95vw);height:min(78vh,780px);
   background-color:#0f1220 !important;background-image:none !important;
@@ -236,8 +218,9 @@ h1{
 .ai-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.10);background:#0f1220}
 .ai-messages{min-height:0;padding:12px;overflow:auto;display:flex;flex-direction:column;gap:10px;background:#0f1220}
 .ai-input{position:sticky;bottom:0;display:flex;gap:10px;padding:8px;border-top:1px solid rgba(255,255,255,.10)}
-.ai-inputbox{height:auto;min-height:38px;max-height:120px;resize:none;font-size:16px} /* iOS 避免自動放大 */
+.ai-inputbox{height:auto;min-height:38px;max-height:120px;resize:none;font-size:16px}
 
+/* ---- Chat bubbles ---- */
 .msg{display:flex;gap:8px;align-items:flex-start;width:100%;animation:msgIn .22s ease-out both}
 @keyframes msgIn{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
 .avatar{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#0f2748;overflow:hidden}
@@ -246,11 +229,8 @@ h1{
 .msg .body{display:block;max-width:100%}
 .msg .role{font-size:.78rem;color:var(--muted)}
 .msg .bubble{
-  display:inline-block;
-  width:fit-content;
-  max-width:min(72%,var(--linech));
-  padding:10px 12px;border-radius:12px;line-height:1.6;
-  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+  display:inline-block; width:fit-content; max-width:min(72%,var(--linech));
+  padding:10px 12px;border-radius:12px;line-height:1.6; white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
 }
 .msg.assistant{justify-content:flex-start}
 .msg.assistant .bubble{background:#1b2a58;color:#fff;cursor:pointer}
@@ -262,7 +242,7 @@ h1{
 .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
 @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
 
-/* 置頂信心條（預設隱藏；點泡泡才由 JS 注入 .show） */
+/* 置頂信心條 */
 .ai-hint{
   display:none;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;
   background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
@@ -276,19 +256,19 @@ h1{
 .ai-hint.low{box-shadow:inset 0 -2px 0 rgba(255,179,179,.45)}
 #ai-hint.show{display:flex}
 
-/* ---- 影片專區：桌機版（左右佈局） ---- */
+/* ---- 影片：桌機左右佈局 ---- */
 .video-layout{display:flex;gap:20px;align-items:flex-start;max-width:1200px;margin:0 auto;padding:20px}
 .video-left{flex:3;min-width:0}
 .video-right{flex:1;display:flex;flex-direction:column;gap:10px;max-height:700px;overflow:auto}
 .video-frame{overscroll-behavior:contain}
 .video-frame iframe{width:100%;height:640px;border-radius:16px;background:#0c0f1c;box-shadow:0 0 30px rgba(0,0,0,.4)}
 .video-header{display:flex;align-items:center;gap:8px;margin:6px 0}
-.video-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2; /* ✅ 標準屬性，新增這行 */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.video-title{
+  display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.video-label{
+  font-size:.95rem; line-height:1.25; flex:1 1 auto; min-width:0;
+  white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-clamp:2;
 }
 .video-controls.top{display:flex;justify-content:flex-start;margin-bottom:6px}
 
@@ -303,17 +283,17 @@ h1{
   box-shadow:0 0 0 3px rgba(122,162,255,.18);
   background:linear-gradient(135deg,rgba(122,162,255,.18),rgba(179,140,255,.18));
 }
-.video-label{font-size:.9rem;white-space:normal;overflow-wrap:anywhere}
+
 .info-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;cursor:pointer;padding:4px 8px}
 .info-btn:hover{background:rgba(255,255,255,.30)}
 .info-btn.small{padding:2px 6px;font-size:.85rem}
 
-/* ---- 影片 16:9 自適應容器（iframe 放這裡就不會爆版） ---- */
+/* 16:9 自適應容器 */
 .video-embed{position:relative;width:100%;border-radius:16px;background:#0c0f1c;overflow:hidden}
 .video-embed::before{content:"";display:block;padding-top:56.25%}
 .video-embed iframe{position:absolute;inset:0;width:100% !important;height:100% !important;border:0;border-radius:inherit}
 
-/* ---- Cards / Tags ---- */
+/* ---- Tags ---- */
 .card .chips, .tags{display:flex;flex-wrap:wrap;gap:6px;row-gap:6px}
 .tag{padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.10);font-size:.8rem}
 .tag.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0f1220;font-weight:600}
@@ -335,7 +315,6 @@ h1{
 
 /* ---- 手機優化（≤ 768px） ---- */
 @media (max-width:768px){
-  /* 標頭縮排，右上角改為文流內換行 */
   .hero{padding:28px 16px 8px}
   h1{font-size:clamp(20px,4.8vw,28px)}
   .top-actions{position:static !important;display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
@@ -344,7 +323,7 @@ h1{
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat .value{font-size:1rem}
 
-  /* 影片：上下堆疊 + 16:9 自適應 + 清單不固定高 */
+  /* 影片：上下堆疊 + 16:9 + 清單不固定高 */
   .video-layout{display:block;padding:12px}
   .video-left{margin-bottom:12px}
   .video-right{max-height:unset !important;overflow:visible !important;display:grid;gap:8px}
@@ -354,18 +333,14 @@ h1{
   .video-title{font-size:.95rem}
   .info-btn{padding:6px 10px}
 
-  /* 分頁器更易點 */
   .pager{gap:8px}
-  .page-input,
-  .pager input[type="number"]{width:72px}
+  .page-input, .pager input[type="number"]{width:72px}
 
-  /* Modal 貼齊安全區 */
   .modal-card,.modal-card.small{
     width:calc(100vw - 2*env(safe-area-inset-left) - 2*env(safe-area-inset-right));
     max-width:100%;margin:0;border-radius:14px;
   }
 
-  /* AI 面板：滿版 */
   .ai-panel{
     right:0;bottom:0;width:100vw;
     height:calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
@@ -376,10 +351,8 @@ h1{
   .msg .bubble{max-width:min(86%,var(--linech))}
   .ai-panel.hidden{display:none}
 
-  /* FAB 避開安全區 */
   .ai-fab{right:calc(16px + env(safe-area-inset-right)); bottom:calc(16px + env(safe-area-inset-bottom));}
 
-  /* 元件高度 */
   .badge,.tab,.btn{min-height:40px}
 }
 
@@ -396,94 +369,36 @@ h1{
 
 /* ===== Mobile Video Redesign (≤768px) ===== */
 @media (max-width:768px){
-
-  /* 整區：改為上下堆疊，留出安全區 */
-  .video-layout{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    padding:0;
-    margin:0 -16px;           /* 拉齊到邊，視覺更滿版 */
-  }
-
-  /* 上半：播放器區（含標題/工具列），黏在頂端，捲清單不會跑走 */
-  .video-left{
-    position:sticky;
-    top:calc(env(safe-area-inset-top,0) + 0px);
-    z-index:2;
-    background:#0f1220;
-    padding:12px 16px 10px;
-    border-bottom:1px solid rgba(255,255,255,.08);
-  }
-
+  .video-layout{display:flex;flex-direction:column;gap:10px;padding:0;margin:0 -16px}
+  .video-left{position:sticky;top:calc(env(safe-area-inset-top,0) + 0px);z-index:2;background:#0f1220;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
   .video-controls.top{margin:0 0 8px 0; justify-content:flex-start}
   .video-header{display:flex; align-items:center; gap:8px; margin:6px 0 8px}
-  .video-title{
-    font-size:1rem; font-weight:800; line-height:1.25;
-    max-width:88vw; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  }
+  .video-title{font-size:1rem; font-weight:800; line-height:1.25; max-width:88vw; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
   .info-btn{padding:6px 10px; border-radius:10px}
-
-  /* 播放器：16:9 自適應，避免超出；加圓角與陰影 */
   #v-frame{margin:0}
-  #v-frame .video-embed,
-  #v-frame iframe{
-    width:100% !important;
-    height:auto !important;
-    aspect-ratio:16/9;
-    min-height:unset !important;
-    border-radius:14px;
-    background:#0c0f1c;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
-  }
-
-  /* 下半：清單做成獨立捲動區，佔滿剩餘高度 */
-  .video-right{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    padding:12px 16px 16px;
-    max-height:calc(100dvh - (16vw*9/16) - 120px - env(safe-area-inset-bottom,0));
-    /* 估算：播放器高度 + 標題與控件約 120px */
-    overflow:auto;
-    -webkit-overflow-scrolling:touch;
-    background:transparent;
-  }
-
-  /* 清單項：大按區、可兩行標題、右側資訊鈕固定寬 */
-  .video-item{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:10px; padding:12px 14px;
-    border-radius:12px; border:1px solid rgba(255,255,255,.10);
-    background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
-  }
+  #v-frame .video-embed, #v-frame iframe{width:100% !important; height:auto !important; aspect-ratio:16/9; min-height:unset !important; border-radius:14px; background:#0c0f1c; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .video-right{display:flex;flex-direction:column;gap:8px;padding:12px 16px 16px;max-height:calc(100dvh - (16vw*9/16) - 120px - env(safe-area-inset-bottom,0));overflow:auto;-webkit-overflow-scrolling:touch;background:transparent}
+  .video-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.10); background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%)}
   .video-item:active{transform:scale(.99)}
-  .video-label{
-    font-size:.95rem; line-height:1.25; flex:1 1 auto; min-width:0;
-    white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  }
+  .video-label{font-size:.95rem; line-height:1.25; flex:1 1 auto; min-width:0; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
   .info-btn.small{flex:0 0 auto; padding:6px 10px}
+  .video-right, .video-item, .video-label, .video-header, #v-frame{word-break:break-word; overflow-wrap:anywhere}
+}
 
-  /* 防溢位：任何長連結/文字都折行 */
-  .video-right, .video-item, .video-label, .video-header, #v-frame{
-    word-break:break-word; overflow-wrap:anywhere;
-  }
-}
 /* ==== QA 複製按鈕強化 ==== */
-.tools .tool{
-  cursor:pointer;
-  user-select:none;
-  padding:2px 8px;
-  border-radius:8px;
-  transition:transform .18s ease, background .18s ease, color .18s ease;
-}
+.tools .tool{cursor:pointer;user-select:none;padding:2px 8px;border-radius:8px;transition:transform .18s ease, background .18s ease, color .18s ease}
 .tools .tool:hover{ background:rgba(255,255,255,.12); color:#fff }
 .tools .tool:active{ transform:scale(.96) }
 @keyframes copy-pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
 .tool.copied{ animation:copy-pop .28s ease }
 
-/* ==== Loading 卡片 ==== */
-#page-loading{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+/* ==== Loading 卡片（容器＋動畫） ==== */
+#page-loading{
+  position:fixed; inset:0; display:grid; place-items:center; z-index:9999;
+  background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  opacity:1; transition:opacity .35s ease;
+}
+#page-loading.hide{opacity:0;pointer-events:none}
 #page-loading .card{
   width:min(360px,86vw);
   background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
@@ -492,21 +407,56 @@ h1{
   box-shadow:var(--shadow);
 }
 #page-loading .title{font-weight:800; margin:6px 0 10px}
-#page-loading .spinner{
-  position:relative; width:72px; height:72px; margin:12px auto 6px;
-}
-#page-loading .dot{
-  position:absolute; inset:0; width:100%; height:100%;
-  animation:spin 1.3s linear infinite;
-}
+#page-loading .dot{position:absolute; inset:0; width:100%; height:100%; animation:spin 1.3s linear infinite}
 #page-loading .dot::before{
   content:""; position:absolute; left:50%; top:6px; transform:translateX(-50%);
-  width:8px; height:8px; border-radius:50%; background:currentColor;
-  box-shadow:0 0 12px currentColor;
+  width:8px; height:8px; border-radius:50%; background:currentColor; box-shadow:0 0 12px currentColor;
 }
 #page-loading .dot:nth-child(1){color:#7aa2ff; animation-delay:0s}
 #page-loading .dot:nth-child(2){color:#b38cff; animation-delay:.1s}
 #page-loading .dot:nth-child(3){color:#72f5dd; animation-delay:.2s}
 #page-loading .dot:nth-child(4){color:#ffb3d6; animation-delay:.3s}
-@keyframes spin{to{transform:rotate(360deg)}}
-#page-loading.hidden{display:none}
+
+#page-loading .spinner{
+  position:relative;
+  width:80px; height:80px;
+  margin:12px auto 6px;
+  display:grid; place-items:center;
+}
+#page-loading .spinner .loading-img{
+  width:100%; height:100%;
+  border-radius:50%;        /* 讓正方形變圓 */
+  object-fit:cover;
+  animation:spinImg 1.8s linear infinite;  /* 旋轉動畫 */
+  box-shadow:0 0 20px rgba(122,162,255,.35);
+}
+@keyframes spinImg{
+  to{transform:rotate(360deg);}
+}
+/* ---- 桌機強制回原本高度設定 ---- */
+@media (min-width:769px){
+  #v-frame .video-embed, #v-frame iframe{
+    width:100% !important; height:640px !important; aspect-ratio:auto; min-height:640px !important;
+  }
+}
+/* === QA 複製提示 Toast === */
+.toast{
+  position:fixed; z-index:9999;
+  padding:8px 12px; border-radius:10px;
+  background:rgba(0,0,0,.78); color:#fff; font-weight:800;
+  pointer-events:none; box-shadow:0 8px 24px rgba(0,0,0,.35);
+  animation:toastfade 1.6s ease forwards;
+}
+@keyframes toastfade{
+  0%{opacity:0; transform:translateY(8px)}
+  12%{opacity:1; transform:translateY(0)}
+  88%{opacity:1}
+  100%{opacity:0; transform:translateY(-6px)}
+}
+/* 讓複製按鈕有明顯按鈕手勢與動畫 */
+.tools .tool{cursor:pointer; user-select:none; padding:2px 8px; border-radius:8px;
+  transition:transform .18s ease, background .18s ease, color .18s ease}
+.tools .tool:hover{ background:rgba(255,255,255,.12); color:#fff }
+.tools .tool:active{ transform:scale(.96) }
+.tool.copied{ animation:copy-pop .28s ease }
+@keyframes copy-pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
