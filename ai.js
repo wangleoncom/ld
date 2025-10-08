@@ -1,8 +1,11 @@
-/* AI 麋鹿（純本地強化版 + 信心分數重設）
- * 多信號評分 + 信心分數（best/gap/coverage/trigram）→ 盡量回答
+/* ===== AI 麋鹿（純本地強化版 + 信心分數重設）=====
+ * 多信號評分：BM25-lite / token-set / trigram / prefix / fuzzy
+ * 信心分數：strength + coverage + gap + trigram
+ * 不直接動 UI，只回傳資料給外層（app.js / index.html）使用
+ * 對「主播多高」等常見問法做短語展開，並同義詞擴展
  */
 
-const AI = (() => {
+(function(){
   const ctx = {
     useLocalFirst: true,
     idxBuilt: false,
@@ -12,8 +15,25 @@ const AI = (() => {
     inv: new Map(),
     seg: null
   };
-  // 簡單同義/別稱展開：variant -> canonical 追加到查詢
-// 針對常見問法做短語展開（先正規化再比對）
+
+  // —— 短語展開（常見問法 → 補關鍵字）——
+  // 用「正規化後」的字串當 key，避免全半形/簡繁/大小寫影響
+  const PHRASE_SYNS = new Map([
+    ['主播多高','身高多高'],
+    ['主播好高','身高多高'],
+    ['身高多少','身高多高'],
+    ['多高','身高'],
+    ['主播幾公分','身高'],
+  ].map(([k,v])=>[normalize(k), normalize(v)]));
+
+  function expandQuery(q){
+    const n = normalize(q);
+    let out = q; // 保留原字面（給 UI 顯示），但用正規化字串判斷是否要補詞
+    for(const [variant, canon] of PHRASE_SYNS.entries()){
+      if(n.includes(variant)) out += ' ' + canon;
+    }
+    return out;
+  }
 
   // —— 常用映射 / 同義詞 —— //
   const zhMap = new Map(Object.entries({
@@ -76,9 +96,9 @@ const AI = (() => {
   ]);
 
   const numSyn = new Map([
-    ['零',['0','〇']],['一',['1','壹']],['二',['2','兩','貳']],['三',['3','叁']],['四',['4','肆']],
-    ['五',['5','伍']],['六',['6','陸']],['七',['7','柒']],['八',['8','捌']],['九',['9','玖']],['十',['10','拾']]
-  ]);
+  ['零',['0','〇']], ['一',['1','壹']], ['二',['2','兩','貳']], ['三',['3','叁']], ['四',['4','肆']],
+  ['五',['5','伍']], ['六',['6','陸']], ['七',['7','柒']], ['八',['8','捌']], ['九',['9','玖']], ['十',['10','拾']]
+]);
 
   // —— 正規化 / 分詞 —— //
   function toHalfWidth(str){
@@ -183,18 +203,17 @@ const AI = (() => {
   }
 
   function retrieve(query, k=5){
-  buildIndex();
-  const q0 = expandQuery(query);            // 先做短語展開
-  const baseTokens = segment(q0);           // 再分詞
-  const qTokens = expandTokens(baseTokens); // 同義擴展
-  const qTris = toSet(ngrams(normalize(q0)));
+    buildIndex();
+    const q0 = expandQuery(query);            // 先短語展開
+    const baseTokens = segment(q0);           // 分詞
+    const qTokens = expandTokens(baseTokens); // 同義擴展
+    const qTris = toSet(ngrams(normalize(q0)));
 
     const pool = candidateDocs(qTokens);
     const docs = pool.length ? pool : ctx.docs;
 
     const scored = docs.map(d => {
       const sc = scoreDoc(query, qTokens, qTris, d);
-      // 計算 query 覆蓋率：doc 中真正命中的查詢詞比例
       const uniqQ = new Set(qTokens);
       let hit = 0; uniqQ.forEach(t => { if(d.tf.has(t)) hit++; });
       const coverage = uniqQ.size ? hit/uniqQ.size : 0;
@@ -215,23 +234,11 @@ const AI = (() => {
     if(!results.length) return 0;
     const best = results[0];
     const second = results[1];
-
-    // 分數強度：把 total 轉為 0-1（logistic）
-    const strength = 1 - Math.exp(-Math.max(best.score,0)); // ↑單調，分數越大越靠近 1
-
-    // 與第二名差距
+    const strength = 1 - Math.exp(-Math.max(best.score,0)); // 0..1
     const gap = second ? Math.max(best.score - second.score, 0) / (Math.abs(second.score) + 1e-6) : 1;
-
-    // 查詢詞覆蓋率
-    const coverage = best.detail.coverage; // 0..1
-
-    // 三元組重疊（字符級對齊度）
-    const tri = best.detail.tri; // 0..1
-
-    // 綜合（可視站點再調）：強調 strength 與 coverage，其次 gap 與 tri
+    const coverage = best.detail.coverage || 0;
+    const tri = best.detail.tri || 0;
     const conf = (strength*0.45) + (coverage*0.30) + (gap*0.15) + (tri*0.10);
-
-    // 夾取
     return Math.max(0, Math.min(1, conf));
   }
 
@@ -239,33 +246,37 @@ const AI = (() => {
   async function ask(query){
     const top = retrieve(query, 5);
     if(!top.length) return '目前資料庫沒有這題，請在主頁搜尋或回報。';
-
     const conf = computeConfidence(top);
     const best = top[0].item;
-
-    // 盡量回答：不同信心層級給不同提示
     let answer = `可能的答案：\n${best.a}`;
-
     if(conf >= 0.60){
-      // 高信心：正常回答 + 建議
       const others = top.slice(1,3).map(r=>`• ${r.item.q}`);
       if(others.length) answer += `\n\n你也可以看看：\n${others.join('\n')}`;
     } else if(conf >= 0.35){
-      // 中信心：給輕度提醒
       answer = `可能的答案（信心較低，僅供參考）：\n${best.a}`;
       const others = top.slice(1,3).map(r=>`• ${r.item.q}`);
       if(others.length) answer += `\n\n相關題目：\n${others.join('\n')}`;
     } else {
-      // 低信心：仍回最接近答案，但明確標記
-      answer = `推測的相關答案（信心低）：\n${best.a}`;
+      answer = `推測的相關答案（信心低）：\n${best.a}\n`;
       const others = top.slice(0,3).map(r=>`• ${r.item.q}`);
-      answer += `\n\n建議改用其他關鍵字再試：\n${others.join('\n')}`;
+      if(others.length) answer += `\n建議改用其他關鍵字再試：\n${others.join('\n')}`;
     }
-
-    // 可選：附帶數值信心（0–1，保留兩位）
-    // answer += `\n\n[信心分數 ${conf.toFixed(2)}]`;
-
     return answer;
+  }
+
+  function explain(query){
+    const top = retrieve(query, 5);
+    const conf = computeConfidence(top);
+    const best = top[0]?.item;
+    const others = top.slice(1,3).map(r=>r.item.q);
+    const text = best ? `可能的答案：\n${best.a}` : '目前資料庫沒有這題，請在主頁搜尋或回報。';
+    return {
+      text,               // 純文字答案（外層可自行上色/換行）
+      conf,               // 0..1
+      top,                // 前5名（含細節/分數）
+      sourceQ: best ? top[0].item.q : '', // 第一名對應的原始 Q
+      suggestions: others // 其他可點選的 Q（字串陣列）
+    };
   }
 
   function saveSettings({useLocalFirst}){
@@ -280,24 +291,10 @@ const AI = (() => {
     ctx.useLocalFirst = l ? l === '1' : true;
     return { useLocalFirst: ctx.useLocalFirst };
   }
-  function explain(query){
-    const top = retrieve(query, 5);
-    const conf = (typeof computeConfidence === 'function') ? computeConfidence(top) : (top[0]?.score || 0);
-    const best = top[0]?.item;
-    const others = top.slice(1,3).map(r=>`• ${r.item.q}`);
-    let text = best ? `可能的答案：\n${best.a}` : '目前資料庫沒有這題，請在主頁搜尋或回報。';
-    return { text, conf, top };
-  }
 
-    function explain(query){
-    const top = retrieve(query, 5);
-    const conf = (typeof computeConfidence === 'function') ? computeConfidence(top) : (top[0]?.score || 0);
-    const best = top[0]?.item;
-    const others = top.slice(1,3).map(r=>`• ${r.item.q}`);
-    let text = best ? `可能的答案：\n${best.a}` : '目前資料庫沒有這題，請在主頁搜尋或回報。';
-    return { text, conf, top };
-  }
+  // 導出
+  window.AI = { ask, retrieve, explain, saveSettings, loadSettings };
 
-  return { ask, saveSettings, loadSettings, retrieve, explain };
+  // ========= 工具函式區（本檔內使用）=========
+  function toSet(a){ return new Set(a); } // 重複宣告保留給上方使用（壓過外部同名無害）
 })();
-window.AI = AI;

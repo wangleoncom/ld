@@ -675,3 +675,89 @@ body{padding-bottom:calc(80px + env(safe-area-inset-bottom));}
 
 /* 影片資訊、長連結自動換行 */
 .modal-body .break, .modal-body a{word-break:break-all; overflow-wrap:anywhere}
+
+/* —— 影片：16:9 響應 + 不截斷 —— */
+.video-embed{position:relative;width:100%;border-radius:16px;background:#0c0f1c;overflow:hidden}
+.video-embed::before{content:"";display:block;padding-top:56.25%} /* 16:9 */
+.video-embed iframe{
+  position:absolute;inset:0;width:100%!important;height:100%!important;border:0;border-radius:inherit
+}
+
+/* 手機：整個影片欄位可見、不被固定高度吃掉 */
+@media (max-width:768px){
+  .video-right{max-height:unset !important;overflow:visible !important}
+}
+
+/* —— 聊天視窗：桌機固定可展開、手機滿版；底部輸入不被鍵盤擠飛 —— */
+.ai-panel{
+  right:16px;bottom:16px;width:min(420px,95vw);height:min(78vh,780px);
+  display:grid;grid-template-rows:auto 1fr auto;overflow:hidden
+}
+.ai-messages{min-height:0;overflow:auto}
+.ai-input{position:sticky;bottom:0;padding-bottom:calc(env(safe-area-inset-bottom,0) + 8px)}
+.ai-inputbox{font-size:16px} /* iOS 避免自動放大 */
+
+@media (max-width:768px){
+  .ai-panel{right:0;bottom:0;width:100vw;height:100dvh;border-radius:0}
+}
+
+/* —— 聊天泡泡與連結換行（避免超出導致跑版） —— */
+.msg .bubble,
+.a-inner{word-break:break-word;overflow-wrap:anywhere}
+.msg .bubble a,
+.modal-body a{word-break:break-all}
+
+/* —— AI 信心：不預設顯示，點氣泡才出 Modal；樣式保留 —— */
+.ai-hint{display:none} /* 置頂條關掉；改用點擊顯示詳情 */
+
+/* —— 影片清單文字不被擠壓、可折行 —— */
+.video-label{white-space:normal !important}
+
+/* —— 防止任何寬元素把版面撐爆 —— */
+.container,#qa-list,.video-section,.video-layout{max-width:100%;overflow-x:hidden}
+
+/* === Chat 橫向編排 + 每行最多字數（兩邊一致） === */
+:root{
+  /* 每行最多「字元」寬度（中文用 ch 效果最好）*/
+  --linech: 34ch;        /* 手機預設一行 34 個字 */
+}
+
+@media (min-width:768px){
+  :root{ --linech: 46ch } /* 桌機一行 46 個字 */
+}
+
+.ai-messages{
+  display:flex; flex-direction:column; gap:10px;
+  padding:12px; overflow-x:hidden;
+}
+
+.msg{
+  display:flex; align-items:flex-start; gap:8px; width:100%;
+}
+
+.msg .avatar{ flex:0 0 28px; width:28px; height:28px; border-radius:50%; overflow:hidden }
+.msg .body{ display:block; max-width:100% }
+
+/* 關鍵：限制單行寬度、必要時換行，不讓連結撐版 */
+.msg .bubble{
+  display:inline-block;
+  max-width: min(72%, var(--linech)); /* 寬度同時受容器比例與字數上限限制 */
+  padding:10px 12px; border-radius:12px; line-height:1.6;
+
+  /* 強制換行策略（連結/長字串也不外溢） */
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* 左（AI）右（使用者）橫向排列 */
+.msg.assistant{ justify-content:flex-start }
+.msg.user{ justify-content:flex-end }
+
+/* 讓超長網址在泡泡內可折行 */
+.msg .bubble a{ word-break:break-all; overflow-wrap:anywhere }
+
+/* 超小螢幕再放寬一點泡泡寬度 */
+@media (max-width:360px){
+  .msg .bubble{ max-width: min(86%, var(--linech)) }
+}

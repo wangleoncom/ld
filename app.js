@@ -1,11 +1,14 @@
-/* ===== Deer QA WebApp v1.8.6 (fixed) =====
- * 全功能：AI麋鹿 / 頁面搜尋 / 導覽 / 更新提示
- * 修正：加入 expandQuery、移除重複 submit 綁定與 onAsk、保留單一信心條函式
+/* ===== Deer QA WebApp v1.8.7 (final) =====
+ * 功能：AI麋鹿 / 頁面搜尋 / 導覽 / 公告
+ * 重點：回答信心「只在使用者點 AI 泡泡時」以單一最上層 Modal 顯示
+ * 清理：移除重複 onSubmit 與信心條程式、統一事件來源
  */
 
 /* ---- 基本工具 ---- */
-function norm(s){return (s||'').toLowerCase().trim();}
-function clamp(min,max,x){if(x<min)return min;if(x>max)return max;return x;}
+function norm(s){ return (s||'').toLowerCase().trim(); }
+function clamp(min,max,x){ if(x<min)return min; if(x>max)return max; return x; }
+function id(s){ return document.getElementById(s); }
+function qs(s){ return document.querySelector(s); }
 
 /* ---- 常數 ---- */
 const STATE={pageSize:30,page:1,filtered:[...window.DEER_QA],highlight:''};
@@ -28,34 +31,39 @@ function init(){
 
   safeOn('ai-fab','click',openAI);
   safeOn('ai-close','click',closeAI);
-  // ❌ 移除：safeOn('ai-form','submit', onAsk) 以及 onAsk 函式
 
+  // 建議快速鍵委派（避免重綁）
   const aiMsgs=id('ai-messages');
   if(aiMsgs)aiMsgs.addEventListener('click',e=>{
-    const btn=e.target.closest('.s-btn');
-    if(btn){
-      e.preventDefault();e.stopPropagation();
-      const box=id('ai-text'); if(!box) return;
-      box.value=btn.dataset.sug;
-      id('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true}));
-    }
+    const sug=e.target.closest('.s-btn');
+    if(!sug) return;
+    e.preventDefault(); e.stopPropagation();
+    const box=id('ai-text'); if(!box) return;
+    box.value=sug.dataset.sug||'';
+    id('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
   });
+
+  // 單一路徑送出（無 onAsk）
+  wireAIForm();
 
   initStats();
   render();
   firstTour();
   showChangelogIfNew("2.1");
+
+  // iOS 100vh 修正
+  const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
+  setVH(); window.addEventListener('resize',setVH); window.addEventListener('orientationchange',setVH);
 }
 
 /* ---- 安全綁定 ---- */
-function safeOn(elId,evt,fn){const el=document.getElementById(elId);if(el)el.addEventListener(evt,fn);}
+function safeOn(elId,evt,fn){const el=document.getElementById(elId); if(el) el.addEventListener(evt,fn);}
 
-/* ---- 搜尋系統（傳統比對） ---- */
-function initStats(){const t=qs('#stat-total');if(t)t.textContent=String(window.DEER_QA.length);}
+/* ---- 搜尋（傳統比對） ---- */
+function initStats(){const t=qs('#stat-total'); if(t) t.textContent=String(window.DEER_QA.length);}
 function applyFilter(keyword){
   const k=norm(keyword);
-  STATE.filtered = k ? window.DEER_QA.filter(x=>norm(x.q).includes(k)||norm(x.a).includes(k))
-                     : [...window.DEER_QA];
+  STATE.filtered = k ? window.DEER_QA.filter(x=>norm(x.q).includes(k)||norm(x.a).includes(k)) : [...window.DEER_QA];
   STATE.page=1; render();
 }
 function render(){
@@ -122,7 +130,7 @@ function toggleItem($item){
 function gotoPage(p){STATE.page=p;render();window.scrollTo({top:0,behavior:'smooth'});}
 function getItem(el){const idv=el.closest('.item').dataset.id;return window.DEER_QA.find(x=>String(x.id)===String(idv));}
 
-/* ---- 新手導覽（頁面無 #tour 自動跳過） ---- */
+/* ---- 新手導覽 ---- */
 let TOUR_IDX=0;
 function firstTour(){ if(!id('tour')) return; if(localStorage.getItem('tour_done_v2')) return; openTour(); }
 function openTour(){ const el=id('tour'); if(!el) return; el.classList.remove('hidden'); TOUR_IDX=0; showStep(0); }
@@ -149,18 +157,18 @@ async function shareSite(){
 function openInstallTip(){ id('install-tip')?.classList.remove('hidden'); }
 function closeInstallTip(){ id('install-tip')?.classList.add('hidden'); }
 
-/* ---- AI麋鹿 ---- */
+/* ---- AI麋鹿面板 ---- */
 function openAI(){
   const p=id('ai-panel'); if(!p) return;
   p.classList.remove('hidden'); requestAnimationFrame(()=>p.classList.add('show'));
   if(!p.dataset.boot){
-    pushMsg('assistant','嗨～麋鹿你好，你可以告訴我你的問題，我會根據資料庫找出答案或提供你類似的問題。我不是鹿🦌本人，我只是工程師開發出來的AI機器人。祝你有個美好的一天😊');
+    pushMsg('assistant','嗨～麋鹿你好，你可以告訴我你的問題，我會根據資料庫找出答案或提供你類似的問題。');
     p.dataset.boot='1';
   }
 }
 function closeAI(){ const p=id('ai-panel'); if(!p) return; p.classList.remove('show'); setTimeout(()=>p.classList.add('hidden'),180); }
 
-/* ---- 常見問法展開（新增） ---- */
+/* ---- 常見問法展開 ---- */
 const PHRASE_SYNS = new Map([
   ['主播多高','身高多高'],
   ['主播好高','身高多高'],
@@ -169,15 +177,12 @@ const PHRASE_SYNS = new Map([
   ['主播幾公分','身高']
 ]);
 function expandQuery(q){
-  const nq = norm(q);
-  let out = q;
-  PHRASE_SYNS.forEach((canon, variant)=>{
-    if (nq.includes(norm(variant))) out += ' ' + canon;
-  });
+  const nq=norm(q); let out=q;
+  PHRASE_SYNS.forEach((canon,variant)=>{ if(nq.includes(norm(variant))) out+=' '+canon; });
   return out;
 }
 
-/* ---- AI檢索核心 ---- */
+/* ---- AI 檢索核心 ---- */
 let IDF=null;
 function buildIDF(){
   if(IDF) return IDF;
@@ -192,15 +197,14 @@ function buildIDF(){
   return IDF;
 }
 async function localAnswer(query){
-  const qClean = removeAliases(expandQuery(query));  // 先展開再去別名
-  const scored = rank(qClean);
+  const qClean=removeAliases(expandQuery(query));
+  const scored=rank(qClean);
   if(!scored.length || scored[0].score<0.18){
     return {rendered:"Q：查無符合題目<br>A：目前資料庫沒有這題。",sourceQ:"",confidence:0.2};
   }
   const top=scored[0];
   const second=scored[1]||{score:top.score};
 
-  // 動態信心
   const topK=scored.slice(0,Math.min(10,scored.length));
   const maxS=Math.max(...topK.map(s=>s.score));
   const minS=Math.min(...topK.map(s=>s.score));
@@ -209,12 +213,11 @@ async function localAnswer(query){
   const cov=coverage(norm(qClean), norm(removeAliases(top.item.q)));
   const conf=clamp(0.22,0.93, 0.6*normS + 0.25*margin + 0.15*cov);
 
-  // 建議按鈕
   const suggestions=scored.slice(1,4)
     .map(s=>`<button type="button" class="btn s-btn" data-sug="${escapeHTML(s.item.q)}">${escapeHTML(s.item.q)}</button>`)
     .join(' ');
 
-  const rendered=
+  const rendered =
     `Q：${escapeHTML(top.item.q)}<br>`+
     `A：${escapeHTML(top.item.a).replace(/\n/g,'<br>')}`+
     (suggestions?`<div class="s-wrap" style="margin-top:8px">${suggestions}</div>`:'');
@@ -228,20 +231,20 @@ function rank(q){
     const a0=norm(removeAliases(item.a));
     const doc=q0+' '+a0;
 
-    const sJ=jaccard(qn,doc);                          // 3-gram Jaccard
+    const sJ=jaccard(qn,doc);
     const vecQ=tfidfVector(tokenize(qn),idf);
     const vecD=tfidfVector(tokenize(doc),idf);
-    const sC=cosine(vecQ,vecD);                         // TF-IDF 餘弦
-    const cov=coverage(qn,q0);                          // 覆蓋率
-    const pos=positionBoost(qn,q0);                     // 位置加分
-    const exact=q0.includes(qn)?0.08:0;                 // 精確包含
+    const sC=cosine(vecQ,vecD);
+    const cov=coverage(qn,q0);
+    const pos=positionBoost(qn,q0);
+    const exact=q0.includes(qn)?0.08:0;
 
     const score=0.50*sJ + 0.30*sC + 0.12*cov + 0.06*pos + exact;
     return {item,score};
   }).sort((a,b)=>b.score-a.score);
 }
 
-/* ---- 相似度與工具 ---- */
+/* ---- 相似度工具 ---- */
 function tokenize(s){return[...s.matchAll(/[\p{Script=Han}]|[a-zA-Z0-9_]+/gu)].map(m=>m[0]);}
 function tfidfVector(tokens,idf){
   const tf=new Map(); tokens.forEach(t=>tf.set(t,(tf.get(t)||0)+1));
@@ -254,18 +257,10 @@ function cosine(a,b){
   for(const [,wb] of b){ nb+=wb*wb; }
   return na&&nb? dot/Math.sqrt(na*nb) : 0;
 }
-function jaccard(a,b){
-  const A=new Set(ngrams(a,3)), B=new Set(ngrams(b,3));
-  const inter=[...A].filter(x=>B.has(x)).length;
-  return inter/(new Set([...A,...B]).size||1);
-}
-function coverage(q,text){
-  if(!q) return 0;
-  const parts=q.split(/\s+/).filter(Boolean);
-  const hit=parts.filter(p=>text.includes(p)).length;
-  return hit/parts.length;
-}
+function jaccard(a,b){ const A=new Set(ngrams(a,3)), B=new Set(ngrams(b,3)); const inter=[...A].filter(x=>B.has(x)).length; return inter/(new Set([...A,...B]).size||1); }
+function coverage(q,text){ if(!q) return 0; const parts=q.split(/\s+/).filter(Boolean); const hit=parts.filter(p=>text.includes(p)).length; return hit/parts.length; }
 function positionBoost(q,text){ return text.startsWith(q.slice(0,4))?0.05:0; }
+function ngrams(s,n=3){const arr=[];const pad=` ${s} `;for(let i=0;i<pad.length-n+1;i++)arr.push(pad.slice(i,i+n));return arr;}
 function removeAliases(s){
   let out=s;
   ALIASES.forEach(a=>{
@@ -276,7 +271,7 @@ function removeAliases(s){
 }
 function sigmoid(x){ return 1/(1+Math.exp(-x)); }
 
-/* ---- 視覺與互動 ---- */
+/* ---- 視覺與互動（聊天） ---- */
 function pushMsg(role,content){
   const wrap=document.createElement('div'); wrap.className=`msg ${role}`;
   const av=document.createElement('div'); av.className=`avatar ${role==='assistant'?'assistant':''}`;
@@ -300,27 +295,26 @@ function pushTyping(){
   scrollBottom();
   return wrap;
 }
+function scrollBottom(){const m=id('ai-messages'); if(m) m.scrollTop=m.scrollHeight;}
 
-/* ---- 通用 ---- */
-function id(s){return document.getElementById(s);}
-function qs(s){return document.querySelector(s);}
-function ngrams(s,n=3){const arr=[];const pad=` ${s} `;for(let i=0;i<pad.length-n+1;i++)arr.push(pad.slice(i,i+n));return arr;}
-function highlight(text,key){const k=key.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return text.replace(new RegExp(`(${k})`,'ig'),'<mark>$1</mark>');}
+/* ---- Linkify（避免連結把版面撐爆） ---- */
 function linkify(a){
   return a.replace(
     /(https?:\/\/[^\s)]+)(?![^<]*>)/g,
     '<a class="link" target="_blank" rel="noopener" href="$1">$1</a>'
   );
 }
+
+/* ---- 雜項 ---- */
+function highlight(text,key){const k=key.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return text.replace(new RegExp(`(${k})`,'ig'),'<mark>$1</mark>');}
 function toast(msg){
   const el=document.createElement('div');
-  Object.assign(el.style,{position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',background:'#141a34',color:'#fff',padding:'10px 14px',borderRadius:'12px',border:'1px solid rgba(255,255,255,.12)',boxShadow:'0 10px 30px rgba(0,0,0,.4)',zIndex:1000});
+  Object.assign(el.style,{position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',background:'#141a34',color:'#fff',padding:'10px 14px',borderRadius:'12px',border:'1px solid rgba(255,255,255,.12)',boxShadow:'0 10px 30px rgba(0,0,0,.4)',zIndex:2147483646});
   el.textContent=msg; document.body.appendChild(el);
   setTimeout(()=>{el.style.transition='opacity .3s'; el.style.opacity='0';},1400);
   setTimeout(()=>el.remove(),1750);
 }
 function escapeHTML(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function scrollBottom(){const m=id('ai-messages'); if(m) m.scrollTop=m.scrollHeight;}
 function formatConfidence(c){
   const pct=Math.round(c*100);
   let level='中等';
@@ -332,127 +326,85 @@ function formatConfidence(c){
   return `${pct}%（${level}）`;
 }
 
-/* ==== 單例信心提示條（保留單一版本） ==== */
-function ensureAiHint(){
-  let el = document.getElementById('ai-hint');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'ai-hint';
-    el.setAttribute('role','status');
-    const panel = document.getElementById('ai-panel');
-    if(panel) panel.prepend(el); // 覆蓋最上面
-  }
-  return el;
-}
-/* ===== Deer QA WebApp v1.8.7 =====
- * 更新：信心程度點擊泡泡顯示（不再自動顯示）
- */
+/* =========================
+   單一路徑：AI 表單送出
+   - 不自動顯示信心
+   - 點 AI 回覆泡泡才開單一最上層 Modal
+========================= */
+let aiBusy=false;
+function wireAIForm(){
+  const form=id('ai-form'), ipt=id('ai-text'), list=id('ai-messages');
+  if(!form||!ipt||!list) return;
 
-function renderHint(conf, qText){
-  // 產生彈窗而非頂部提示條
+  // 送出
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if(aiBusy) return;
+    const q=(ipt.value||'').trim(); if(!q) return;
+
+    aiBusy=true; ipt.value='';
+    pushMsg('user',q);
+    const typing=pushTyping();
+    try{
+      const ans=await localAnswer(q);
+      typing.remove();
+      const msg=pushMsg('assistant',ans.rendered);
+      msg.dataset.sourceQ=ans.sourceQ||'';
+      msg.dataset.conf=String(ans.confidence);
+      // 點泡泡 → 顯示信心 Modal（且確保唯一）
+      const bubble=msg.querySelector('.bubble');
+      if(bubble){
+        bubble.addEventListener('click',(ev)=>{
+          if(ev.target.closest('.s-btn')) return; // 點建議按鈕不開
+          openConfidenceModal(Number(msg.dataset.conf||0), msg.dataset.sourceQ||'');
+        },{once:false});
+      }
+      scrollBottom();
+    } finally { aiBusy=false; }
+  });
+
+  // 委派：歷史訊息點擊也能看
+  list.addEventListener('click',(e)=>{
+    const b=e.target.closest('.msg.assistant .bubble');
+    if(!b) return;
+    if(e.target.closest('.s-btn')) return;
+    const msg=b.closest('.msg.assistant');
+    openConfidenceModal(Number(msg?.dataset?.conf||0), msg?.dataset?.sourceQ||'');
+  });
+}
+
+/* ---- 單一最上層：信心/來源 Modal ---- */
+function closeTopModalIfAny(){
+  // 僅關閉使用者點開的這種 Modal（避免關掉公告等系統彈窗）
+  document.querySelectorAll('.modal.user-open').forEach(m=>m.remove());
+}
+function openConfidenceModal(conf, qText){
+  closeTopModalIfAny();
   const box=document.createElement('div');
-  box.className='modal';
+  box.className='modal user-open';
+  box.style.zIndex='2147483647'; // 高於任何提示/公告
   const pct=(conf*100).toFixed(0);
   const level=conf>=0.85?'極高':conf>=0.7?'高':conf>=0.5?'中':conf>=0.35?'偏低':'低';
   box.innerHTML=`
     <div class="modal-card small">
       <div class="modal-header">
-        <h2 class="title">回答信心</h2>
-        <button class="btn ghost" id="hint-close">關閉</button>
+        <h2 class="title">來源與信心</h2>
+        <button class="btn ghost" id="exp-close">關閉</button>
       </div>
       <div class="modal-body">
-        <p><strong>原始題目：</strong>${escapeHTML(qText||'（未知）')}</p>
+        <p><strong>原本的Q：</strong>${escapeHTML(qText||'（無）')}</p>
         <p><strong>信心程度：</strong>${pct}%（${level}）</p>
-        <p class="hint-desc">此信心分數根據多項文字相似度與覆蓋率自動計算，僅供參考。</p>
+        <p class="muted" style="margin-top:.5rem">此分數由多種相似度與覆蓋率綜合計算，僅供參考。</p>
       </div>
     </div>`;
   document.body.appendChild(box);
-  box.querySelector('#hint-close').addEventListener('click',()=>box.remove());
+  box.querySelector('#exp-close').addEventListener('click',()=>box.remove());
+  box.addEventListener('click',(e)=>{ if(e.target===box) box.remove(); });
 }
 
-/* ---- 防重入 / 送出 ---- */
-let aiBusy = false;
-window.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('ai-form');
-  const ipt  = document.getElementById('ai-text');
-  if (!form || !ipt) return;
+/* ---- 影片或其他外掛可用工具（保留） ---- */
+function shareTop(){} // 佔位，若有需要再實作
+function openInstallTip(){} function closeInstallTip(){}
+function openChangelog(){} function closeChangelog(){}
 
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    if (aiBusy) return;
-    const q = (ipt.value || '').trim();
-    if (!q) return;
-
-    aiBusy = true;
-    ipt.value = '';
-    pushMsg('user', q);
-
-    const typing = pushTyping();
-    try{
-      const ans = await localAnswer(q);
-      typing.remove();
-      const msg = pushMsg('assistant', ans.rendered);
-      msg.dataset.sourceQ = ans.sourceQ || '';
-      msg.dataset.conf    = String(ans.confidence);
-
-      // 用戶點擊泡泡才顯示信心資訊
-      const bubble = msg.querySelector('.bubble');
-      if(bubble){
-        bubble.addEventListener('click',()=>{
-          renderHint(Number(ans.confidence), ans.sourceQ);
-        });
-      }
-    } finally {
-      aiBusy = false;
-      scrollBottom();
-    }
-  });
-  // 1) iOS 100vh 修正：計算 --vh
-(function setVh(){
-  const set = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-  set(); window.addEventListener('resize', set); window.addEventListener('orientationchange', set);
-})();
-
-// 2) 信心條只在點擊「AI 回覆泡泡」時顯示
-(function hookConfidence(){
-  const list = document.getElementById('ai-messages');
-  if(!list) return;
-  list.addEventListener('click', (e)=>{
-    const bubble = e.target.closest('.msg.assistant .bubble');
-    if(!bubble) return;
-    // 取最近一則 assistant 訊息容器拿 dataset
-    const msg = bubble.closest('.msg.assistant');
-    const conf = Number(msg?.dataset?.conf || 0);
-    const sourceQ = msg?.dataset?.sourceQ || '';
-
-    // 顯示置頂信心條（覆蓋最上方）
-    let bar = document.getElementById('ai-hint');
-    if(!bar){
-      bar = document.createElement('div');
-      bar.id = 'ai-hint';
-      bar.className = 'ai-hint';
-      document.getElementById('ai-panel')?.prepend(bar);
-    }
-    const level = conf>=0.60 ? 'high' : conf>=0.35 ? 'mid' : 'low';
-    bar.className = `ai-hint ${level} show`;
-    bar.innerHTML = `<strong>回答信心</strong><span>${(conf*100).toFixed(0)}%</span>`;
-
-    // 再開詳情 Modal：原本的 Q + 信心文字
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-card small">
-        <div class="modal-header">
-          <h2 class="title">來源與信心</h2>
-          <button class="btn ghost" id="m-close">關閉</button>
-        </div>
-        <div class="modal-body">
-          <p><strong>原本的 Q：</strong>${(sourceQ||'（無）').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}</p>
-          <p><strong>信心程度：</strong>${formatConfidence(conf)}</p>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.querySelector('#m-close').addEventListener('click',()=>modal.remove());
-  });
-})();
-});
+/* ===== end ===== */
