@@ -1,8 +1,6 @@
-/* ===== Deer QA WebApp v1.8.6 =====
+/* ===== Deer QA WebApp v1.8.6 (fixed) =====
  * 全功能：AI麋鹿 / 頁面搜尋 / 導覽 / 更新提示
- * 安全事件綁定，避免 null.addEventListener
- * 建議按鈕不再觸發「來源與信心」
- * 圖片設定集中：IMAGES.網站圖、IMAGES.AI圖
+ * 修正：加入 expandQuery、移除重複 submit 綁定與 onAsk、保留單一信心條函式
  */
 
 /* ---- 基本工具 ---- */
@@ -30,7 +28,7 @@ function init(){
 
   safeOn('ai-fab','click',openAI);
   safeOn('ai-close','click',closeAI);
-  safeOn('ai-form','submit',onAsk);
+  // ❌ 移除：safeOn('ai-form','submit', onAsk) 以及 onAsk 函式
 
   const aiMsgs=id('ai-messages');
   if(aiMsgs)aiMsgs.addEventListener('click',e=>{
@@ -157,51 +155,26 @@ function openAI(){
   p.classList.remove('hidden'); requestAnimationFrame(()=>p.classList.add('show'));
   if(!p.dataset.boot){
     pushMsg('assistant','嗨～麋鹿你好，你可以告訴我你的問題，我會根據資料庫找出答案或提供你類似的問題。我不是鹿🦌本人，我只是工程師開發出來的AI機器人。祝你有個美好的一天😊');
-    pushMsg('assistant','小提醒：在這個網站都叫做鹿🦌所以在問問題時綽號請使用「鹿🦌」。例如：❌主播多高？ ❌鹿比醬多高？  ✅鹿🦌多高？  ✅️鹿鹿多高？');
     p.dataset.boot='1';
   }
 }
 function closeAI(){ const p=id('ai-panel'); if(!p) return; p.classList.remove('show'); setTimeout(()=>p.classList.add('hidden'),180); }
 
-async function onAsk(e){
-  e.preventDefault();
-  const input=id('ai-text'); if(!input) return;
-  const text=(input.value||'').trim(); if(!text) return;
-  input.value='';
-  pushMsg('user',text);
-
-  const typing=pushTyping();
-  const ans=await localAnswer(text);
-  typing.remove();
-
-  const msg=pushMsg('assistant',ans.rendered);
-  msg.dataset.sourceQ=ans.sourceQ||'';
-  msg.dataset.conf=ans.confidence.toString();
-
-  // 只在非點擊建議按鈕時才開來源與信心
-  msg.querySelector('.bubble').addEventListener('click',(ev)=>{
-    if(ev.target.closest('.s-btn')) return;
-    showExplain(msg.dataset.sourceQ, Number(msg.dataset.conf));
+/* ---- 常見問法展開（新增） ---- */
+const PHRASE_SYNS = new Map([
+  ['主播多高','身高多高'],
+  ['主播好高','身高多高'],
+  ['身高多少','身高多高'],
+  ['多高','身高'],
+  ['主播幾公分','身高']
+]);
+function expandQuery(q){
+  const nq = norm(q);
+  let out = q;
+  PHRASE_SYNS.forEach((canon, variant)=>{
+    if (nq.includes(norm(variant))) out += ' ' + canon;
   });
-
-  scrollBottom();
-}
-
-/* ---- AI說明 ---- */
-function showExplain(q,conf){
-  if(!q){ toast('此回覆沒有可顯示的來源'); return; }
-  const box=document.createElement('div');
-  box.className='modal';
-  box.innerHTML=`
-    <div class="modal-card small">
-      <div class="modal-header"><h2 class="title">來源與信心</h2><button class="btn ghost" id="exp-close">關閉</button></div>
-      <div class="modal-body">
-        <p><strong>原本的Q：</strong>${escapeHTML(q)}</p>
-        <p><strong>信心程度：</strong>${formatConfidence(conf)}</p>
-      </div>
-    </div>`;
-  document.body.appendChild(box);
-  box.querySelector('#exp-close').addEventListener('click',()=>box.remove());
+  return out;
 }
 
 /* ---- AI檢索核心 ---- */
@@ -219,8 +192,8 @@ function buildIDF(){
   return IDF;
 }
 async function localAnswer(query){
-  const qClean=removeAliases(query);
-  const scored=rank(qClean);
+  const qClean = removeAliases(expandQuery(query));  // 先展開再去別名
+  const scored = rank(qClean);
   if(!scored.length || scored[0].score<0.18){
     return {rendered:"Q：查無符合題目<br>A：目前資料庫沒有這題。",sourceQ:"",confidence:0.2};
   }
@@ -236,7 +209,7 @@ async function localAnswer(query){
   const cov=coverage(norm(qClean), norm(removeAliases(top.item.q)));
   const conf=clamp(0.22,0.93, 0.6*normS + 0.25*margin + 0.15*cov);
 
-  // 建議按鈕（button 型，避免 submit；並由委派處理點擊）
+  // 建議按鈕
   const suggestions=scored.slice(1,4)
     .map(s=>`<button type="button" class="btn s-btn" data-sug="${escapeHTML(s.item.q)}">${escapeHTML(s.item.q)}</button>`)
     .join(' ');
@@ -333,7 +306,12 @@ function id(s){return document.getElementById(s);}
 function qs(s){return document.querySelector(s);}
 function ngrams(s,n=3){const arr=[];const pad=` ${s} `;for(let i=0;i<pad.length-n+1;i++)arr.push(pad.slice(i,i+n));return arr;}
 function highlight(text,key){const k=key.trim().replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return text.replace(new RegExp(`(${k})`,'ig'),'<mark>$1</mark>');}
-function linkify(a){return a.replace(/(https?:\/\/[^\s)]+)(?![^<]*>)/g,'<a class="link" target="_blank" rel="noopener">$1</a>');}
+function linkify(a){
+  return a.replace(
+    /(https?:\/\/[^\s)]+)(?![^<]*>)/g,
+    '<a class="link" target="_blank" rel="noopener" href="$1">$1</a>'
+  );
+}
 function toast(msg){
   const el=document.createElement('div');
   Object.assign(el.style,{position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',background:'#141a34',color:'#fff',padding:'10px 14px',borderRadius:'12px',border:'1px solid rgba(255,255,255,.12)',boxShadow:'0 10px 30px rgba(0,0,0,.4)',zIndex:1000});
@@ -353,3 +331,80 @@ function formatConfidence(c){
   else level='低';
   return `${pct}%（${level}）`;
 }
+
+/* ==== 單例信心提示條（保留單一版本） ==== */
+function ensureAiHint(){
+  let el = document.getElementById('ai-hint');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'ai-hint';
+    el.setAttribute('role','status');
+    const panel = document.getElementById('ai-panel');
+    if(panel) panel.prepend(el); // 覆蓋最上面
+  }
+  return el;
+}
+/* ===== Deer QA WebApp v1.8.7 =====
+ * 更新：信心程度點擊泡泡顯示（不再自動顯示）
+ */
+
+function renderHint(conf, qText){
+  // 產生彈窗而非頂部提示條
+  const box=document.createElement('div');
+  box.className='modal';
+  const pct=(conf*100).toFixed(0);
+  const level=conf>=0.85?'極高':conf>=0.7?'高':conf>=0.5?'中':conf>=0.35?'偏低':'低';
+  box.innerHTML=`
+    <div class="modal-card small">
+      <div class="modal-header">
+        <h2 class="title">回答信心</h2>
+        <button class="btn ghost" id="hint-close">關閉</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>原始題目：</strong>${escapeHTML(qText||'（未知）')}</p>
+        <p><strong>信心程度：</strong>${pct}%（${level}）</p>
+        <p class="hint-desc">此信心分數根據多項文字相似度與覆蓋率自動計算，僅供參考。</p>
+      </div>
+    </div>`;
+  document.body.appendChild(box);
+  box.querySelector('#hint-close').addEventListener('click',()=>box.remove());
+}
+
+/* ---- 防重入 / 送出 ---- */
+let aiBusy = false;
+window.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('ai-form');
+  const ipt  = document.getElementById('ai-text');
+  if (!form || !ipt) return;
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    if (aiBusy) return;
+    const q = (ipt.value || '').trim();
+    if (!q) return;
+
+    aiBusy = true;
+    ipt.value = '';
+    pushMsg('user', q);
+
+    const typing = pushTyping();
+    try{
+      const ans = await localAnswer(q);
+      typing.remove();
+      const msg = pushMsg('assistant', ans.rendered);
+      msg.dataset.sourceQ = ans.sourceQ || '';
+      msg.dataset.conf    = String(ans.confidence);
+
+      // 用戶點擊泡泡才顯示信心資訊
+      const bubble = msg.querySelector('.bubble');
+      if(bubble){
+        bubble.addEventListener('click',()=>{
+          renderHint(Number(ans.confidence), ans.sourceQ);
+        });
+      }
+    } finally {
+      aiBusy = false;
+      scrollBottom();
+    }
+  });
+});

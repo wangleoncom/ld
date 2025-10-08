@@ -1,29 +1,62 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>鹿🦌的QA網站</title>
   <meta name="theme-color" content="#0f1220" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/png" href="網站頂端icon.JPG">
+  <link rel="stylesheet" href="styles.css?v=20251008" />
+  <style>
+    /* 右上角功能群 */
+    .top-actions{position:absolute;right:24px;top:22px;display:flex;gap:10px;align-items:center}
+    .btn.icon{display:inline-flex;align-items:center;gap:8px;padding:8px 14px}
+    .btn.icon svg{width:18px;height:18px}
+    /* 公告鈴鐺紅點 */
+    #site-bell[data-has]::after{
+      content:attr(data-has);position:absolute;top:-6px;right:-6px;background:#ff4d4f;color:#fff;
+      font-size:.72rem;line-height:1;padding:2px 6px;border-radius:999px;box-shadow:0 0 0 2px #070b16;
+    }
+    /* 公告列表 */
+    .ann-list{display:grid;gap:12px}
+    .ann-item{background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
+      border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:12px}
+    .ann-item h4{margin:.2rem 0}.ann-item .meta{font-size:.85rem;color:var(--muted)}
+    /* AI訊息：AI靠左、用戶靠右，固定間距，泡泡依內容 */
+    .ai-messages{display:flex;flex-direction:column;gap:8px;padding:12px}
+    .msg{display:flex;align-items:flex-end;gap:8px;width:100%}
+    .msg .body{max-width:100%}
+    .msg .bubble{display:inline-block;width:fit-content;max-width:72%;padding:10px 12px;border-radius:12px;line-height:1.5}
+    .msg.assistant{justify-content:flex-start}
+    .msg.assistant .bubble{background:#1b2a58;color:#fff}
+    .msg.user{justify-content:flex-end}
+    .msg.user .bubble{background:#0f2748;color:#fff}
+    @media (max-width:360px){.msg .bubble{max-width:86%}}
+    /* AI語音控制狀態 */
+    #ai-mic.rec{box-shadow:0 0 0 3px rgba(255,77,79,.3) inset}
+    #ai-tts.on{box-shadow:0 0 0 3px rgba(122,162,255,.3) inset}
+  </style>
 </head>
 <body>
+  <!-- 版本紀錄 Modal：首次或版本更新自動彈出 -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="cg-title">🦌 V4.0 網站更新公告</h2>
+        <h2 id="cg-title">🦌 網站更新</h2>
         <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
       </div>
-      <div class="modal-body">
-        <p class="bullet">日期：2025/10/6</p>
-        <ul class="bullet">
-          <li>影片專區：右側清單、標題左上顯示、ℹ️ 資訊框、隨機影片（標題上方）</li>
-          <li>長連結換行、影片區禁止滑動、頂部網站分享鈕</li>
-          <li>加入更多網頁動畫</li>
-          <li>AI麋鹿可回答目前影片的基本問題</li>
-        </ul>
+      <div class="modal-body" id="cg-body"></div>
+    </div>
+  </div>
+
+  <!-- 公告 Modal -->
+  <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="ann-title">網站公告</h2>
+        <button id="ann-close" class="btn ghost">❌關閉公告</button>
       </div>
+      <div class="modal-body" id="ann-body"></div>
     </div>
   </div>
 
@@ -36,7 +69,17 @@
       </div>
     </div>
 
-    <button id="site-share" class="btn ghost share-top" title="分享網站">分享</button>
+    <!-- 右上角：公告、分享、聯絡工程師 -->
+    <div class="top-actions">
+      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔<span class="muted" style="font-size:.9rem">公告</span></button>
+      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 8a3 3 0 1 0-2.83-4H12a3 3 0 0 0 3 4zm-6 8a3 3 0 1 0 2.83 4H12a3 3 0 0 0-3-4zm9-1-8.1-4.05a4 4 0 0 1-1.53.95L16.5 16A3 3 0 0 0 18 15zM6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
+        分享
+      </button>
+      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">
+        📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span>
+      </a>
+    </div>
 
     <nav class="tabs" role="tablist" aria-label="主要功能">
       <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">QA</button>
@@ -61,15 +104,14 @@
     <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager" aria-label="分頁導覽">
-        <button id="prev" class="btn">上一頁</button>
-        <span><input id="page" type="number" min="1" value="1" aria-label="跳至頁碼"> / <span id="pages">1</span></span>
-        <button id="next" class="btn">下一頁</button>
-      </nav>
-      <footer class="footer">
-        <button id="ft-share" class="btn">分享網站</button>
-        <button id="ft-install" class="btn">加入主畫面</button>
-        <a class="btn" href="mailto:wanglien214@gmail.com">聯絡工程師</a>
-      </footer>
+    <button id="prev" class="btn">上一頁</button>
+    <input id="page" class="page-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" aria-label="跳至頁碼">
+    <span class="slash">/</span>
+    <span id="pages" class="pages-badge">1</span>
+    <button id="next" class="btn">下一頁</button>
+  </nav>
+      <!-- Footer：移除分享與加入主畫面，只保留必要空白 -->
+      <footer class="footer" aria-hidden="true" style="visibility:hidden;height:0;padding:0;margin:0"></footer>
     </section>
 
     <!-- 影片 -->
@@ -95,28 +137,186 @@
     <div class="modal-card small">
       <div class="modal-header">
         <h3>影片資訊</h3>
-        <button id="modal-close" class="btn ghost">❌</button>
+        <button id="modal-close" class="btn ghost">❌關閉影片資訊</button>
       </div>
       <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
 
-  <button id="ai-fab" class="ai-fab">
+  <!-- AI麋鹿 -->
+  <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿">
     <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
   </button>
 
-  <aside id="ai-panel" class="ai-panel hidden">
-    <header class="ai-header"><h2>AI麋鹿</h2><button id="ai-close" class="btn ghost">❌</button></header>
+  <aside id="ai-panel" class="ai-panel hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+    <header class="ai-header"><h2 id="ai-title">AI麋鹿</h2><button id="ai-close" class="btn ghost" aria-label="關閉">❌關閉聊天室</button></header>
     <div id="ai-messages" class="ai-messages"></div>
     <form id="ai-form" class="ai-input" autocomplete="off">
-      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出">
-      <button class="btn primary" type="submit">送出</button>
+      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="AI輸入">
+      <div style="display:flex;gap:8px">
+        <button id="ai-mic" class="btn ghost" type="button" title="語音輸入">🎙️</button>
+        <button id="ai-tts" class="btn ghost" type="button" title="語音朗讀">🔊</button>
+        <button class="btn primary" type="submit">送出</button>
+      </div>
     </form>
   </aside>
 
+  <!-- 現有腳本 -->
   <script src="deer-qa.js"></script>
   <script src="app.js"></script>
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
+
+  <!-- 新增：公告、版本記錄、分享、語音模式 -->
+  <script>
+    // ===== 基本設定 =====
+    const pageInput = document.getElementById('page');
+pageInput.addEventListener('input', ()=>{
+  pageInput.value = pageInput.value.replace(/[^\d]/g,''); // 只留數字
+});
+    const SITE_VERSION = '4.1.0';
+    const CHANGELOG = [{
+      version:'4.1.0',
+      date:'2025/10/08',
+      items:[
+        '新增：公告系統（🔔）',
+        '新增：AI 麋鹿語音輸入與語音朗讀',
+        '調整：右上角分享強化、移除底部分享與加入主畫面',
+        '調整：聯絡工程師移至右上角',
+        '更新：QA的資料'
+      ]
+    }];
+    const ANNOUNCEMENTS = [{
+      id:'welcome-410',
+      title:'V4.1 上線',
+      body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。',
+      start:'2025-10-07T00:00:00+08:00',
+    }];
+
+    // ===== 工具 =====
+    const $  = s=>document.querySelector(s);
+    const $$ = s=>Array.from(document.querySelectorAll(s));
+    function isActive(now,a){
+      const st=a.start?new Date(a.start).getTime():-Infinity;
+      const ed=a.end?new Date(a.end).getTime():Infinity;
+      return now>=st && now<=ed;
+    }
+
+    // ===== 版本紀錄 =====
+    (function renderChangelog(){
+      const modal = $('#changelog'); if(!modal) return;
+      const body  = $('#cg-body');
+      const latest = CHANGELOG[0];
+      body.innerHTML = `
+        <p class="bullet">版本：${latest.version}</p>
+        <p class="bullet">日期：${latest.date}</p>
+        <ul class="bullet">${latest.items.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+      const seen = localStorage.getItem('site_version_seen');
+      if(seen !== SITE_VERSION){ modal.classList.remove('hidden'); localStorage.setItem('site_version_seen',SITE_VERSION); }
+      $('#cg-close')?.addEventListener('click',()=>modal.classList.add('hidden'));
+      modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.add('hidden'); });
+    })();
+
+    // ===== 公告 =====
+    (function renderAnnouncements(){
+      const now=Date.now();
+      const active=ANNOUNCEMENTS.filter(a=>isActive(now,a));
+      const bell = $('#site-bell'), modal=$('#ann-modal'), body=$('#ann-body');
+      if(active.length) bell.setAttribute('data-has',active.length); else bell.removeAttribute('data-has');
+      body.innerHTML = active.length
+        ? `<div class="ann-list">${active.map(a=>`
+            <article class="ann-item">
+              <h4>${a.title}</h4>
+              <div class="meta">${a.start?.slice(0,10)} — ${a.end?.slice(0,10) || ''}</div>
+              <p>${a.body}</p>
+            </article>`).join('')}</div>`
+        : `<p class="muted">目前沒有公告。</p>`;
+      bell.addEventListener('click',()=>modal.classList.remove('hidden'));
+      $('#ann-close')?.addEventListener('click',()=>modal.classList.add('hidden'));
+      modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.add('hidden'); });
+    })();
+
+    // ===== 分享（Web Share + 複製備援） =====
+    (function wireShare(){
+      const btn = $('#site-share');
+      btn.addEventListener('click', async ()=>{
+        const data = { title: document.title, text:'鹿🦌的QA網站', url: location.href };
+        try{
+          if(navigator.share){ await navigator.share(data); }
+          else {
+            await navigator.clipboard.writeText(location.href);
+            btn.textContent = '已複製連結';
+            setTimeout(()=>btn.textContent='分享',1200);
+          }
+        }catch{}
+      });
+    })();
+
+    // ===== AI語音：STT + TTS =====
+    const Voice = {
+      rec:null, recOn:false, ttsOn:false,
+      init(){
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if(SR){
+          this.rec = new SR();
+          this.rec.lang='zh-TW'; this.rec.interimResults=false; this.rec.continuous=false;
+          this.rec.addEventListener('result',(e)=>{
+            const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
+            const input = $('#ai-text'); if(input) input.value = text;
+            $('#ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+          });
+          this.rec.addEventListener('end',()=>{ this.recOn=false; $('#ai-mic')?.classList.remove('rec'); });
+        }
+        $('#ai-mic')?.addEventListener('click',()=>this.toggleRec());
+        $('#ai-tts')?.addEventListener('click',()=>this.toggleTTS());
+        document.addEventListener('ai:assistant', ev=>{
+          if(!this.ttsOn) return;
+          const text = ev.detail?.text || '';
+          this.speak(text);
+        });
+      },
+      toggleRec(){
+        if(!this.rec){ alert('此瀏覽器不支援語音輸入'); return; }
+        if(this.recOn){ this.rec.stop(); this.recOn=false; $('#ai-mic')?.classList.remove('rec'); return; }
+        try{ this.rec.start(); this.recOn=true; $('#ai-mic')?.classList.add('rec'); }catch{}
+      },
+      toggleTTS(){ this.ttsOn=!this.ttsOn; $('#ai-tts')?.classList.toggle('on',this.ttsOn); if(!this.ttsOn) speechSynthesis?.cancel(); },
+      speak(text){
+        if(!('speechSynthesis' in window)) return;
+        const u = new SpeechSynthesisUtterance(text);
+        const pick=(voices)=>{
+          const v = voices.find(v=>/zh[-_]?TW/i.test(v.lang))||voices.find(v=>/zh/i.test(v.lang))||voices[0];
+          if(v) u.voice=v; speechSynthesis.speak(u);
+        };
+        const voices = speechSynthesis.getVoices();
+        if(voices.length) pick(voices);
+        else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); pick(speechSynthesis.getVoices()); });
+      }
+    };
+    document.addEventListener('DOMContentLoaded',()=>Voice.init());
+
+    // ===== 與既有聊天接線（若你已有渲染流程，保留它；僅示例） =====
+    (function demoWire(){
+      const panel = $('#ai-panel'), fab = $('#ai-fab'), close = $('#ai-close');
+      fab.addEventListener('click',()=>panel.classList.remove('hidden'));
+      close.addEventListener('click',()=>panel.classList.add('hidden'));
+
+      const list = $('#ai-messages');
+      function push(role,text){
+        const el = document.createElement('div');
+        el.className = `msg ${role}`;
+        el.innerHTML = `<div class="body"><div class="bubble">${text}</div></div>`;
+        list.appendChild(el);
+        list.scrollTop = list.scrollHeight;
+        if(role==='assistant'){
+          document.dispatchEvent(new CustomEvent('ai:assistant',{ detail:{ text } }));
+        }
+      }
+    })();
+     // 修正 iOS Safari 100vh
+  const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
+  window.addEventListener('resize', setVH); setVH();
+  // 若要套用，CSS 內可用 height: calc(var(--vh)*100);
+  </script>
 </body>
 </html>
