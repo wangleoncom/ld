@@ -368,58 +368,66 @@ function runEngineerActions(acts){
   });
 })();
 
-/* ========= 手機影片抽屜：目錄按鈕、只允許操作清單、選片/關閉 ========= */
-(function mobileVideoDrawer(){
+
+(function setupVideoCatalog(){
   const header = document.querySelector('.video-controls.top');
   const list   = document.getElementById('v-list');
-  if(!header || !list) return;
+  const frame  = document.getElementById('v-frame');
+  if(!header || !list || !frame) return;
 
-  // 建立「目錄」按鈕（在「隨機影片」右側）
-  if(!document.getElementById('v-toggle')){
+  // 建立「目錄」按鈕
+  if(!document.getElementById('v-dir')){
     const btn = document.createElement('button');
-    btn.id = 'v-toggle';
-    btn.className = 'btn';
+    btn.id = 'v-dir';
+    btn.className = 'btn ghost';
     btn.textContent = '目錄';
     header.appendChild(btn);
-    btn.addEventListener('click', openDrawer);
   }
 
-  // 點清單（選片）→ 自動關閉；右上角 ✖ 區域亦可手動關閉（偵測頂部右側）
-  list.addEventListener('click', (e)=>{
-    const rect = list.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (y <= 60 && x >= rect.width - 64){
-      closeDrawer();
-      return;
-    }
-    if (e.target.closest('[data-video]')){
-      closeDrawer();
-    }
-  }, true);
-
-  function openDrawer(){
-    if(!document.getElementById('v-backdrop')){
-      const bg = document.createElement('div');
-      bg.id = 'v-backdrop';
-      document.body.appendChild(bg);
-      bg.addEventListener('click', closeDrawer);
-      bg.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
-      ['touchmove','pointerdown'].forEach(ev=>bg.addEventListener(ev, e=>e.preventDefault(), {passive:false}));
-    }
-    document.body.classList.add('vlist-open');
-  }
-  function closeDrawer(){
-    document.body.classList.remove('vlist-open');
-    document.getElementById('v-backdrop')?.remove();
+  // 建立目錄面板（全螢幕）
+  if(!document.getElementById('v-catalog')){
+    const cat = document.createElement('div');
+    cat.id = 'v-catalog';
+    cat.innerHTML = `
+      <div id="v-cat-head">
+        <div id="v-cat-title">影片目錄</div>
+        <button id="v-cat-close" aria-label="關閉">❌關閉影片目錄</button>
+      </div>
+      <div id="v-cat-body"></div>
+    `;
+    document.body.appendChild(cat);
+    // 把影片清單搬進去
+    cat.querySelector('#v-cat-body').appendChild(list);
   }
 
-  // 尺寸變更為桌機時自動關閉抽屜
-  window.matchMedia('(min-width: 769px)').addEventListener('change', e=>{
-    if(e.matches) closeDrawer();
+  const open  = ()=>{ document.body.classList.add('catalog-open'); };
+  const close = ()=>{ document.body.classList.remove('catalog-open'); };
+
+  document.getElementById('v-dir').addEventListener('click', open);
+  document.getElementById('v-cat-close').addEventListener('click', close);
+
+  // 背景點擊也能關
+  document.getElementById('v-catalog').addEventListener('click', e=>{
+    const body = document.getElementById('v-cat-body');
+    const head = document.getElementById('v-cat-head');
+    if (!body.contains(e.target) && !head.contains(e.target)) close();
   });
-})();
 
+  // Esc 關閉
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); }, true);
+
+  // 點影片 → 關閉面板並顯示影片
+  document.getElementById('v-list').addEventListener('click', e=>{
+    const item = e.target.closest('[data-video]');
+    if (!item) return;
+    close(); // 立刻關掉目錄
+    try{
+      const data=JSON.parse(item.dataset.video||'{}');
+      frame.innerHTML=`<div class="video-embed"><iframe src="${data.url||''}" allowfullscreen loading="lazy"></iframe></div>`;
+      document.getElementById('v-title').textContent=data.title||'影片';
+    }catch{}
+  }, true);
+})();
 </script>
 </body>
 </html>
