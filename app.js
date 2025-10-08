@@ -407,4 +407,143 @@ function shareTop(){} // 佔位，若有需要再實作
 function openInstallTip(){} function closeInstallTip(){}
 function openChangelog(){} function closeChangelog(){}
 
+/* ==== Loading：DOMContentLoaded 顯示，load 後關閉 ==== */
+(function wireLoading(){
+  const box = document.getElementById('page-loading');
+  if(!box) return;
+  // 已經顯示中；等到全部載完再隱藏
+  window.addEventListener('load', ()=> box.classList.add('hidden'));
+})();
+
+/* ==== QA 複製：動畫 + Toast（沿用你現有 toast）==== */
+(function enhanceCopyQA(){
+  const list = document.getElementById('qa-list');
+  if(!list) return;
+  list.addEventListener('click',(e)=>{
+    const btn = e.target.closest('[data-copy]');
+    if(!btn) return;
+    const qaEl = btn.closest('.item');
+    const idv = qaEl?.dataset?.id;
+    const qa = window.DEER_QA?.find(x=>String(x.id)===String(idv));
+    if(!qa) return;
+    navigator.clipboard.writeText(`Q: ${qa.q}\nA: ${qa.a}`).then(()=>{
+      btn.classList.add('copied');        // 小彈一下
+      toast('已複製 Q&A');                // 你的現有提示
+      setTimeout(()=>btn.classList.remove('copied'), 320);
+    });
+  });
+})();
+
+/* ==== 分頁：保險回頂端（你已有，但再補一次穩固）==== */
+(function forcePagerScrollTop(){
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const page = document.getElementById('page');
+  const goTop = ()=> window.scrollTo({top:0, behavior:'smooth'});
+  prev?.addEventListener('click', goTop);
+  next?.addEventListener('click', goTop);
+  page?.addEventListener('change', goTop);
+})();
+
+/* ==== 語音（麥克風 / 喇叭）恢復 ==== */
+const Voice = (()=> {
+  let rec = null, recOn = false, ttsOn = false;
+  function init(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(SR){
+      rec = new SR();
+      rec.lang='zh-TW'; rec.interimResults=false; rec.continuous=false;
+      rec.addEventListener('result',(e)=>{
+        const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
+        const input = document.getElementById('ai-text');
+        if(input) input.value = text;
+        document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+      });
+      rec.addEventListener('end',()=>{ recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); });
+    }
+    document.getElementById('ai-mic')?.addEventListener('click',toggleRec);
+    document.getElementById('ai-tts')?.addEventListener('click',toggleTTS);
+    // 當助理推送訊息時，若 TTS 開啟則朗讀（你渲染時可 dispatch 事件）
+    document.addEventListener('ai:assistant', ev=>{
+      if(!ttsOn) return;
+      const text = ev.detail?.text || '';
+      speak(text);
+    });
+  }
+  function toggleRec(){
+    if(!rec){ alert('此瀏覽器不支援語音輸入'); return; }
+    if(recOn){ rec.stop(); recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); return; }
+    try{ rec.start(); recOn=true; document.getElementById('ai-mic')?.classList.add('rec'); }catch{}
+  }
+  function toggleTTS(){
+    ttsOn = !ttsOn;
+    const el = document.getElementById('ai-tts');
+    if(el) el.classList.toggle('on', ttsOn);
+    if(!ttsOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+  }
+  function speak(text){
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    const pick=(voices)=>{
+      const v = voices.find(v=>/zh[-_]?TW/i.test(v.lang))||voices.find(v=>/zh/i.test(v.lang))||voices[0];
+      if(v) u.voice=v;
+      speechSynthesis.speak(u);
+    };
+    const voices = speechSynthesis.getVoices();
+    if(voices.length) pick(voices);
+    else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); pick(speechSynthesis.getVoices()); });
+  }
+  return { init };
+})();
+document.addEventListener('DOMContentLoaded', ()=> Voice.init());
+
+/* ==== 影片點擊：只渲染一次資訊（去重）==== */
+(function bindVideoOnce(){
+  if(window.__vBound) return;  // 防重綁
+  window.__vBound = true;
+
+  const vList = document.getElementById('v-list');        // 右側清單容器
+  const vTitle = document.getElementById('v-title');      // 標題顯示
+  const vInfoBtn = document.getElementById('v-info-btn'); // ℹ️ 按鈕
+  const vFrame = document.getElementById('v-frame');      // 播放器容器
+  const infoModalBody = document.getElementById('modal-body');
+
+  let selecting = false;
+  vList?.addEventListener('click', async (e)=>{
+    const item = e.target.closest('[data-video]');
+    if(!item || selecting) return;
+    selecting = true;
+
+    try{
+      const data = JSON.parse(item.dataset.video || '{}'); // {title,url,desc...}
+
+      // 1) 清空並渲染一次
+      vFrame.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'video-embed';
+      wrap.innerHTML = `<iframe src="${data.url||''}" allowfullscreen></iframe>`;
+      vFrame.appendChild(wrap);
+
+      // 2) 更新標題
+      if(vTitle) vTitle.textContent = data.title || '影片';
+
+      // 3) 更新資訊按鈕（開 modal 再寫內容）
+      vInfoBtn?.addEventListener('click', ()=>{
+        if(!infoModalBody) return;
+        const desc = (data.desc||'').replace(/(https?:\/\/\S+)/g, '<a target="_blank" rel="noopener" href="$1">$1</a>');
+        infoModalBody.innerHTML = `<div class="video-info">${desc || '此影片沒有額外說明。'}</div>`;
+        document.getElementById('info-modal')?.classList.remove('hidden');
+      }, { once:true }); // 只註冊一次，避免重複內容
+
+      // 4) 清單選中態（僅一個）
+      vList.querySelectorAll('.video-item.is-current').forEach(x=>x.classList.remove('is-current'));
+      item.classList.add('is-current');
+
+      // 5) 若你會同步給 AI 一段「目前影片資訊」，請確保只 dispatch 一次（不要重複呼叫 push）
+      document.dispatchEvent(new CustomEvent('ai:assistant',{ detail:{ text:`已切換至：${data.title||'影片'}` } }));
+    } finally {
+      selecting = false;
+    }
+  });
+})();
 /* ===== end ===== */

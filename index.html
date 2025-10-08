@@ -43,6 +43,16 @@
   </style>
 </head>
 <body>
+  <!-- Loading -->
+<div id="page-loading">
+  <div class="card">
+    <div class="spinner">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+    <div class="title">網頁載入中，請稍候…</div>
+    <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
+  </div>
+</div>
   <!-- 版本紀錄（保留節點，不自動彈出） -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
@@ -172,101 +182,183 @@
 
   <!-- 頁內補強腳本（都放最後，覆蓋舊行為） -->
   <script>
-  /* 小工具（若外部檔已提供則不覆寫） */
-  window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
+/* ========= 基礎工具 ========= */
+window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
 
-  /* 只允許數字的頁碼輸入 */
-  const pageInput = document.getElementById('page');
-  pageInput?.addEventListener('input',()=>{ pageInput.value = pageInput.value.replace(/[^\d]/g,''); });
+/* ========= Loading：轉圈圈顯示/關閉 ========= */
+/* 小補：確保有淡出動畫 */
+(function ensureLoaderStyles(){
+  const css = `
+    #page-loading{opacity:1;transition:opacity .35s ease}
+    #page-loading.hide{opacity:0;pointer-events:none}
+  `;
+  const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+})();
+function hideLoader(){
+  const l=document.getElementById('page-loading'); if(!l) return;
+  l.classList.add('hide'); setTimeout(()=>l.remove(), 420);
+}
+window.addEventListener('load', hideLoader);
+/* 保險：若某些資源阻塞，2.5 秒也會自動關 */
+document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(hideLoader, 2500); });
 
-  /* 桌機自動展開聊天面板 */
-  document.addEventListener('DOMContentLoaded',()=>{ if (window.matchMedia('(min-width:1024px)').matches) { window.openAI?.(); } });
+/* ========= 只允許數字的頁碼輸入 ========= */
+const pageInput = document.getElementById('page');
+pageInput?.addEventListener('input',()=>{ pageInput.value = pageInput.value.replace(/[^\d]/g,''); });
 
-  /* 單例最上層 Overlay（公告/版本/信心皆用它，保證一次只開一個） */
-  const Overlay = (() => {
-    let el = null, lock = 0;
-    const lockBody = () => { if(!lock){ document.body.style.overflow='hidden'; } lock++; };
-    const unlockBody = () => { lock=Math.max(0,lock-1); if(!lock){ document.body.style.overflow=''; } };
-    function ensure(){
-      if(el) el.remove();
-      el = document.createElement('div');
-      el.id='overlay-modal'; el.role='dialog'; el.ariaModal='true';
-      el.style.cssText=`position:fixed;inset:0;z-index:99999;background:rgba(5,8,16,.68);backdrop-filter:blur(18px);display:grid;place-items:center`;
-      el.innerHTML=`
-        <div class="modal-card small" style="width:min(560px,92vw);background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);border:1px solid rgba(255,255,255,.14);border-radius:20px;box-shadow:var(--shadow);">
-          <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.10)">
-            <h2 class="title" style="margin:0;font-size:1.05rem">訊息</h2>
-            <button id="ov-close" class="btn ghost">關閉</button>
-          </div>
-          <div id="ov-body" class="modal-body" style="padding:16px"></div>
-        </div>`;
-      document.body.appendChild(el);
-      lockBody();
-      el.addEventListener('click',e=>{ if(e.target===el) Overlay.close(); });
-      el.querySelector('#ov-close').addEventListener('click',Overlay.close);
-      return el;
-    }
-    return {
-      open({title='訊息',html=''}){ const box=ensure(); box.querySelector('.title').textContent=title; box.querySelector('#ov-body').innerHTML=html; },
-      close(){ if(el){ el.remove(); el=null; unlockBody(); } },
-      isOpen(){ return !!el; }
-    };
-  })();
+/* ========= 桌機自動展開聊天面板 ========= */
+document.addEventListener('DOMContentLoaded',()=>{ if (window.matchMedia('(min-width:1024px)').matches) { window.openAI?.(); } });
 
-  /* 公告：點鈴鐺才開（不自動彈） */
-  (function wireAnnouncements(){
-    const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。',start:'2025-10-07T00:00:00+08:00'}];
-    const bell=document.getElementById('site-bell');
-    const now=Date.now();
-    const isActive=a=>{const st=a.start?new Date(a.start).getTime():-Infinity;const ed=a.end?new Date(a.end).getTime():Infinity;return now>=st&&now<=ed;};
-    const active=ANNOUNCEMENTS.filter(isActive);
-    if(active.length) bell?.setAttribute('data-has',active.length); else bell?.removeAttribute('data-has');
-    bell?.addEventListener('click',()=>{
-      const html = active.length
-        ? `<div class="ann-list">${active.map(a=>`
-            <article class="ann-item">
-              <h4>${a.title}</h4>
-              <div class="meta">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div>
-              <p>${a.body}</p>
-            </article>`).join('')}</div>`
-        : `<p class="muted">目前沒有公告。</p>`;
-      Overlay.open({title:'網站公告', html});
-    });
-  })();
+/* ========= 單例 Overlay（公告/版本/信心共用） ========= */
+const Overlay = (() => {
+  let el = null, lock = 0;
+  const lockBody = () => { if(!lock){ document.body.style.overflow='hidden'; } lock++; };
+  const unlockBody = () => { lock=Math.max(0,lock-1); if(!lock){ document.body.style.overflow=''; } };
+  function ensure(){
+    if(el) el.remove();
+    el = document.createElement('div');
+    el.id='overlay-modal'; el.role='dialog'; el.ariaModal='true';
+    el.style.cssText=`position:fixed;inset:0;z-index:99999;background:rgba(5,8,16,.68);backdrop-filter:blur(18px);display:grid;place-items:center`;
+    el.innerHTML=`
+      <div class="modal-card small" style="width:min(560px,92vw);background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);border:1px solid rgba(255,255,255,.14);border-radius:20px;box-shadow:var(--shadow);">
+        <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.10)">
+          <h2 class="title" style="margin:0;font-size:1.05rem">訊息</h2>
+          <button id="ov-close" class="btn ghost">關閉</button>
+        </div>
+        <div id="ov-body" class="modal-body" style="padding:16px"></div>
+      </div>`;
+    document.body.appendChild(el);
+    lockBody();
+    el.addEventListener('click',e=>{ if(e.target===el) Overlay.close(); });
+    el.querySelector('#ov-close').addEventListener('click',Overlay.close);
+    return el;
+  }
+  return {
+    open({title='訊息',html=''}){ const box=ensure(); box.querySelector('.title').textContent=title; box.querySelector('#ov-body').innerHTML=html; },
+    close(){ if(el){ el.remove(); el=null; unlockBody(); } },
+    isOpen(){ return !!el; }
+  };
+})();
 
-  /* 分享（Web Share + 複製備援） */
-  (function wireShare(){
-    const btn=document.getElementById('site-share');
-    btn?.addEventListener('click', async ()=>{
-      const data={title:document.title,text:'鹿🦌的QA網站',url:location.href};
-      try{ if(navigator.share){ await navigator.share(data); } else { await navigator.clipboard.writeText(location.href); btn.textContent='已複製連結'; setTimeout(()=>btn.textContent='分享',1200);} }catch{}
-    });
-  })();
-
-  /* iOS Safari 100vh 修正 */
-  const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
-  window.addEventListener('resize', setVH); setVH();
-
-  /* 影片清單：ID 要對上 v-list，點一次只渲染一次 */
-  const videoList = document.getElementById('v-list');
-  const videoFrame = document.getElementById('v-frame');
-  const videoTitle = document.getElementById('v-title');
-  let selectingVideo = false;
-  videoList?.addEventListener('click', (e)=>{
-    const item=e.target.closest('[data-video]'); if(!item||selectingVideo) return; selectingVideo=true;
-    try{
-      const data=JSON.parse(item.dataset.video||'{}');  // {title,url,desc}
-      videoFrame.innerHTML='';
-      const wrap=document.createElement('div'); wrap.className='video-embed';
-      wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      videoFrame.appendChild(wrap);
-      if(videoTitle) videoTitle.textContent=data.title||'影片';
-    }finally{ selectingVideo=false; }
+/* ========= 公告：點鈴鐺才開 ========= */
+(function wireAnnouncements(){
+  const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。',start:'2025-10-07T00:00:00+08:00'}];
+  const bell=document.getElementById('site-bell');
+  const now=Date.now();
+  const isActive=a=>{const st=a.start?new Date(a.start).getTime():-Infinity;const ed=a.end?new Date(a.end).getTime():Infinity;return now>=st&&now<=ed;};
+  const active=ANNOUNCEMENTS.filter(isActive);
+  if(active.length) bell?.setAttribute('data-has',active.length); else bell?.removeAttribute('data-has');
+  bell?.addEventListener('click',()=>{
+    const html = active.length
+      ? `<div class="ann-list">${active.map(a=>`
+          <article class="ann-item">
+            <h4>${a.title}</h4>
+            <div class="meta">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div>
+            <p>${a.body}</p>
+          </article>`).join('')}</div>`
+      : `<p class="muted">目前沒有公告。</p>`;
+    Overlay.open({title:'網站公告', html});
   });
+})();
 
-  /* 手機輸入時滾到底，減少版面跳動 */
-  document.getElementById('ai-text')?.addEventListener('focus',()=>setTimeout(scrollBottom,50));
-  </script>
+/* ========= 分享 ========= */
+(function wireShare(){
+  const btn=document.getElementById('site-share');
+  btn?.addEventListener('click', async ()=>{
+    const data={title:document.title,text:'鹿🦌的QA網站',url:location.href};
+    try{ if(navigator.share){ await navigator.share(data); } else { await navigator.clipboard.writeText(location.href); btn.textContent='已複製連結'; setTimeout(()=>btn.textContent='分享',1200);} }catch{}
+  });
+})();
+
+/* ========= iOS 100vh 修正 ========= */
+const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
+window.addEventListener('resize', setVH); setVH();
+
+/* ========= 影片清單：點一次只渲染一次 ========= */
+const videoList = document.getElementById('v-list');
+const videoFrame = document.getElementById('v-frame');
+const videoTitle = document.getElementById('v-title');
+let selectingVideo = false;
+videoList?.addEventListener('click', (e)=>{
+  const item=e.target.closest('[data-video]'); if(!item||selectingVideo) return; selectingVideo=true;
+  try{
+    const data=JSON.parse(item.dataset.video||'{}');  // {title,url,desc}
+    // 清空舊內容 → 塞新 iframe（只做一次）
+    videoFrame.innerHTML='';
+    const wrap=document.createElement('div'); wrap.className='video-embed';
+    wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    videoFrame.appendChild(wrap);
+    if(videoTitle) videoTitle.textContent=data.title||'影片';
+  }finally{ selectingVideo=false; }
+});
+
+/* ========= 分頁：換頁後回到最上面 ========= */
+document.getElementById('prev')?.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+document.getElementById('next')?.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+document.getElementById('page')?.addEventListener('change',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+/* ========= 語音：麥克風(STT) + 喇叭(TTS) ========= */
+const Voice = {
+  rec:null, recOn:false, ttsOn:false,
+  init(){
+    /* STT：SpeechRecognition */
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(SR){
+      this.rec = new SR();
+      this.rec.lang='zh-TW';
+      this.rec.interimResults=false;
+      this.rec.continuous=false;
+      this.rec.addEventListener('result',(e)=>{
+        const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
+        const input = document.getElementById('ai-text'); if(input) input.value = text;
+        document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+      });
+      this.rec.addEventListener('end',()=>{ this.recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); });
+    }
+    document.getElementById('ai-mic')?.addEventListener('click',()=>this.toggleRec());
+
+    /* TTS：speechSynthesis */
+    document.getElementById('ai-tts')?.addEventListener('click',()=>this.toggleTTS());
+
+    /* 監聽聊天室訊息：新 AI 泡泡出現時自動朗讀（避免依賴外部事件） */
+    const list = document.getElementById('ai-messages');
+    if(list){
+      const obs = new MutationObserver(()=>{
+        if(!this.ttsOn) return;
+        const last = list.querySelector('.msg.assistant:last-of-type .bubble');
+        const text = last?.textContent?.trim(); if(text) this.speak(text);
+      });
+      obs.observe(list, { childList:true, subtree:true });
+    }
+  },
+  toggleRec(){
+    if(!this.rec){ alert('此瀏覽器不支援語音輸入'); return; }
+    if(this.recOn){ this.rec.stop(); this.recOn=false; document.getElementById('ai-mic')?.classList.remove('rec'); return; }
+    try{ this.rec.start(); this.recOn=true; document.getElementById('ai-mic')?.classList.add('rec'); }catch{}
+  },
+  toggleTTS(){
+    this.ttsOn=!this.ttsOn;
+    const btn=document.getElementById('ai-tts');
+    btn?.classList.toggle('on', this.ttsOn);
+    if(!this.ttsOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+  },
+  speak(text){
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    const pick=(voices)=>{
+      const v = voices.find(v=>/zh[-_]?TW/i.test(v.lang)) || voices.find(v=>/zh/i.test(v.lang)) || voices[0];
+      if(v) u.voice=v; speechSynthesis.speak(u);
+    };
+    const voices = speechSynthesis.getVoices();
+    if(voices.length) pick(voices);
+    else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); pick(speechSynthesis.getVoices()); });
+  }
+};
+document.addEventListener('DOMContentLoaded', ()=>Voice.init());
+
+/* ========= 手機輸入時滾底，減少跳動 ========= */
+document.getElementById('ai-text')?.addEventListener('focus',()=>setTimeout(scrollBottom,50));
+</script>
 </body>
 </html>
