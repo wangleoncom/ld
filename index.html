@@ -7,9 +7,8 @@
   <meta name="theme-color" content="#0f1220" />
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <link rel="stylesheet" href="styles.css?v=20251008" />
-  <!-- 補強少量樣式（Loading/Toast/小遮罩/分享按鈕寬度/公告Overlay） -->
   <style>
-    /* 全頁遮罩（可重用） */
+    /* ====== 核心樣式（覆蓋/補強） ====== */
     .page-overlay{
       position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
       background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
@@ -24,7 +23,7 @@
     }
     .page-overlay .spinner{ display:grid; place-items:center; margin:12px auto 8px }
     .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
-    /* 首畫面 Loader 也套同樣效果（用你提供的圖片） */
+
     #page-loading{ position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
       background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
       opacity:1; transition:opacity .35s ease; }
@@ -38,14 +37,12 @@
     #page-loading .spinner{ display:grid; place-items:center; margin:12px auto 8px }
     #page-loading .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
 
-    /* 播放器小遮罩（僅覆蓋 iframe 區塊） */
     .mini-overlay{
       position:absolute; inset:0; display:grid; place-items:center; z-index:4;
       background:rgba(7,11,22,.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     }
-    .video-embed{ position:relative } /* 讓 mini-overlay 能絕對定位 */
+    .video-embed{ position:relative }
 
-    /* QA 複製 Toast */
     .toast{
       position:fixed; z-index:10000; padding:8px 12px; border-radius:10px;
       background:rgba(15,18,32,.9); color:#fff; font-weight:700; font-size:.9rem;
@@ -55,14 +52,11 @@
     @keyframes toast-in{ from{ opacity:0; transform:translate(-50%,-6px) } to{ opacity:1; transform:translate(-50%,0) } }
     @keyframes toast-out{ to{ opacity:0; transform:translate(-50%,-6px) } }
 
-    /* 複製按鈕游標與按下動畫 */
     .tool{ cursor:pointer; user-select:none }
     .tool.copied{ transform:scale(1.06); transition:transform .18s ease }
 
-    /* 分享按鈕縮短寬度（避免字過長） */
     #site-share{ white-space:nowrap; padding-left:12px; padding-right:12px; }
 
-    /* 公告 Overlay（簡易） */
     #overlay-modal{
       position:fixed; inset:0; z-index:9998; display:grid; place-items:center;
       background:rgba(5,8,16,.68); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
@@ -75,21 +69,29 @@
     #overlay-modal .modal-header{ display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.12) }
     #overlay-modal .modal-body{ padding:14px }
     #overlay-modal .btn{ cursor:pointer }
+
+    /* 反複製/長按（全站）——QA 列表內仍允許選取 */
+    html,body{ -webkit-user-select:none; user-select:none; -webkit-touch-callout:none }
+    img{ -webkit-user-drag:none; pointer-events:none }
+    #logo-img{ pointer-events:auto } /* 讓 Logo 仍可點擊 */
+    #qa-list, #qa-list *{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default }
+    @media print{ body{ display:none !important } } /* 阻擋列印輸出 */
+
+    /* 手機影片抽屜（可依你的 CSS 再細修） */
+    body.vlist-open #v-list{ transform:translateX(0) !important }
   </style>
 </head>
 <body>
-  <!-- 首次進站 Loading（圖片置中、鎖互動） -->
+  <!-- 首次進站 Loading -->
   <div id="page-loading" aria-live="polite" aria-busy="true">
     <div class="card">
-      <div class="spinner">
-        <img src="轉圈圈.png" alt="載入中" class="loading-img">
-      </div>
+      <div class="spinner"><img src="轉圈圈.png" alt="載入中" class="loading-img"></div>
       <div class="title">網頁載入中，請稍候…</div>
       <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
     </div>
   </div>
 
-  <!-- 版本紀錄（保留） -->
+  <!-- 版本紀錄 -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -100,7 +102,7 @@
     </div>
   </div>
 
-  <!-- 公告（保留） -->
+  <!-- 公告 -->
   <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -215,24 +217,24 @@
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
 
-  <!-- 頁內補強腳本（都放最後） -->
+  <!-- 補強腳本（所有進階功能） -->
   <script>
-/* ========= Loader 圖片對照表（直接改檔名即可） ========= */
+/* ========= Loader 圖片對照表 ========= */
 const LOADER_IMG = {
-  global : '轉圈圈.png',   // 首次載入整站
-  page   : '轉圈圈.png',   // QA 換頁
-  'tab-qa'   : '轉圈圈.png',    // 切到 QA
-  'tab-video': '轉圈圈.png', // 切到 影片
-  video  : '轉圈圈.png',    // 播放器小遮罩
-  'ai-open' : '轉圈圈2.png',       // 開啟 AI
-  'ai-close': '轉圈圈2.png'       // 關閉 AI
+  global : '轉圈圈.png',
+  page   : '轉圈圈.png',
+  'tab-qa'   : '轉圈圈.png',
+  'tab-video': '轉圈圈.png',
+  video  : '轉圈圈.png',
+  'ai-open' : '轉圈圈2.png',
+  'ai-close': '轉圈圈2.png'
 };
 
 /* ========= 基礎工具 ========= */
 window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
 
-/* ========= 公告 Overlay（修復鈴鐺） ========= */
+/* ========= 公告 Overlay ========= */
 const Ann = (function(){
   function open({title='訊息', html=''}) {
     close();
@@ -257,12 +259,9 @@ const Ann = (function(){
   }
   return { open, close };
 })();
-
-// 你的公告內容（可自行增修）
 const ANNOUNCEMENTS = [
   { id:'welcome-410', title:'V4.1 上線', body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。', start:'2025-10-07' }
 ];
-
 (function wireAnnouncements(){
   const bell = document.getElementById('site-bell');
   if(!bell) return;
@@ -285,12 +284,10 @@ const ANNOUNCEMENTS = [
   });
 })();
 
-/* ========= 首次 Loading：鎖住滾動與點擊，完成後恢復 ========= */
+/* ========= 首次 Loading ========= */
 (function bootLoader(){
   const root = document.getElementById('page-loading'); if(!root) return;
-  // 套用對照表圖片
   const img = root.querySelector('.loading-img'); if(img) img.src = LOADER_IMG.global || img.src;
-
   document.body.style.overflow='hidden';
   const start = Date.now(), MIN=2200;
   function kill(){
@@ -303,11 +300,10 @@ const ANNOUNCEMENTS = [
     }, wait);
   }
   window.addEventListener('load', kill, {once:true});
-  // 保底
   setTimeout(kill, 6000);
 })();
 
-/* ========= 可重用 Loading 模組（切頁/AI/影片/QA分頁都用） ========= */
+/* ========= Loading 模組 ========= */
 const Loading = (() => {
   const MIN = 2200;
   const map = new Map();
@@ -352,8 +348,7 @@ const Loading = (() => {
     let m=host.querySelector('.mini-overlay');
     const src = LOADER_IMG.video || LOADER_IMG.global || '轉圈圈.png';
     if(!m){
-      m=document.createElement('div');
-      m.className='mini-overlay';
+      m=document.createElement('div'); m.className='mini-overlay';
       m.innerHTML=`<div class="spinner"><img src="${src}" alt="" class="loading-img"></div>`;
       host.appendChild(m);
     }else{
@@ -370,7 +365,7 @@ const Loading = (() => {
   return { show, hide, videoShow, videoHide, ensure };
 })();
 
-/* ========= QA 複製：按鈕/動畫/Toast ========= */
+/* ========= QA 複製按鈕（保留） ========= */
 (function setupQACopy(){
   const list = document.getElementById('qa-list'); if(!list) return;
   function ensureCopyButtons(root=list){
@@ -394,13 +389,13 @@ const Loading = (() => {
     await navigator.clipboard.writeText(txt); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'), 420);
     toastAt('已複製 QA', btn.getBoundingClientRect());
   }
-  document.addEventListener('click', e=>{ const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return; e.preventDefault(); doCopy(btn, btn); });
-  document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){ e.preventDefault(); doCopy(e.target, e.target);} });
+  document.addEventListener('click', e=>{ const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return; e.preventDefault(); doCopy(btn, btn); }, true);
+  document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){ e.preventDefault(); doCopy(e.target, e.target);} }, true);
   ensureCopyButtons();
   new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{ if(n.nodeType===1) ensureCopyButtons(n); }))).observe(list, {childList:true, subtree:true});
 })();
 
-/* ========= 影片：點一次只渲染一次 + 播放器小遮罩 ========= */
+/* ========= 影片點擊：只渲染一次 + 小遮罩 ========= */
 (function videoClickOnce(){
   const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title');
   if(!list||!frame) return;
@@ -414,7 +409,6 @@ const Loading = (() => {
       const wrap=document.createElement('div'); wrap.className='video-embed';
       wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
       frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
-      // 小遮罩
       const mark=Loading.videoShow();
       const timer=setInterval(()=>{
         const ifr=frame.querySelector('iframe');
@@ -444,84 +438,228 @@ const Loading = (() => {
   });
 })();
 
-/* ========= AI 訊息去重 ========= */
-(function dedupeAssistant(){
-  const box=document.getElementById('ai-messages'); if(!box) return;
-  let t=null; const mo=new MutationObserver(()=>{
-    clearTimeout(t); t=setTimeout(()=>{
-      const b=[...box.querySelectorAll('.msg.assistant .bubble')]; if(b.length<2) return;
-      const a=b[b.length-2]?.textContent?.trim(), c=b[b.length-1]?.textContent?.trim();
-      if(a&&c&&a===c) b[b.length-1].closest('.msg.assistant')?.remove();
-    },50);
-  }); mo.observe(box,{childList:true,subtree:true});
+/* ========= AI 面板開關遮罩 ========= */
+(function aiPanelOverlay(){
+  const fab   = document.getElementById('ai-fab');
+  const close = document.getElementById('ai-close');
+  const panel = document.getElementById('ai-panel');
+  function waitUntil(testFn, key){
+    const start = Date.now();
+    const it = setInterval(()=>{
+      if (testFn()) { clearInterval(it); Loading.hide(key); }
+      else if (Date.now() - start > 5000) { clearInterval(it); Loading.hide(key); }
+    }, 60);
+  }
+  fab?.addEventListener('click', ()=>{
+    Loading.show('ai-open', '開啟 AI 中，請稍候…');
+    waitUntil(()=> !panel.classList.contains('hidden') || panel.classList.contains('show'), 'ai-open');
+  });
+  close?.addEventListener('click', ()=>{
+    Loading.show('ai-close', '關閉 AI 中…');
+    waitUntil(()=> panel.classList.contains('hidden') && !panel.classList.contains('show'), 'ai-close');
+  });
 })();
 
-/* ========= 語音（單一版本，防重複宣告） ========= */
-window.Voice ??= (() => {
-  let rec=null, recOn=false, ttsOn=false, inited=false;
-  function btnMic(){ return document.getElementById('ai-mic'); }
-  function btnTTS(){ return document.getElementById('ai-tts'); }
-  function lastAssistantText(){ return document.querySelector('#ai-messages .msg.assistant:last-of-type .bubble')?.textContent?.trim(); }
-  function toggleRec(){
-    if(!rec){ alert('此瀏覽器不支援語音輸入'); return; }
-    if(recOn){ rec.stop(); recOn=false; btnMic()?.classList.remove('rec'); return; }
-    try{ rec.start(); recOn=true; btnMic()?.classList.add('rec'); }catch{}
-  }
-  function speak(text){
-    if(!('speechSynthesis' in window) || !text) return;
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    const useVoice=(voices)=>{ const v=voices.find(v=>/zh[-_]?TW/i.test(v.lang))||voices.find(v=>/zh/i.test(v.lang))||voices[0]; if(v) u.voice=v; speechSynthesis.speak(u); };
-    const vs=speechSynthesis.getVoices(); if(vs.length) useVoice(vs);
-    else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); useVoice(speechSynthesis.getVoices()); });
-  }
-  function toggleTTS(){
-    ttsOn=!ttsOn; btnTTS()?.classList.toggle('on', ttsOn);
-    if(!('speechSynthesis' in window)) return;
-    if(!ttsOn) speechSynthesis.cancel(); else { const t=lastAssistantText(); if(t) speak(t); }
-  }
-  function init(){
-    if(inited) return; inited=true;
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(SR){
-      rec=new SR(); rec.lang='zh-TW'; rec.interimResults=false; rec.continuous=false;
-      rec.addEventListener('result',(e)=>{ const text=Array.from(e.results).map(r=>r[0].transcript).join('').trim(); const input=document.getElementById('ai-text'); if(input) input.value=text; document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); });
-      rec.addEventListener('end',()=>{ recOn=false; btnMic()?.classList.remove('rec'); });
-    }
-    btnMic()?.addEventListener('click', toggleRec);
-    btnTTS()?.addEventListener('click', toggleTTS);
-    const list=document.getElementById('ai-messages');
-    if(list){
-      const obs=new MutationObserver(()=>{ if(!ttsOn) return; const t=lastAssistantText(); if(t) speak(t); });
-      obs.observe(list,{childList:true,subtree:true});
-    }
-  }
-  return { init, toggleRec, toggleTTS, speak };
+/* ========= 禁一般複製/右鍵/截圖鍵（QA 白名單） ========= */
+(function antiCopy(){
+  const allowQA = (e)=> !!e.target.closest('#qa-list');
+  ['copy','cut','contextmenu'].forEach(evt=>{
+    document.addEventListener(evt, e=>{ if(!allowQA(e)) e.preventDefault(); }, true);
+  });
+  document.addEventListener('dragstart', e=>e.preventDefault(), true);
+  document.addEventListener('keydown', async e=>{
+    const k=(e.key||'').toLowerCase();
+    if(k==='printscreen' || k==='snapshot'){ e.preventDefault(); try{ await navigator.clipboard.writeText(''); }catch{} }
+  }, true);
+  const logo=document.getElementById('logo-img');
+  logo?.setAttribute('draggable','false');
 })();
-document.addEventListener('DOMContentLoaded', ()=> window.Voice.init());
 
-/* ========= 分頁切換（QA ↔ 影片）也顯示轉圈圈（各用各的圖片） ========= */
+/* ========= DevTools/F12 守門：開就重整 ========= */
+(function devtoolsGuard(){
+  let tripped=false;
+  const kick=()=>{ if(tripped) return; tripped=true; location.reload(); };
+  const check=()=>{
+    const w=window.outerWidth - window.innerWidth;
+    const h=window.outerHeight - window.innerHeight;
+    if(w>160 || h>160) kick();
+  };
+  setInterval(check, 600);
+  document.addEventListener('keydown', e=>{
+    const K=(e.key||'').toUpperCase();
+    if(K==='F12' || (e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(K))){ e.preventDefault(); kick(); }
+  }, true);
+})();
+
+/* ========= Loader Kill Switch（工程模式用） ========= */
+const LoaderKillSwitch = {
+  armed:false,
+  arm(){ this.armed=true; },
+  apply(){
+    if(!this.armed) return;
+    try{
+      const tag=document.createElement('style');
+      tag.textContent='.spinner .loading-img{animation:none!important}';
+      document.head.appendChild(tag);
+      document.querySelectorAll('#page-loading,.page-overlay,.mini-overlay').forEach(n=>n.remove());
+      document.body.style.overflow='';
+      if(window.Loading){
+        if(Loading.show)      Loading.show      = function(){ return null; };
+        if(Loading.videoShow) Loading.videoShow = function(){ return Date.now(); };
+      }else{
+        Object.defineProperty(window,'Loading',{
+          configurable:true,
+          set(v){
+            if(v && typeof v==='object'){
+              v.show=function(){return null;};
+              v.videoShow=function(){return Date.now();};
+            }
+            Object.defineProperty(window,'Loading',{value:v,writable:false,configurable:false});
+          }
+        });
+      }
+    }catch{}
+  }
+};
+
+/* ========= 手機影片抽屜（3–5 秒轉圈、選片後自動收合） ========= */
+const MobileVideoDrawer = {
+  inited:false,
+  init(){
+    if(this.inited) return; this.inited=true;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const list = document.getElementById('v-list');
+    const header = document.querySelector('.video-controls.top');
+    if(!list || !header) return;
+    const setup=()=>{
+      if(!mq.matches){ document.body.classList.remove('vlist-open'); return; }
+      if(!document.getElementById('v-toggle')){
+        const btn=document.createElement('button');
+        btn.id='v-toggle'; btn.className='btn'; btn.textContent='影片清單';
+        header.appendChild(btn);
+        btn.addEventListener('click', ()=>{
+          const key='vlist';
+          if(window.Loading?.show){
+            Loading.show(key,'載入清單中，請稍候…');
+            const dur=3000 + Math.floor(Math.random()*2000); // 3–5 秒
+            setTimeout(()=>{ document.body.classList.add('vlist-open'); Loading.hide(key); }, dur);
+          }else{
+            document.body.classList.add('vlist-open');
+          }
+        });
+      }
+    };
+    setup();
+    mq.addEventListener?.('change', setup);
+    list.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-video]')) document.body.classList.remove('vlist-open');
+    });
+  }
+};
+
+/* ========= 10 下點 Logo → 10 碼 PIN（寫死） → 執行功能 ========= */
+/* 在這裡設定你的 PIN 與功能對應表（key=10 碼數字） */
+const PIN_ROUTES = {
+  '1234567890': ['ENG_ON','NOSPIN','SHOW_TABLE'],  // 工程模式 + 停轉圈 + 顯示大全表
+  '9988776655': ['ENG_ON'],                        // 只開工程模式
+  '1122334455': ['VID_MOBILE','SHOW_TABLE'],       // 手機影片抽屜 + 大全表
+  '5566778899': ['RESET','SHOW_TABLE']             // 重置 + 大全表
+};
+/* 中文功能說明 */
+const PIN_HELP = {
+  'ENG_ON'   : '工程模式：停用遮罩流程、加速操作。',
+  'NOSPIN'   : '停止所有轉圈圈、禁止再顯示遮罩（全站）。',
+  'VID_MOBILE':'手機影片抽屜：清單收合 + 開啟顯示前 3–5 秒轉圈圈。',
+  'RESET'    : '重置：關閉工程模式、恢復預設行為。',
+  'SHOW_TABLE':'顯示 PIN 大全表（目前設定）。'
+};
+function buildPinTable(){
+  const rows = Object.entries(PIN_ROUTES).map(([pin, acts])=>{
+    const names = acts.map(a=>PIN_HELP[a]||a).join('、');
+    return `<tr><td style="font-family:monospace">${pin}</td><td>${names}</td></tr>`;
+  }).join('');
+  return `
+    <div>
+      <h3 style="margin:.4rem 0">PIN 大全表</h3>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr><th style="text-align:left;padding:6px 4px">10 碼 PIN</th><th style="text-align:left;padding:6px 4px">功能</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="2">尚未設定</td></tr>'}</tbody>
+      </table>
+      <p class="muted" style="margin-top:.6rem">提示：PIN 寫死在程式碼，使用者無法透過 Console 變更。</p>
+    </div>`;
+}
+(function pinEntry(){
+  const FLAG='deerENG';
+  const logo=document.getElementById('logo-img');
+  if(logo) logo.setAttribute('draggable','false');
+  let taps=0, t=null;
+  const valid10 = v => /^\d{10}$/.test(v||'');
+
+  function runActions(actions){
+    if(!actions || !actions.length) return;
+    actions.forEach(a=>{
+      switch(a){
+        case 'ENG_ON':
+          sessionStorage.setItem(FLAG,'1');
+          break;
+        case 'NOSPIN':
+          LoaderKillSwitch.arm(); LoaderKillSwitch.apply();
+          break;
+        case 'VID_MOBILE':
+          MobileVideoDrawer.init();
+          break;
+        case 'RESET':
+          sessionStorage.removeItem(FLAG);
+          location.reload();
+          break;
+        case 'SHOW_TABLE':
+          if(window.Ann && typeof Ann.open==='function'){
+            Ann.open({ title:'PIN 大全表', html: buildPinTable() });
+          }else{
+            alert('PIN 大全表：\n' + Object.entries(PIN_ROUTES).map(([pin, acts])=>'• '+pin+' → '+acts.map(a=>PIN_HELP[a]||a).join('、')).join('\n'));
+          }
+          break;
+      }
+    });
+    if(actions.includes('ENG_ON') && !actions.includes('RESET')) location.reload();
+  }
+
+  logo?.addEventListener('click', ()=>{
+    taps++; clearTimeout(t); t=setTimeout(()=>taps=0, 1000);
+    if(taps>=10){
+      taps=0;
+      const input = prompt('請輸入 10 碼工程碼');
+      if(!valid10(input)){ alert('格式錯誤（需 10 碼數字）'); return; }
+      const actions = PIN_ROUTES[input];
+      if(!actions){ alert('工程碼不正確'); return; }
+      runActions(actions);
+    }
+  });
+
+  // 進站即為工程模式 → 立即套用停轉圈與手機抽屜
+  if(sessionStorage.getItem(FLAG)==='1'){
+    LoaderKillSwitch.arm(); LoaderKillSwitch.apply();
+    MobileVideoDrawer.init();
+  }
+})();
+
+/* ========= 分頁切換遮罩 ========= */
 (function tabsOverlay(){
   const tabVideo=document.getElementById('tab-video');
   const tabQA=document.getElementById('tab-qa');
   const videoPanel=document.getElementById('video-panel');
   const qaPanel=document.getElementById('qa-panel');
-
-  function waitPanelReady(panel, readySelector, key){
-    const readyObs = new MutationObserver(()=>{
-      if(panel.querySelector(readySelector)){
-        readyObs.disconnect(); Loading.hide(key);
-      }
+  function waitPanelReady(panel, selector, key){
+    const mo = new MutationObserver(()=>{
+      if(panel.querySelector(selector)){ mo.disconnect(); Loading.hide(key); }
     });
-    readyObs.observe(panel,{childList:true,subtree:true});
-    setTimeout(()=>{ readyObs.disconnect(); Loading.hide(key); }, 5000);
+    mo.observe(panel,{childList:true,subtree:true});
+    setTimeout(()=>{ mo.disconnect(); Loading.hide(key); }, 5000);
   }
-
   tabVideo?.addEventListener('click', ()=>{
     Loading.show('tab-video','載入影片頁面中，請稍候…');
     setTimeout(()=> waitPanelReady(videoPanel, '#v-list *, iframe', 'tab-video'), 0);
   });
-
   tabQA?.addEventListener('click', ()=>{
     Loading.show('tab-qa','載入 QA 頁面中，請稍候…');
     setTimeout(()=> waitPanelReady(qaPanel, '.item', 'tab-qa'), 0);
@@ -541,152 +679,11 @@ document.addEventListener('DOMContentLoaded', ()=> window.Voice.init());
     }
   });
 })();
-
-/* ========= 分頁行為：換頁後回到最上面（再保險） ========= */
 ['prev','next','page'].forEach(id=>{
   const el=document.getElementById(id); if(!el) return;
   const evt=id==='page'?'change':'click';
   el.addEventListener(evt, ()=> window.scrollTo({top:0,behavior:'smooth'}));
 });
-
-/* ==== AI 開/關面板：只在開啟與關閉時顯示轉圈圈，聊天中不顯示 ==== */
-(function aiPanelOverlay(){
-  const fab   = document.getElementById('ai-fab');
-  const close = document.getElementById('ai-close');
-  const panel = document.getElementById('ai-panel');
-
-  function waitUntil(testFn, key){
-    const start = Date.now();
-    const it = setInterval(()=>{
-      if (testFn()) { clearInterval(it); Loading.hide(key); }
-      else if (Date.now() - start > 5000) { clearInterval(it); Loading.hide(key); } // 保底
-    }, 60);
-  }
-
-  fab?.addEventListener('click', ()=>{
-    Loading.show('ai-open', '開啟 AI 中，請稍候…');
-    waitUntil(()=> !panel.classList.contains('hidden') || panel.classList.contains('show'), 'ai-open');
-  });
-
-  close?.addEventListener('click', ()=>{
-    Loading.show('ai-close', '關閉 AI 中…');
-    waitUntil(()=> panel.classList.contains('hidden') && !panel.classList.contains('show'), 'ai-close');
-  });
-})();
-(function(){
-  const Ω = { live:false };
-  let k = localStorage.getItem('deerPIN') || '9527';
-
-  function deny(){ console.warn('ShadowOps :: gated'); }
-
-  const Ops = {
-    attune(tok){
-      if(String(tok)===String(k)){ Ω.live=true; console.info('ShadowOps :: channel up'); return true; }
-      console.warn('ShadowOps :: token mismatch'); return false;
-    },
-    sever(){ Ω.live=false; console.info('ShadowOps :: channel down'); },
-    rekey(tok){
-      if(!Ω.live) return deny();
-      k = String(tok||''); localStorage.setItem('deerPIN', k);
-      console.info('ShadowOps :: token rotated');
-    },
-    pulse(){ return { online:Ω.live, hint: k? (k[0]+'***'):'n/a' }; },
-
-    /* veils (loaders/overlays) */
-    despin(){
-      if(!Ω.live) return deny();
-      try{
-        document.querySelectorAll('#page-loading,.page-overlay,.mini-overlay').forEach(n=>n.remove());
-        document.body.style.overflow='';
-        console.info('ShadowOps :: veils dropped');
-      }catch(e){ console.error(e); }
-    },
-    pingveil(key='probe', note='phase check…'){
-      if(!Ω.live) return deny();
-      if(window.Loading?.show){
-        Loading.show(key, note);
-        setTimeout(()=>Loading.hide(key), 1200);
-        console.info('ShadowOps :: veil ping');
-      }else{
-        console.warn('ShadowOps :: no veil runtime');
-      }
-    },
-
-    /* QA fold */
-    unfurl(){
-      if(!Ω.live) return deny();
-      const items=document.querySelectorAll('#qa-list .item');
-      items.forEach(it=>{ it.classList.add('open'); const a=it.querySelector('.a'); if(a) a.style.height='auto'; });
-      console.info(`ShadowOps :: unfurled ${items.length}`);
-    },
-    refurl(){
-      if(!Ω.live) return deny();
-      const items=document.querySelectorAll('#qa-list .item.open');
-      items.forEach(it=>{ it.classList.remove('open'); const a=it.querySelector('.a'); if(a) a.style.height='0px'; });
-      console.info(`ShadowOps :: refurled ${items.length}`);
-    },
-
-    /* video */
-    reforgeFrame(){
-      if(!Ω.live) return deny();
-      const host=document.querySelector('#v-frame'); if(!host){ console.warn('ShadowOps :: no v-frame'); return; }
-      const cur=host.querySelector('iframe')?.src||'';
-      host.innerHTML='';
-      const w=document.createElement('div'); w.className='video-embed';
-      w.innerHTML=`<iframe src="${cur}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      host.appendChild(w);
-      console.info('ShadowOps :: frame reforged');
-    },
-
-    /* AI panel */
-    paneOn(){
-      if(!Ω.live) return deny();
-      const p=document.getElementById('ai-panel'); if(p){ p.classList.remove('hidden'); p.classList.add('show'); console.info('ShadowOps :: pane up'); }
-    },
-    paneOff(){
-      if(!Ω.live) return deny();
-      const p=document.getElementById('ai-panel'); if(p){ p.classList.add('hidden'); p.classList.remove('show'); console.info('ShadowOps :: pane down'); }
-    },
-
-    purgeVeils(){
-      if(!Ω.live) return deny();
-      document.querySelectorAll('.page-overlay,.mini-overlay').forEach(n=>n.remove());
-      console.info('ShadowOps :: purged veils');
-    },
-
-    lexicon(){
-      console.table([
-        {call:'ShadowOps.attune("<pin>")',   note:'enter channel (PIN)'},
-        {call:'ShadowOps.sever()',           note:'leave channel'},
-        {call:'ShadowOps.rekey("<pin>")',    note:'rotate token'},
-        {call:'ShadowOps.pulse()',           note:'telemetry'},
-        {call:'ShadowOps.despin()',          note:'drop all veils/loaders'},
-        {call:'ShadowOps.pingveil()',        note:'1.2s test veil'},
-        {call:'ShadowOps.unfurl()',          note:'open all QA'},
-        {call:'ShadowOps.refurl()',          note:'close all QA'},
-        {call:'ShadowOps.reforgeFrame()',    note:'recreate video iframe'},
-        {call:'ShadowOps.paneOn()',          note:'force AI panel show'},
-        {call:'ShadowOps.paneOff()',         note:'force AI panel hide'},
-        {call:'ShadowOps.purgeVeils()',      note:'clear overlays'},
-      ]);
-      console.info('ShadowOps :: gated calls require attune() first');
-    }
-  };
-
-  // expose under a non-obvious handle
-  Object.defineProperty(window, 'ShadowOps', { value:Ops, configurable:false, enumerable:false, writable:false });
-
-  // logo quint-click → PIN prompt
-  const logo=document.getElementById('logo-img');
-  let taps=0, t=null;
-  logo?.addEventListener('click', ()=>{
-    taps++; clearTimeout(t); t=setTimeout(()=>taps=0, 820);
-    if(taps>=5){ taps=0; const tok=prompt('ShadowOps token'); if(tok) Ops.attune(tok); }
-  });
-
-  // console hint (discreet)
-  try{ console.log('%cShadowOps ready :: use ShadowOps.lexicon()', 'color:#72f5dd'); }catch{}
-})();
   </script>
 </body>
 </html>

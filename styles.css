@@ -502,6 +502,24 @@ h1{
  /* 分享按鈕在窄螢幕別太長 */
 #site-share{ white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis }
 @media (max-width:480px){ #site-share span{ display:none } } /* 小螢幕只留圖示 */
+/* 旋轉動畫（圖片當作轉圈圈用） */
 @keyframes spin360 { to { transform: rotate(360deg); } }
-/* 讓所有 overlay / 首頁 loader / 影片小遮罩內的圖片都旋轉 */
+/* 預設所有 loader 圖片都會轉 */
 .spinner .loading-img { animation: spin360 1.1s linear infinite; }
+/* 轉圈動畫（圖片當 Loader 用）*/
+@keyframes spin360 { to { transform: rotate(360deg); } }
+.spinner .loading-img { animation: spin360 1.1s linear infinite; }
+
+/* 手機影片：清單變抽屜；影片區放大 */
+@media (max-width: 768px){
+  .video-layout{ display:block; }
+  .video-left{ padding-bottom:0; }
+  .video-right{
+    position:fixed; left:0; right:0; bottom:0; height:55vh;
+    background:rgba(15,18,32,.98); border-top:1px solid rgba(255,255,255,.12);
+    transform:translateY(100%); transition:transform .3s ease; overflow:auto; z-index:50;
+  }
+  body.vlist-open .video-right{ transform:translateY(0); }
+  /* 放大手機上的播放器高度 */
+  #v-frame{ min-height:56vw; }
+}
