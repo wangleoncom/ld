@@ -352,6 +352,32 @@ function runEngineerActions(acts){
 })();
 (function shareFix(){const btn=document.getElementById('site-share'); if(!btn) return; btn.addEventListener('click',async()=>{const data={title:document.title,text:'鹿🦌的QA網站',url:location.href}; try{if(navigator.share){await navigator.share(data);} else {await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200);}}catch{const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);}});})();
 ['prev','next','page'].forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=id==='page'?'change':'click'; el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));});
+  /* ========= 限制頁碼只能輸入數字 ========= */
+(function restrictPageInput(){
+  const input = document.getElementById('page');
+  if(!input) return;
+
+  // 即時過濾：只允許 0–9
+  input.addEventListener('input', e=>{
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+  });
+
+  // 阻擋非數字鍵輸入
+  input.addEventListener('keydown', e=>{
+    // 允許：Backspace、Delete、Arrow、Tab
+    if(['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) return;
+    if(e.ctrlKey || e.metaKey) return; // 允許複製貼上快捷
+    if(!/^[0-9]$/.test(e.key)) e.preventDefault();
+  });
+
+  // 貼上時自動清理非數字
+  input.addEventListener('paste', e=>{
+    e.preventDefault();
+    const txt = (e.clipboardData || window.clipboardData).getData('text');
+    const clean = txt.replace(/[^0-9]/g,'');
+    document.execCommand('insertText', false, clean);
+  });
+})();
   </script>
 </body>
 </html>
