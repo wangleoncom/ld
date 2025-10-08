@@ -502,3 +502,6 @@ h1{
  /* 分享按鈕在窄螢幕別太長 */
 #site-share{ white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis }
 @media (max-width:480px){ #site-share span{ display:none } } /* 小螢幕只留圖示 */
+@keyframes spin360 { to { transform: rotate(360deg); } }
+/* 讓所有 overlay / 首頁 loader / 影片小遮罩內的圖片都旋轉 */
+.spinner .loading-img { animation: spin360 1.1s linear infinite; }
