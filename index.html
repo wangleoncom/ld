@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <link rel="stylesheet" href="styles.css?v=20251008" />
   <style>
+    /* 基本覆蓋：與外部 styles.css 共存 */
     .page-overlay{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(7,11,22,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:1;transition:opacity .35s ease;pointer-events:auto}
     .page-overlay.hide{opacity:0;pointer-events:none}
     .page-overlay .card{width:min(360px,86vw);background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;text-align:center;color:#f6f8ff;box-shadow:0 24px 60px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.30)}
@@ -26,19 +27,18 @@
     .tool{cursor:pointer;user-select:none}
     .tool.copied{transform:scale(1.06);transition:transform .18s ease}
     #site-share{white-space:nowrap;padding-left:12px;padding-right:12px}
-    #overlay-modal{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(5,8,16,.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-    #overlay-modal .modal-card{width:min(560px,92vw);background:linear-gradient(180deg,rgba(22,26,48,.92) 0%, rgba(28,33,62,.92) 100%);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
-    #overlay-modal .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
-    #overlay-modal .modal-body{padding:14px}
-    #overlay-modal .btn{cursor:pointer}
+
     /* 反複製/長按（全站）— QA 區白名單 */
     html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     img{-webkit-user-drag:none;pointer-events:none}
     #logo-img{pointer-events:auto}
     #qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
     @media print{body{display:none !important}}
-    /* 手機影片抽屜（class 控制即可） */
-    body.vlist-open #v-list{transform:translateX(0)!important}
+
+    /* 手機影片抽屜（配合 body.vlist-open） */
+    @media (max-width: 768px){
+      body.vlist-open #v-list{transform:translateY(0)!important}
+    }
   </style>
 </head>
 <body>
@@ -121,6 +121,7 @@
         <div class="video-left">
           <div class="video-controls top">
             <button id="v-random" class="btn">隨機影片</button>
+            <!-- 目錄按鈕會由 JS 注入到這裡 -->
           </div>
           <div class="video-header">
             <span id="v-title" class="video-title">未選擇影片</span>
@@ -225,7 +226,7 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸
   ensureCopyButtons(); new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{if(n.nodeType===1) ensureCopyButtons(n);}))).observe(list,{childList:true,subtree:true});
 })();
 
-/* ============ 影片：一次渲染 + 小遮罩 ============ */
+/* ============ 影片：點一次渲染 + 小遮罩 ============ */
 (function videoClickOnce(){
   const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title'); if(!list||!frame) return;
   let lock=false,lastKey='';
@@ -234,8 +235,15 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸
     if(lock) return; lock=true; setTimeout(()=>lock=false,600);
     try{
       const data=JSON.parse(item.dataset.video||'{}'); const key=(data.id||data.url||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
-      frame.innerHTML=''; const wrap=document.createElement('div'); wrap.className='video-embed'; wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`; frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
-      const mark=Loading.videoShow(); const timer=setInterval(()=>{const ifr=frame.querySelector('iframe'); if(ifr){clearInterval(timer); ifr.addEventListener('load',()=>Loading.videoHide(mark),{once:true}); setTimeout(()=>Loading.videoHide(mark),5000);}},60); setTimeout(()=>clearInterval(timer),2000);
+      frame.innerHTML='';
+      const wrap=document.createElement('div');
+      wrap.className='video-embed';
+      wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      frame.appendChild(wrap);
+      if(title) title.textContent=data.title||'影片';
+      const mark=Loading.videoShow();
+      const timer=setInterval(()=>{const ifr=frame.querySelector('iframe'); if(ifr){clearInterval(timer); ifr.addEventListener('load',()=>Loading.videoHide(mark),{once:true}); setTimeout(()=>Loading.videoHide(mark),5000);}},60);
+      setTimeout(()=>clearInterval(timer),2000);
     }catch{}
   },true);
 })();
@@ -246,6 +254,8 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸
   function armHide(){const mo=new MutationObserver(()=>{clearTimeout(armHide.t); armHide.t=setTimeout(()=>Loading.hide('page'),240);}); mo.observe(list,{childList:true,subtree:true}); setTimeout(()=>{mo.disconnect(); Loading.hide('page');},8000);}
   ids.forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=(id==='page')?'change':'click'; el.addEventListener(evt,()=>{Loading.show('page','切換頁面中，請稍候…'); armHide(); window.scrollTo({top:0,behavior:'smooth'});});});
 })();
+
+/* ============ AI 面板遮罩 ============ */
 (function aiPanelOverlay(){
   const fab=document.getElementById('ai-fab'), close=document.getElementById('ai-close'), panel=document.getElementById('ai-panel');
   function waitUntil(testFn,key){const st=Date.now(); const it=setInterval(()=>{if(testFn()){clearInterval(it); Loading.hide(key);} else if(Date.now()-st>5000){clearInterval(it); Loading.hide(key);}},60);}
@@ -254,33 +264,21 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸
 })();
 
 /* ============ 禁一般複製/右鍵/截圖（QA 白名單） ============ */
-/* ============ 反複製/右鍵/截圖（全面封鎖；QA 僅允許按鈕複製） ============ */
 (function antiCopy(){
-  // 1) 全站禁止右鍵（避免「檢查」與行動裝置模擬的入口）
   document.addEventListener('contextmenu', e=>e.preventDefault(), true);
-
-  // 2) 全站禁止 copy/cut（QA 區仍可選取文字，但不能直接複製；改用我們的「📋 複製」按鈕）
   document.addEventListener('copy', e=>e.preventDefault(), true);
   document.addEventListener('cut',  e=>e.preventDefault(), true);
-
-  // 3) 禁拖拉圖片、長按存圖
   document.addEventListener('dragstart', e=>e.preventDefault(), true);
-  const logo=document.getElementById('logo-img');
-  logo?.setAttribute('draggable','false');
+  document.getElementById('logo-img')?.setAttribute('draggable','false');
 
-  // 4) 鍵盤快速鍵再加一道保險（和 devtoolsGuard 相輔相成）
   document.addEventListener('keydown', async e=>{
     const k=(e.key||'').toLowerCase();
-    // 阻擋常見複製／另存和開發者工具快捷鍵
-    if (
-      (e.ctrlKey && (k==='c' || k==='x' || k==='s' || k==='u')) || // Ctrl+C/X/S/U
-      (e.metaKey && (k==='c' || k==='x' || k==='s' || k==='u')) || // Cmd+C/X/S/U
-      (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)) ||    // Ctrl+Shift+I/J/C
-      k==='f12'
-    ){
+    if ((e.ctrlKey && (k==='c'||k==='x'||k==='s'||k==='u')) ||
+        (e.metaKey && (k==='c'||k==='x'||k==='s'||k==='u')) ||
+        (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(k)) ||
+        k==='f12'){
       e.preventDefault();
     }
-    // 嘗試清空螢幕截圖到剪貼簿（某些瀏覽器會擋）
     if (k==='printscreen' || k==='snapshot'){
       e.preventDefault();
       try{ await navigator.clipboard.writeText(''); }catch{}
@@ -288,13 +286,6 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.1 上線',body:'支援語音輸
   }, true);
 })();
 
-/* ============ DevTools/F12 守門：觸發即重整 ============ */
-(function devtoolsGuard(){
-  let tripped=false; const kick=()=>{if(tripped) return; tripped=true; location.reload();};
-  const check=()=>{const w=window.outerWidth-window.innerWidth; const h=window.outerHeight-window.innerHeight; if(w>160||h>160) kick();};
-  setInterval(check,600);
-  document.addEventListener('keydown',e=>{const K=(e.key||'').toUpperCase(); if(K==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(K))){e.preventDefault(); kick();}},true);
-})();
 
 /* ============ 工程模式：停轉圈/展開 QA/手機影片抽屜 ============ */
 const LoaderKillSwitch={armed:false,arm(){this.armed=true;},apply(){if(!this.armed) return; try{const tag=document.createElement('style'); tag.textContent='.spinner .loading-img{animation:none!important}'; document.head.appendChild(tag);
@@ -303,23 +294,18 @@ const LoaderKillSwitch={armed:false,arm(){this.armed=true;},apply(){if(!this.arm
 }catch{}}};
 function unfurlAllQA(){document.querySelectorAll('#qa-list .item').forEach(it=>{it.classList.add('open'); const a=it.querySelector('.a'); if(a) a.style.height='auto';});}
 const MobileVideoDrawer={inited:false,init(){if(this.inited) return; this.inited=true; const mq=window.matchMedia('(max-width:768px)'); const list=document.getElementById('v-list'); const header=document.querySelector('.video-controls.top'); if(!list||!header) return;
-  const setup=()=>{if(!mq.matches){document.body.classList.remove('vlist-open'); return;} if(!document.getElementById('v-toggle')){const btn=document.createElement('button'); btn.id='v-toggle'; btn.className='btn'; btn.textContent='影片清單'; header.appendChild(btn);
-    btn.addEventListener('click',()=>{const key='vlist'; if(window.Loading?.show){Loading.show(key,'載入清單中，請稍候…'); const dur=3000+Math.floor(Math.random()*2000); setTimeout(()=>{document.body.classList.add('vlist-open'); Loading.hide(key);},dur);} else {document.body.classList.add('vlist-open');}});}};
+  const setup=()=>{if(!mq.matches){document.body.classList.remove('vlist-open'); return;} if(!document.getElementById('v-toggle')){const btn=document.createElement('button'); btn.id='v-toggle'; btn.className='btn'; btn.textContent='目錄'; header.appendChild(btn);
+    btn.addEventListener('click',()=>{const key='vlist'; if(window.Loading?.show){Loading.show(key,'載入清單中，請稍候…'); const dur=300+Math.floor(Math.random()*250); setTimeout(()=>{document.body.classList.add('vlist-open'); Loading.hide(key);},dur);} else {document.body.classList.add('vlist-open');}});}};
   setup(); mq.addEventListener?.('change',setup); list.addEventListener('click',e=>{if(e.target.closest('[data-video]')) document.body.classList.remove('vlist-open');});}};
 
-/* ============ 隱藏式 PIN 驗證（不透露任何資訊） ============ */
-/* 簡單 FNV-1a 雜湊（回傳 8 位十六進位字串） */
+/* ============ 隱藏式 PIN 驗證（只比對雜湊） ============ */
 function hashPin(s){let h=0x811c9dc5>>>0; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,0x01000193);} return ('0000000'+(h>>>0).toString(16)).slice(-8);}
-
-/* 將你的「亂碼 PIN 明碼」離線算出 hashPin(明碼) 後，把結果貼到這裡；程式只比對雜湊，不存明碼。 */
 const PIN_ROUTES_HASHED = Object.freeze({
-  /* 範例（請自行替換以下雜湊，不要放明碼） */
-  "a1b2c3d4": Object.freeze(["ENG_ON","NOSPIN","UNFURL","VID_MOBILE"]), // 全開
-  "9f8e7d6c": Object.freeze(["ENG_ON","UNFURL"]),                      // 只開工程+展開QA
-  "13572468": Object.freeze(["RESET"])                                 // 重置
+  /* 對應明碼（供你保存）：d33r-ALL-7925 / d33r-ENG-2048 / d33r-RESET-9090 */
+  "f48f0be3": Object.freeze(["ENG_ON","NOSPIN","UNFURL","VID_MOBILE"]), // 全開
+  "44403c49": Object.freeze(["ENG_ON","UNFURL"]),                        // 工程+展開QA
+  "3950f0a2": Object.freeze(["RESET"])                                   // 重置
 });
-
-/* 工程動作 */
 function runEngineerActions(acts){
   const FLAG='deerENG';
   acts.forEach(a=>{
@@ -331,8 +317,6 @@ function runEngineerActions(acts){
   });
   if(acts.includes("ENG_ON") && !acts.includes("RESET")) location.reload();
 }
-
-/* 點 Logo 多次 → 輸入工程碼（不顯示位數、不顯示任何提示） */
 (function engineerGate(){
   const logo=document.getElementById('logo-img'); if(logo) logo.setAttribute('draggable','false');
   let taps=0,t=null;
@@ -342,7 +326,7 @@ function runEngineerActions(acts){
   if(sessionStorage.getItem('deerENG')==='1'){LoaderKillSwitch.arm(); LoaderKillSwitch.apply(); unfurlAllQA(); MobileVideoDrawer.init();}
 })();
 
-/* ============ 分頁切換遮罩/分享 ============ */
+/* ============ Tabs 遮罩/分享 ============ */
 (function tabsOverlay(){
   const tabVideo=document.getElementById('tab-video'), tabQA=document.getElementById('tab-qa');
   const videoPanel=document.getElementById('video-panel'), qaPanel=document.getElementById('qa-panel');
@@ -350,42 +334,47 @@ function runEngineerActions(acts){
   tabVideo?.addEventListener('click',()=>{Loading.show('tab-video','載入影片頁面中，請稍候…'); setTimeout(()=>waitPanelReady(videoPanel,'#v-list *, iframe','tab-video'),0);});
   tabQA?.addEventListener('click',()=>{Loading.show('tab-qa','載入 QA 頁面中，請稍候…'); setTimeout(()=>waitPanelReady(qaPanel,'.item','tab-qa'),0);});
 })();
-(function shareFix(){const btn=document.getElementById('site-share'); if(!btn) return; btn.addEventListener('click',async()=>{const data={title:document.title,text:'鹿🦌的QA網站',url:location.href}; try{if(navigator.share){await navigator.share(data);} else {await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200);}}catch{const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);}});})();
-['prev','next','page'].forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=id==='page'?'change':'click'; el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));});
-  /* ========= 限制頁碼只能輸入數字 ========= */
+(function shareFix(){
+  const btn=document.getElementById('site-share'); if(!btn) return;
+  btn.addEventListener('click',async()=>{
+    const data={title:document.title,text:'鹿🦌的QA網站',url:location.href};
+    try{
+      if(navigator.share){await navigator.share(data);}
+      else {await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200);}
+    }catch{const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);}
+  });
+})();
+['prev','next','page'].forEach(id=>{
+  const el=document.getElementById(id); if(!el) return;
+  const evt=id==='page'?'change':'click';
+  el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));
+});
+
+/* ========= 限制頁碼只能輸入數字 ========= */
 (function restrictPageInput(){
   const input = document.getElementById('page');
   if(!input) return;
-
-  // 即時過濾：只允許 0–9
-  input.addEventListener('input', e=>{
-    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-  });
-
-  // 阻擋非數字鍵輸入
+  input.addEventListener('input', e=>{ e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
   input.addEventListener('keydown', e=>{
-    // 允許：Backspace、Delete、Arrow、Tab
     if(['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) return;
-    if(e.ctrlKey || e.metaKey) return; // 允許複製貼上快捷
+    if(e.ctrlKey || e.metaKey) return;
     if(!/^[0-9]$/.test(e.key)) e.preventDefault();
   });
-
-  // 貼上時自動清理非數字
   input.addEventListener('paste', e=>{
     e.preventDefault();
-    const txt = (e.clipboardData || window.clipboardData).getData('text');
-    const clean = txt.replace(/[^0-9]/g,'');
+    const txt=(e.clipboardData || window.clipboardData).getData('text');
+    const clean=txt.replace(/[^0-9]/g,'');
     document.execCommand('insertText', false, clean);
   });
 })();
 
+/* ========= 手機影片抽屜：目錄按鈕、只允許操作清單、選片/關閉 ========= */
 (function mobileVideoDrawer(){
   const header = document.querySelector('.video-controls.top');
   const list   = document.getElementById('v-list');
-  const frame  = document.getElementById('v-frame');
-  if(!header || !list || !frame) return;
+  if(!header || !list) return;
 
-  // 1) 建立「目錄」按鈕（在「隨機影片」右側）
+  // 建立「目錄」按鈕（在「隨機影片」右側）
   if(!document.getElementById('v-toggle')){
     const btn = document.createElement('button');
     btn.id = 'v-toggle';
@@ -395,31 +384,26 @@ function runEngineerActions(acts){
     btn.addEventListener('click', openDrawer);
   }
 
-  // 2) 點清單（選片）→ 自動關閉；右上角 ✖ 亦可手動關閉
+  // 點清單（選片）→ 自動關閉；右上角 ✖ 區域亦可手動關閉（偵測頂部右側）
   list.addEventListener('click', (e)=>{
-    // 點到關閉（偵測到頂部 pseudo 按不到，改抓近右上角區域）
     const rect = list.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    if (y <= 60 && x >= rect.width - 64){ // 右上角區域
+    if (y <= 60 && x >= rect.width - 64){
       closeDrawer();
       return;
     }
-
-    // 點到影片項目（你的清單項目請保持 data-video 屬性）
     if (e.target.closest('[data-video]')){
       closeDrawer();
     }
   }, true);
 
-  // 3) 抽屜開/關與互動遮罩
   function openDrawer(){
     if(!document.getElementById('v-backdrop')){
       const bg = document.createElement('div');
       bg.id = 'v-backdrop';
       document.body.appendChild(bg);
       bg.addEventListener('click', closeDrawer);
-      // 開啟期間只允許操作抽屜
       bg.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
       ['touchmove','pointerdown'].forEach(ev=>bg.addEventListener(ev, e=>e.preventDefault(), {passive:false}));
     }
@@ -430,11 +414,12 @@ function runEngineerActions(acts){
     document.getElementById('v-backdrop')?.remove();
   }
 
-  // 4) 保險：視窗改成桌機尺寸時關抽屜
+  // 尺寸變更為桌機時自動關閉抽屜
   window.matchMedia('(min-width: 769px)').addEventListener('change', e=>{
     if(e.matches) closeDrawer();
   });
 })();
-  </script>
+
+</script>
 </body>
 </html>

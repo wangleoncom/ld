@@ -1,4 +1,4 @@
-/* ===== Deer QA & Video Styles v3.3 — 彩暈流光主題（去重＋行動版優化） ===== */
+/* ===== Deer QA & Video Styles v3.4 — 彩暈流光主題（行動直式全螢幕 + 目錄抽屜） ===== */
 
 /* ---- 主題變數 ---- */
 :root{
@@ -288,7 +288,7 @@ h1{
 .info-btn:hover{background:rgba(255,255,255,.30)}
 .info-btn.small{padding:2px 6px;font-size:.85rem}
 
-/* 16:9 自適應容器 */
+/* 16:9 自適應容器（桌機） */
 .video-embed{position:relative;width:100%;border-radius:16px;background:#0c0f1c;overflow:hidden}
 .video-embed::before{content:"";display:block;padding-top:56.25%}
 .video-embed iframe{position:absolute;inset:0;width:100% !important;height:100% !important;border:0;border-radius:inherit}
@@ -313,50 +313,25 @@ h1{
 .video-frame:active{animation:pressPop .18s var(--ease)}
 @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
 
-/* ---- 手機優化（≤ 768px） ---- */
+/* ---- 手機（≤768px）通用調整（不含影片佈局） ---- */
 @media (max-width:768px){
   .hero{padding:28px 16px 8px}
   h1{font-size:clamp(20px,4.8vw,28px)}
   .top-actions{position:static !important;display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-
   .container{padding:0 16px;margin:6px auto 80px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat .value{font-size:1rem}
-
-  /* 影片：上下堆疊 + 16:9 + 清單不固定高 */
-  .video-layout{display:block;padding:12px}
-  .video-left{margin-bottom:12px}
-  .video-right{max-height:unset !important;overflow:visible !important;display:grid;gap:8px}
-  #v-frame,.video-frame{width:100%}
-  #v-frame iframe,.video-frame iframe{width:100% !important;height:auto !important;aspect-ratio:16/9;min-height:unset !important;border-radius:14px}
-  .video-header{gap:6px;margin:4px 0}
-  .video-title{font-size:.95rem}
-  .info-btn{padding:6px 10px}
-
   .pager{gap:8px}
   .page-input, .pager input[type="number"]{width:72px}
-
-  .modal-card,.modal-card.small{
-    width:calc(100vw - 2*env(safe-area-inset-left) - 2*env(safe-area-inset-right));
-    max-width:100%;margin:0;border-radius:14px;
-  }
-
-  .ai-panel{
-    right:0;bottom:0;width:100vw;
-    height:calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    border-radius:0;background:#0f1220 !important;background-image:none !important;
-    opacity:1;pointer-events:auto;
-  }
+  .ai-panel{right:0;bottom:0;width:100vw;height:calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top) - env(safe-area-inset-bottom));border-radius:0;background:#0f1220 !important;background-image:none !important;opacity:1;pointer-events:auto}
   .ai-messages{gap:6px;padding:10px}
   .msg .bubble{max-width:min(86%,var(--linech))}
   .ai-panel.hidden{display:none}
-
-  .ai-fab{right:calc(16px + env(safe-area-inset-right)); bottom:calc(16px + env(safe-area-inset-bottom));}
-
+  .ai-fab{right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom))}
   .badge,.tab,.btn{min-height:40px}
 }
 
-/* ---- 超小螢幕（≤ 360px） ---- */
+/* ---- 超小螢幕（≤360px） ---- */
 @media (max-width:360px){
   .video-title{font-size:.9rem}
   .msg .bubble{max-width:min(92%,var(--linech))}
@@ -367,30 +342,12 @@ h1{
 /* ---- 輔助 ---- */
 .hidden{display:none}
 
-/* ===== Mobile Video Redesign (≤768px) ===== */
-@media (max-width:768px){
-  .video-layout{display:flex;flex-direction:column;gap:10px;padding:0;margin:0 -16px}
-  .video-left{position:sticky;top:calc(env(safe-area-inset-top,0) + 0px);z-index:2;background:#0f1220;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .video-controls.top{margin:0 0 8px 0; justify-content:flex-start}
-  .video-header{display:flex; align-items:center; gap:8px; margin:6px 0 8px}
-  .video-title{font-size:1rem; font-weight:800; line-height:1.25; max-width:88vw; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
-  .info-btn{padding:6px 10px; border-radius:10px}
-  #v-frame{margin:0}
-  #v-frame .video-embed, #v-frame iframe{width:100% !important; height:auto !important; aspect-ratio:16/9; min-height:unset !important; border-radius:14px; background:#0c0f1c; box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .video-right{display:flex;flex-direction:column;gap:8px;padding:12px 16px 16px;max-height:calc(100dvh - (16vw*9/16) - 120px - env(safe-area-inset-bottom,0));overflow:auto;-webkit-overflow-scrolling:touch;background:transparent}
-  .video-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.10); background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%)}
-  .video-item:active{transform:scale(.99)}
-  .video-label{font-size:.95rem; line-height:1.25; flex:1 1 auto; min-width:0; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
-  .info-btn.small{flex:0 0 auto; padding:6px 10px}
-  .video-right, .video-item, .video-label, .video-header, #v-frame{word-break:break-word; overflow-wrap:anywhere}
-}
-
 /* ==== QA 複製按鈕強化 ==== */
 .tools .tool{cursor:pointer;user-select:none;padding:2px 8px;border-radius:8px;transition:transform .18s ease, background .18s ease, color .18s ease}
-.tools .tool:hover{ background:rgba(255,255,255,.12); color:#fff }
-.tools .tool:active{ transform:scale(.96) }
+.tools .tool:hover{background:rgba(255,255,255,.12);color:#fff}
+.tools .tool:active{transform:scale(.96)}
 @keyframes copy-pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
-.tool.copied{ animation:copy-pop .28s ease }
+.tool.copied{animation:copy-pop .28s ease}
 
 /* ==== Loading 卡片（容器＋動畫） ==== */
 #page-loading{
@@ -416,176 +373,78 @@ h1{
 #page-loading .dot:nth-child(2){color:#b38cff; animation-delay:.1s}
 #page-loading .dot:nth-child(3){color:#72f5dd; animation-delay:.2s}
 #page-loading .dot:nth-child(4){color:#ffb3d6; animation-delay:.3s}
+#page-loading .spinner{position:relative;width:80px;height:80px;margin:12px auto 6px;display:grid;place-items:center}
+#page-loading .spinner .loading-img{width:100%;height:100%;border-radius:50%;object-fit:cover;animation:spinImg 1.8s linear infinite;box-shadow:0 0 20px rgba(122,162,255,.35)}
+@keyframes spinImg{to{transform:rotate(360deg)}}
 
-#page-loading .spinner{
-  position:relative;
-  width:80px; height:80px;
-  margin:12px auto 6px;
-  display:grid; place-items:center;
-}
-#page-loading .spinner .loading-img{
-  width:100%; height:100%;
-  border-radius:50%;        /* 讓正方形變圓 */
-  object-fit:cover;
-  animation:spinImg 1.8s linear infinite;  /* 旋轉動畫 */
-  box-shadow:0 0 20px rgba(122,162,255,.35);
-}
-@keyframes spinImg{
-  to{transform:rotate(360deg);}
-}
-/* ---- 桌機強制回原本高度設定 ---- */
+/* ---- 桌機：固定播放器高度 ---- */
 @media (min-width:769px){
-  #v-frame .video-embed, #v-frame iframe{
-    width:100% !important; height:640px !important; aspect-ratio:auto; min-height:640px !important;
-  }
+  #v-frame .video-embed, #v-frame iframe{width:100% !important;height:640px !important;aspect-ratio:auto;min-height:640px !important}
 }
-/* === QA 複製提示 Toast === */
-.toast{
-  position:fixed; z-index:9999;
-  padding:8px 12px; border-radius:10px;
-  background:rgba(0,0,0,.78); color:#fff; font-weight:800;
-  pointer-events:none; box-shadow:0 8px 24px rgba(0,0,0,.35);
-  animation:toastfade 1.6s ease forwards;
-}
-@keyframes toastfade{
-  0%{opacity:0; transform:translateY(8px)}
-  12%{opacity:1; transform:translateY(0)}
-  88%{opacity:1}
-  100%{opacity:0; transform:translateY(-6px)}
-}
-/* 讓複製按鈕有明顯按鈕手勢與動畫 */
-.tools .tool{cursor:pointer; user-select:none; padding:2px 8px; border-radius:8px;
-  transition:transform .18s ease, background .18s ease, color .18s ease}
-.tools .tool:hover{ background:rgba(255,255,255,.12); color:#fff }
-.tools .tool:active{ transform:scale(.96) }
-.tool.copied{ animation:copy-pop .28s ease }
-@keyframes copy-pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
 
-/* === 通用頁面遮罩（可重用在 QA換頁、AI開啟、初始載入 等） === */
-.page-overlay{
-  position:fixed; inset:0; z-index:9999;
-  display:grid; place-items:center;
-  background:rgba(7,11,22,.78);
-  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-  transition:opacity .35s ease; opacity:1;
-  pointer-events:auto; /* 擋住所有點擊 */
-}
-.page-overlay.hide{ opacity:0; pointer-events:none }
-
-.page-overlay .card{
-  width:min(360px,86vw);
-  background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:16px; padding:20px; text-align:center; color:var(--text);
-  box-shadow:var(--shadow);
-}
-.page-overlay .title{font-weight:800; margin:6px 0 10px}
-
-/* 圖片式轉圈圈（正方形圖→圓形 + 旋轉） */
-.page-overlay .spinner{position:relative; width:96px; height:96px; margin:12px auto 6px; display:grid; place-items:center}
-.page-overlay .spinner .loading-img{
-  width:100%; height:100%; border-radius:50%;
-  object-fit:cover; animation:spinImg 1.8s linear infinite;
-  box-shadow:0 0 20px rgba(122,162,255,.35);
-}
-@keyframes spinImg{ to{ transform:rotate(360deg) } }
+/* === 通用頁面遮罩（QA 換頁 / AI 開啟 / 其他） === */
+.page-overlay{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(7,11,22,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity .35s ease;opacity:1;pointer-events:auto}
+.page-overlay.hide{opacity:0;pointer-events:none}
+.page-overlay .card{width:min(360px,86vw);background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;text-align:center;color:var(--text);box-shadow:var(--shadow)}
+.page-overlay .title{font-weight:800;margin:6px 0 10px}
+.page-overlay .spinner{position:relative;width:96px;height:96px;margin:12px auto 6px;display:grid;place-items:center}
+.page-overlay .spinner .loading-img{width:100%;height:100%;border-radius:50%;object-fit:cover;animation:spinImg 1.8s linear infinite;box-shadow:0 0 20px rgba(122,162,255,.35)}
 
 /* 影片專用的小遮罩：覆蓋播放器區域 */
-#v-frame .mini-overlay{
-  position:absolute; inset:0; z-index:3;
-  display:grid; place-items:center;
-  background:rgba(7,11,22,.68);
-  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-}
-#v-frame{ position:relative } /* 讓 mini-overlay 能正確覆蓋 */
+#v-frame{position:relative}
+#v-frame .mini-overlay{position:absolute;inset:0;z-index:3;display:grid;place-items:center;background:rgba(7,11,22,.68);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 
- /* 分享按鈕在窄螢幕別太長 */
-#site-share{ white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis }
-@media (max-width:480px){ #site-share span{ display:none } } /* 小螢幕只留圖示 */
-/* 旋轉動畫（圖片當作轉圈圈用） */
-@keyframes spin360 { to { transform: rotate(360deg); } }
-/* 預設所有 loader 圖片都會轉 */
-.spinner .loading-img { animation: spin360 1.1s linear infinite; }
-/* 轉圈動畫（圖片當 Loader 用）*/
-@keyframes spin360 { to { transform: rotate(360deg); } }
-.spinner .loading-img { animation: spin360 1.1s linear infinite; }
+/* 分享按鈕在窄螢幕別太長 */
+#site-share{white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:480px){ #site-share span{display:none} }
 
-/* 手機影片：清單變抽屜；影片區放大 */
-@media (max-width: 768px){
-  .video-layout{ display:block; }
-  .video-left{ padding-bottom:0; }
-  .video-right{
-    position:fixed; left:0; right:0; bottom:0; height:55vh;
-    background:rgba(15,18,32,.98); border-top:1px solid rgba(255,255,255,.12);
-    transform:translateY(100%); transition:transform .3s ease; overflow:auto; z-index:50;
-  }
-  body.vlist-open .video-right{ transform:translateY(0); }
-  /* 放大手機上的播放器高度 */
-  #v-frame{ min-height:56vw; }
-}
-html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
-/* ===== 手機：影片全螢幕直式（像 TikTok） ===== */
-@media (max-width: 768px){
-  .video-layout{ display:block; }
-  .video-left{ padding:0; margin:0; }
-  .video-header{ padding:8px 12px; }
-  .video-frame{ 
-    position:relative;
-    width:100%;
-    height: calc(100svh - 120px); /* 扣掉上方標題/按鈕高度，可微調 */
-    display:grid; place-items:center;
-    background:#000; border-radius:14px; overflow:hidden;
+/* ---- 手機：影片全螢幕直式（像 TikTok） + 目錄抽屜 ---- */
+@media (max-width:768px){
+  .video-layout{display:block}
+  .video-left{padding:0;margin:0}
+  .video-header{padding:8px 12px}
+  .video-controls.top{display:flex;gap:8px;margin:0 0 8px 8px}
+  #v-toggle{margin-left:8px}
+
+  /* 播放器滿版直式 */
+  .video-frame{
+    position:relative;width:100%;
+    height:calc(100svh - 120px); /* 可依實機微調 */
+    display:grid;place-items:center;background:#000;border-radius:14px;overflow:hidden
   }
   .video-frame .video-embed,
-  .video-frame iframe{
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 9 / 16;       /* 直式比例 */
-  }
+  .video-frame iframe{width:100%;height:100%;aspect-ratio:9/16}
 
-  /* 右側清單改成全螢幕抽屜（預設關） */
+  /* 目錄抽屜（全螢幕，下滑出現） */
   #v-list{
-    position: fixed;
-    inset: 0;
-    z-index: 10000;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    background: rgba(5,8,16,.86);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transform: translateY(100%);
-    transition: transform .28s ease;
+    position:fixed;inset:0;z-index:10000;display:grid;grid-template-rows:56px 1fr;
+    background:rgba(5,8,16,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transform:translateY(100%);transition:transform .28s ease;
   }
-  /* 抽屜頂部工具列（標題 + 關閉） */
-  #v-list::before{
-    content:"影片目錄";
-    display:flex; align-items:center; justify-content:center;
-    height:52px; border-bottom:1px solid rgba(255,255,255,.12);
-    color:#e9ecff; font-weight:700; letter-spacing:.02em;
-  }
-  /* 關閉按鈕 */
-  #v-list::after{
-    content:"✖";
-    position:absolute; top:10px; right:12px;
-    width:36px; height:36px; display:grid; place-items:center;
-    border-radius:10px; background:rgba(255,255,255,.08); color:#fff;
-  }
-  /* 目錄內容容器（你原本塞項目的那個） */
-  #v-list > *{
-    overflow:auto; padding:10px 12px 20px;
-  }
+  body.vlist-open{overflow:hidden}
+  body.vlist-open #v-list{transform:translateY(0)}
 
-  /* 開啟狀態 */
-  body.vlist-open { overflow:hidden; }
-  body.vlist-open #v-list{ transform: translateY(0); }
+  /* 頂列（標題 + 關閉） */
+  #vlist-bar{display:flex;align-items:center;gap:10px;height:56px;padding:0 12px;border-bottom:1px solid rgba(255,255,255,.12)}
+  #vlist-title{color:#e9ecff;font-weight:800;letter-spacing:.02em}
+  #vlist-close{margin-left:auto;width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.10);color:#fff;cursor:pointer}
 
-  /* 抽屜開啟時，其他區域不可互動 */
-  #v-backdrop{
-    position:fixed; inset:0; z-index:9999;
-    background: transparent; /* 只負責擋互動 */
+  /* 內容可捲動 */
+  #v-scroll{overflow:auto;-webkit-overflow-scrolling:touch;padding:10px 12px 20px}
+
+  /* 清單項（整齊排版，可上下捲動） */
+  #v-scroll [data-video]{
+    display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer;
+    padding:10px;border:1px solid rgba(255,255,255,.10);border-radius:12px;
+    background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%)
   }
-
-  /* 「目錄」按鈕樣式（放在隨機影片旁） */
-  #v-toggle{ margin-left:8px; }
+  #v-scroll [data-video]:active{transform:scale(.99)}
+  #v-scroll [data-video] .thumb{width:72px;height:96px;flex:0 0 auto;border-radius:10px;background:#111;overflow:hidden}
+  #v-scroll [data-video] .meta{min-width:0;display:flex;flex-direction:column;gap:4px}
+  #v-scroll [data-video] .title{color:#f7f8ff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #v-scroll [data-video] .sub{font-size:.85rem;color:#bfc6ff}
 }
+
+/* ---- 反複製白名單 ---- */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
