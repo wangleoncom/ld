@@ -378,6 +378,63 @@ function runEngineerActions(acts){
     document.execCommand('insertText', false, clean);
   });
 })();
+
+(function mobileVideoDrawer(){
+  const header = document.querySelector('.video-controls.top');
+  const list   = document.getElementById('v-list');
+  const frame  = document.getElementById('v-frame');
+  if(!header || !list || !frame) return;
+
+  // 1) 建立「目錄」按鈕（在「隨機影片」右側）
+  if(!document.getElementById('v-toggle')){
+    const btn = document.createElement('button');
+    btn.id = 'v-toggle';
+    btn.className = 'btn';
+    btn.textContent = '目錄';
+    header.appendChild(btn);
+    btn.addEventListener('click', openDrawer);
+  }
+
+  // 2) 點清單（選片）→ 自動關閉；右上角 ✖ 亦可手動關閉
+  list.addEventListener('click', (e)=>{
+    // 點到關閉（偵測到頂部 pseudo 按不到，改抓近右上角區域）
+    const rect = list.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (y <= 60 && x >= rect.width - 64){ // 右上角區域
+      closeDrawer();
+      return;
+    }
+
+    // 點到影片項目（你的清單項目請保持 data-video 屬性）
+    if (e.target.closest('[data-video]')){
+      closeDrawer();
+    }
+  }, true);
+
+  // 3) 抽屜開/關與互動遮罩
+  function openDrawer(){
+    if(!document.getElementById('v-backdrop')){
+      const bg = document.createElement('div');
+      bg.id = 'v-backdrop';
+      document.body.appendChild(bg);
+      bg.addEventListener('click', closeDrawer);
+      // 開啟期間只允許操作抽屜
+      bg.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
+      ['touchmove','pointerdown'].forEach(ev=>bg.addEventListener(ev, e=>e.preventDefault(), {passive:false}));
+    }
+    document.body.classList.add('vlist-open');
+  }
+  function closeDrawer(){
+    document.body.classList.remove('vlist-open');
+    document.getElementById('v-backdrop')?.remove();
+  }
+
+  // 4) 保險：視窗改成桌機尺寸時關抽屜
+  window.matchMedia('(min-width: 769px)').addEventListener('change', e=>{
+    if(e.matches) closeDrawer();
+  });
+})();
   </script>
 </body>
 </html>

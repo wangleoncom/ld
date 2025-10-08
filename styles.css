@@ -523,3 +523,69 @@ h1{
   /* 放大手機上的播放器高度 */
   #v-frame{ min-height:56vw; }
 }
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+/* ===== 手機：影片全螢幕直式（像 TikTok） ===== */
+@media (max-width: 768px){
+  .video-layout{ display:block; }
+  .video-left{ padding:0; margin:0; }
+  .video-header{ padding:8px 12px; }
+  .video-frame{ 
+    position:relative;
+    width:100%;
+    height: calc(100svh - 120px); /* 扣掉上方標題/按鈕高度，可微調 */
+    display:grid; place-items:center;
+    background:#000; border-radius:14px; overflow:hidden;
+  }
+  .video-frame .video-embed,
+  .video-frame iframe{
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 9 / 16;       /* 直式比例 */
+  }
+
+  /* 右側清單改成全螢幕抽屜（預設關） */
+  #v-list{
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    background: rgba(5,8,16,.86);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transform: translateY(100%);
+    transition: transform .28s ease;
+  }
+  /* 抽屜頂部工具列（標題 + 關閉） */
+  #v-list::before{
+    content:"影片目錄";
+    display:flex; align-items:center; justify-content:center;
+    height:52px; border-bottom:1px solid rgba(255,255,255,.12);
+    color:#e9ecff; font-weight:700; letter-spacing:.02em;
+  }
+  /* 關閉按鈕 */
+  #v-list::after{
+    content:"✖";
+    position:absolute; top:10px; right:12px;
+    width:36px; height:36px; display:grid; place-items:center;
+    border-radius:10px; background:rgba(255,255,255,.08); color:#fff;
+  }
+  /* 目錄內容容器（你原本塞項目的那個） */
+  #v-list > *{
+    overflow:auto; padding:10px 12px 20px;
+  }
+
+  /* 開啟狀態 */
+  body.vlist-open { overflow:hidden; }
+  body.vlist-open #v-list{ transform: translateY(0); }
+
+  /* 抽屜開啟時，其他區域不可互動 */
+  #v-backdrop{
+    position:fixed; inset:0; z-index:9999;
+    background: transparent; /* 只負責擋互動 */
+  }
+
+  /* 「目錄」按鈕樣式（放在隨機影片旁） */
+  #v-toggle{ margin-left:8px; }
+}
