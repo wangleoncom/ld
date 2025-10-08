@@ -7,20 +7,89 @@
   <meta name="theme-color" content="#0f1220" />
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
   <link rel="stylesheet" href="styles.css?v=20251008" />
+  <!-- 補強少量樣式（Loading/Toast/小遮罩/分享按鈕寬度/公告Overlay） -->
+  <style>
+    /* 全頁遮罩（可重用） */
+    .page-overlay{
+      position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+      background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      opacity:1; transition:opacity .35s ease; pointer-events:auto;
+    }
+    .page-overlay.hide{ opacity:0; pointer-events:none }
+    .page-overlay .card{
+      width:min(360px,86vw);
+      background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);
+      border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:20px; text-align:center; color:#f6f8ff;
+      box-shadow:0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
+    }
+    .page-overlay .spinner{ display:grid; place-items:center; margin:12px auto 8px }
+    .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
+    /* 首畫面 Loader 也套同樣效果（用你提供的圖片） */
+    #page-loading{ position:fixed; inset:0; z-index:9999; display:grid; place-items:center;
+      background:rgba(7,11,22,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      opacity:1; transition:opacity .35s ease; }
+    #page-loading.hide{ opacity:0; pointer-events:none }
+    #page-loading .card{
+      width:min(360px,86vw);
+      background:linear-gradient(180deg,rgba(22,26,48,.72) 0%, rgba(28,33,62,.72) 100%);
+      border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:20px; text-align:center; color:#f6f8ff;
+      box-shadow:0 24px 60px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.30);
+    }
+    #page-loading .spinner{ display:grid; place-items:center; margin:12px auto 8px }
+    #page-loading .loading-img{ width:84px; height:84px; border-radius:50%; display:block; object-fit:cover }
+
+    /* 播放器小遮罩（僅覆蓋 iframe 區塊） */
+    .mini-overlay{
+      position:absolute; inset:0; display:grid; place-items:center; z-index:4;
+      background:rgba(7,11,22,.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    }
+    .video-embed{ position:relative } /* 讓 mini-overlay 能絕對定位 */
+
+    /* QA 複製 Toast */
+    .toast{
+      position:fixed; z-index:10000; padding:8px 12px; border-radius:10px;
+      background:rgba(15,18,32,.9); color:#fff; font-weight:700; font-size:.9rem;
+      box-shadow:0 10px 30px rgba(0,0,0,.35); transform:translate(-50%,0);
+      animation:toast-in .18s ease-out, toast-out .28s ease-in 1.5s forwards;
+    }
+    @keyframes toast-in{ from{ opacity:0; transform:translate(-50%,-6px) } to{ opacity:1; transform:translate(-50%,0) } }
+    @keyframes toast-out{ to{ opacity:0; transform:translate(-50%,-6px) } }
+
+    /* 複製按鈕游標與按下動畫 */
+    .tool{ cursor:pointer; user-select:none }
+    .tool.copied{ transform:scale(1.06); transition:transform .18s ease }
+
+    /* 分享按鈕縮短寬度（避免字過長） */
+    #site-share{ white-space:nowrap; padding-left:12px; padding-right:12px; }
+
+    /* 公告 Overlay（簡易） */
+    #overlay-modal{
+      position:fixed; inset:0; z-index:9998; display:grid; place-items:center;
+      background:rgba(5,8,16,.68); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    }
+    #overlay-modal .modal-card{
+      width:min(560px,92vw);
+      background:linear-gradient(180deg,rgba(22,26,48,.92) 0%, rgba(28,33,62,.92) 100%);
+      border:1px solid rgba(255,255,255,.14); border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.45);
+    }
+    #overlay-modal .modal-header{ display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.12) }
+    #overlay-modal .modal-body{ padding:14px }
+    #overlay-modal .btn{ cursor:pointer }
+  </style>
 </head>
 <body>
-  <!-- Loading -->
-  <div id="page-loading">
-  <div class="card">
-    <div class="spinner">
-      <img src="轉圈圈.png" alt="載入中" class="loading-img">
+  <!-- 首次進站 Loading（圖片置中、鎖互動） -->
+  <div id="page-loading" aria-live="polite" aria-busy="true">
+    <div class="card">
+      <div class="spinner">
+        <img src="轉圈圈.png" alt="載入中" class="loading-img">
+      </div>
+      <div class="title">網頁載入中，請稍候…</div>
+      <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
     </div>
-    <div class="title">網頁載入中，請稍候…</div>
-    <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
   </div>
-</div>
 
-  <!-- 版本紀錄（保留節點，不自動彈出） -->
+  <!-- 版本紀錄（保留） -->
   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -31,7 +100,7 @@
     </div>
   </div>
 
-  <!-- 公告（保留節點，不自動彈出） -->
+  <!-- 公告（保留） -->
   <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
     <div class="modal-card">
       <div class="modal-header">
@@ -52,11 +121,10 @@
     </div>
 
     <div class="top-actions">
-      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔<span class="muted" style="font-size:.9rem">公告</span></button>
-      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 8a3 3 0 1 0-2.83-4H12a3 3 0 0 0 3 4zm-6 8a3 3 0 1 0 2.83 4H12a3 3 0 0 0-3-4zm9-1-8.1-4.05a4 4 0 0 1-1.53.95L16.5 16A3 3 0 0 0 18 15zM6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>
-        分享
+      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">
+        🔔 <span class="muted" style="font-size:.9rem">公告</span>
       </button>
+      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
       <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">
         📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span>
       </a>
@@ -112,7 +180,7 @@
     </section>
   </main>
 
-  <!-- 影片資訊 Modal（保留，不自動彈） -->
+  <!-- 影片資訊 Modal -->
   <div id="info-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card small">
       <div class="modal-header">
@@ -147,227 +215,478 @@
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
 
-  <!-- 頁內補強腳本（都放最後，覆蓋舊行為） -->
+  <!-- 頁內補強腳本（都放最後） -->
   <script>
-// === QA 複製：自動補上「複製」按鈕＋動畫＋Toast＋滑鼠手勢 ===
-(function setupQACopy(){
-  const list = document.getElementById('qa-list');
-  if(!list) return;
+/* ========= Loader 圖片對照表（直接改檔名即可） ========= */
+const LOADER_IMG = {
+  global : '轉圈圈.png',   // 首次載入整站
+  page   : '轉圈圈.png',   // QA 換頁
+  'tab-qa'   : '轉圈圈.png',    // 切到 QA
+  'tab-video': '轉圈圈.png', // 切到 影片
+  video  : '轉圈圈.png',    // 播放器小遮罩
+  'ai-open' : '轉圈圈2.png',       // 開啟 AI
+  'ai-close': '轉圈圈2.png'       // 關閉 AI
+};
 
+/* ========= 基礎工具 ========= */
+window.escapeHTML ||= (s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.scrollBottom ||= function(){ const m=document.getElementById('ai-messages'); if(m) m.scrollTop=m.scrollHeight; };
+
+/* ========= 公告 Overlay（修復鈴鐺） ========= */
+const Ann = (function(){
+  function open({title='訊息', html=''}) {
+    close();
+    const el = document.createElement('div');
+    el.id = 'overlay-modal';
+    el.innerHTML = `
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 style="margin:0;font-size:1.05rem">${title}</h2>
+          <button id="ov-close" class="btn ghost">關閉</button>
+        </div>
+        <div class="modal-body">${html||'<p class="muted">目前沒有公告。</p>'}</div>
+      </div>`;
+    document.body.appendChild(el);
+    document.body.style.overflow='hidden';
+    el.addEventListener('click', (e)=>{ if(e.target===el) close(); });
+    el.querySelector('#ov-close')?.addEventListener('click', close);
+  }
+  function close(){
+    const el = document.getElementById('overlay-modal');
+    if(el){ el.remove(); document.body.style.overflow=''; }
+  }
+  return { open, close };
+})();
+
+// 你的公告內容（可自行增修）
+const ANNOUNCEMENTS = [
+  { id:'welcome-410', title:'V4.1 上線', body:'4.1支援語音輸入與朗讀，點右下角 AI 試試看。', start:'2025-10-07' }
+];
+
+(function wireAnnouncements(){
+  const bell = document.getElementById('site-bell');
+  if(!bell) return;
+  bell.addEventListener('click', ()=>{
+    const now = Date.now();
+    const active = ANNOUNCEMENTS.filter(a=>{
+      const st=a.start?new Date(a.start).getTime():-Infinity;
+      const ed=a.end?new Date(a.end).getTime():Infinity;
+      return now>=st && now<=ed;
+    });
+    const html = active.length
+      ? `<div class="ann-list">${active.map(a=>`
+           <article class="ann-item" style="margin:10px 0">
+             <h4 style="margin:.2rem 0">${a.title}</h4>
+             <div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div>
+             <p style="margin:.4rem 0 0">${a.body}</p>
+           </article>`).join('')}</div>`
+      : `<p class="muted">目前沒有公告。</p>`;
+    Ann.open({title:'網站公告', html});
+  });
+})();
+
+/* ========= 首次 Loading：鎖住滾動與點擊，完成後恢復 ========= */
+(function bootLoader(){
+  const root = document.getElementById('page-loading'); if(!root) return;
+  // 套用對照表圖片
+  const img = root.querySelector('.loading-img'); if(img) img.src = LOADER_IMG.global || img.src;
+
+  document.body.style.overflow='hidden';
+  const start = Date.now(), MIN=2200;
+  function kill(){
+    const wait = Math.max(0, MIN - (Date.now()-start));
+    setTimeout(()=>{
+      root.classList.add('hide');
+      root.addEventListener('transitionend', ()=>{
+        root.remove(); document.body.style.overflow='';
+      }, {once:true});
+    }, wait);
+  }
+  window.addEventListener('load', kill, {once:true});
+  // 保底
+  setTimeout(kill, 6000);
+})();
+
+/* ========= 可重用 Loading 模組（切頁/AI/影片/QA分頁都用） ========= */
+const Loading = (() => {
+  const MIN = 2200;
+  const map = new Map();
+  function lock(on){ document.body.style.overflow = on ? 'hidden' : ''; }
+  function ensure(id, text='載入中，請稍候…', key='global'){
+    let el = document.getElementById(id);
+    const src = LOADER_IMG[key] || LOADER_IMG.global || '轉圈圈.png';
+    if(!el){
+      el = document.createElement('div');
+      el.id = id; el.className = 'page-overlay'; el.setAttribute('aria-live','polite'); el.setAttribute('aria-busy','true');
+      el.innerHTML = `
+        <div class="card">
+          <div class="spinner"><img src="${src}" alt="載入中" class="loading-img"></div>
+          <div class="title">${text}</div>
+          <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
+        </div>`;
+      document.body.appendChild(el);
+    }else{
+      const img = el.querySelector('.loading-img'); if(img) img.src = src;
+      const ttl = el.querySelector('.title'); if(ttl) ttl.textContent = text;
+    }
+    return el;
+  }
+  function show(key='global', text){
+    const id=`ov-${key}`; const el=ensure(id, text||'載入中，請稍候…', key);
+    el.classList.remove('hide'); map.set(id, Date.now()); lock(true); return id;
+  }
+  function hide(key='global'){
+    const id=`ov-${key}`; const el=document.getElementById(id); if(!el) return;
+    const start=map.get(id)||Date.now(); const wait=Math.max(0, MIN-(Date.now()-start));
+    setTimeout(()=>{
+      el.classList.add('hide');
+      el.addEventListener('transitionend', ()=>{
+        el.remove();
+        if(!document.querySelector('.page-overlay') && !document.getElementById('page-loading')) lock(false);
+      }, {once:true});
+      map.delete(id);
+    }, wait);
+  }
+  function videoShow(){
+    const host=document.getElementById('v-frame'); if(!host) return Date.now();
+    let m=host.querySelector('.mini-overlay');
+    const src = LOADER_IMG.video || LOADER_IMG.global || '轉圈圈.png';
+    if(!m){
+      m=document.createElement('div');
+      m.className='mini-overlay';
+      m.innerHTML=`<div class="spinner"><img src="${src}" alt="" class="loading-img"></div>`;
+      host.appendChild(m);
+    }else{
+      const img=m.querySelector('.loading-img'); if(img) img.src=src;
+    }
+    return Date.now();
+  }
+  function videoHide(mark){
+    const host=document.getElementById('v-frame'); if(!host) return;
+    const m=host.querySelector('.mini-overlay'); if(!m) return;
+    const left=Math.max(0, 1200 - (Date.now() - (mark||Date.now())));
+    setTimeout(()=> m.remove(), left);
+  }
+  return { show, hide, videoShow, videoHide, ensure };
+})();
+
+/* ========= QA 複製：按鈕/動畫/Toast ========= */
+(function setupQACopy(){
+  const list = document.getElementById('qa-list'); if(!list) return;
   function ensureCopyButtons(root=list){
     root.querySelectorAll('.item').forEach(item=>{
       if(item.querySelector('.tool.copy-qa')) return;
-      const header = item.querySelector('.q'); if(!header) return;
-
-      const tools = header.querySelector('.tools') || (()=> {
-        const t=document.createElement('div');
-        t.className='tools'; t.style.marginLeft='auto';
-        t.style.display='flex'; t.style.gap='8px';
-        header.appendChild(t); return t;
-      })();
-
-      const btn=document.createElement('span');
-      btn.className='tool copy-qa';
-      btn.setAttribute('role','button');
-      btn.setAttribute('tabindex','0');
-      btn.title='複製這則 QA';
-      btn.textContent='📋 複製';
+      const header=item.querySelector('.q'); if(!header) return;
+      const tools=header.querySelector('.tools')||(()=>{const t=document.createElement('div');t.className='tools';t.style.marginLeft='auto';t.style.display='flex';t.style.gap='8px';header.appendChild(t);return t;})();
+      const btn=document.createElement('span'); btn.className='tool copy-qa'; btn.setAttribute('role','button'); btn.setAttribute('tabindex','0'); btn.title='複製這則 QA'; btn.textContent='📋 複製';
       tools.appendChild(btn);
     });
   }
-
   function toastAt(text, rect){
-    const tip=document.createElement('div');
-    tip.className='toast'; tip.textContent=text;
-    const y = Math.max(12, window.scrollY + rect.top - 14);
-    const x = Math.min(window.innerWidth-12, Math.max(12, window.scrollX + rect.left + rect.width/2));
-    tip.style.top = `${y}px`; tip.style.left = `${x}px`;
-    tip.style.transform = 'translate(-50%, 0)';
-    document.body.appendChild(tip);
-    setTimeout(()=>tip.remove(), 1650);
+    const tip=document.createElement('div'); tip.className='toast'; tip.textContent=text;
+    const y=Math.max(12, window.scrollY + rect.top - 14);
+    const x=Math.min(window.innerWidth-12, Math.max(12, window.scrollX + rect.left + rect.width/2));
+    tip.style.top=`${y}px`; tip.style.left=`${x}px`; tip.style.transform='translate(-50%,0)';
+    document.body.appendChild(tip); setTimeout(()=>tip.remove(), 1650);
   }
-
   async function doCopy(fromEl, btn){
-    const item = fromEl.closest('.item');
-    const txt = item?.querySelector('.a-inner')?.innerText?.trim();
-    if(!txt) return;
-    await navigator.clipboard.writeText(txt);
-    btn.classList.add('copied');
-    setTimeout(()=>btn.classList.remove('copied'), 420);
+    const item=fromEl.closest('.item'); const txt=item?.querySelector('.a-inner')?.innerText?.trim(); if(!txt) return;
+    await navigator.clipboard.writeText(txt); btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'), 420);
     toastAt('已複製 QA', btn.getBoundingClientRect());
   }
-
-  // 事件代理：點擊或鍵盤操作
-  document.addEventListener('click', e=>{
-    const btn = e.target.closest('.tool.copy-qa,[data-copy]');
-    if(!btn) return;
-    e.preventDefault(); doCopy(btn, btn);
-  });
-  document.addEventListener('keydown', e=>{
-    if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){
-      e.preventDefault(); doCopy(e.target, e.target);
-    }
-  });
-
-  // 初次與動態渲染時都補按鈕
+  document.addEventListener('click', e=>{ const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return; e.preventDefault(); doCopy(btn, btn); });
+  document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest('.tool.copy-qa')){ e.preventDefault(); doCopy(e.target, e.target);} });
   ensureCopyButtons();
-  const mo=new MutationObserver(muts=>{
-    muts.forEach(m=>m.addedNodes.forEach(n=>{
-      if(n.nodeType===1) ensureCopyButtons(n);
-    }))
-  });
-  mo.observe(list, {childList:true, subtree:true});
+  new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{ if(n.nodeType===1) ensureCopyButtons(n); }))).observe(list, {childList:true, subtree:true});
 })();
 
-// === 影片：點一次只渲染一次（避免連續兩則相同資訊） ===
+/* ========= 影片：點一次只渲染一次 + 播放器小遮罩 ========= */
 (function videoClickOnce(){
-  const list = document.getElementById('v-list');
-  const frame = document.getElementById('v-frame');
-  const title = document.getElementById('v-title');
-  if(!list || !frame) return;
+  const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title');
+  if(!list||!frame) return;
   let lock=false, lastKey='';
   list.addEventListener('click', (e)=>{
     const item=e.target.closest('[data-video]'); if(!item) return;
     if(lock) return; lock=true; setTimeout(()=>lock=false,600);
     try{
-      const data=JSON.parse(item.dataset.video||'{}'); // {title,url,desc,id}
-      const key = (data.id||data.url||'') + '|' + (data.title||'');
-      if(key===lastKey) return; lastKey=key;
+      const data=JSON.parse(item.dataset.video||'{}'); const key=(data.id||data.url||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
       frame.innerHTML='';
       const wrap=document.createElement('div'); wrap.className='video-embed';
       wrap.innerHTML=`<iframe src="${data.url||''}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      frame.appendChild(wrap);
-      if(title) title.textContent=data.title||'影片';
+      frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
+      // 小遮罩
+      const mark=Loading.videoShow();
+      const timer=setInterval(()=>{
+        const ifr=frame.querySelector('iframe');
+        if(ifr){ clearInterval(timer); ifr.addEventListener('load',()=>Loading.videoHide(mark), {once:true}); setTimeout(()=>Loading.videoHide(mark), 5000); }
+      }, 60);
+      setTimeout(()=>clearInterval(timer),2000);
     }catch{}
   }, true);
 })();
 
-// === 換頁後回到最上面（prev/next/直接輸入） ===
-['prev','next','page'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(!el) return;
-  const evt = id==='page' ? 'change' : 'click';
-  el.addEventListener(evt,()=>window.scrollTo({top:0,behavior:'smooth'}));
-});
-
-// === AI 訊息去重（相鄰兩則一樣 → 移除較新的那則） ===
-(function dedupeAssistant(){
-  const box = document.getElementById('ai-messages');
-  if(!box) return;
-  let t=null;
-  const mo = new MutationObserver(()=>{
-    clearTimeout(t);
-    t = setTimeout(()=>{
-      const bubbles = [...box.querySelectorAll('.msg.assistant .bubble')];
-      if(bubbles.length < 2) return;
-      const a = bubbles[bubbles.length-2]?.textContent?.trim();
-      const b = bubbles[bubbles.length-1]?.textContent?.trim();
-      if(a && b && a === b){
-        bubbles[bubbles.length-1].closest('.msg.assistant')?.remove();
-      }
-    }, 50);
+/* ========= QA 分頁：全頁遮罩 + 捲頂 ========= */
+(function qaPagingOverlay(){
+  const ids=['prev','next','page'], list=document.getElementById('qa-list'); if(!list) return;
+  function armHide(){
+    const mo=new MutationObserver(()=>{
+      clearTimeout(armHide.t); armHide.t=setTimeout(()=>Loading.hide('page'), 240);
+    });
+    mo.observe(list, {childList:true, subtree:true}); setTimeout(()=>{ mo.disconnect(); Loading.hide('page'); }, 8000);
+  }
+  ids.forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const evt=(id==='page')?'change':'click';
+    el.addEventListener(evt, ()=>{
+      Loading.show('page','切換頁面中，請稍候…'); armHide();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
   });
-  mo.observe(box, {childList:true, subtree:true});
 })();
 
-// === 語音：只保留這個版本（麥克風/喇叭修復，避免重複宣告） ===
-window.Voice ??= (() => {
-  let rec = null, recOn = false, ttsOn = false, inited = false;
+/* ========= AI 訊息去重 ========= */
+(function dedupeAssistant(){
+  const box=document.getElementById('ai-messages'); if(!box) return;
+  let t=null; const mo=new MutationObserver(()=>{
+    clearTimeout(t); t=setTimeout(()=>{
+      const b=[...box.querySelectorAll('.msg.assistant .bubble')]; if(b.length<2) return;
+      const a=b[b.length-2]?.textContent?.trim(), c=b[b.length-1]?.textContent?.trim();
+      if(a&&c&&a===c) b[b.length-1].closest('.msg.assistant')?.remove();
+    },50);
+  }); mo.observe(box,{childList:true,subtree:true});
+})();
 
+/* ========= 語音（單一版本，防重複宣告） ========= */
+window.Voice ??= (() => {
+  let rec=null, recOn=false, ttsOn=false, inited=false;
+  function btnMic(){ return document.getElementById('ai-mic'); }
+  function btnTTS(){ return document.getElementById('ai-tts'); }
+  function lastAssistantText(){ return document.querySelector('#ai-messages .msg.assistant:last-of-type .bubble')?.textContent?.trim(); }
   function toggleRec(){
     if(!rec){ alert('此瀏覽器不支援語音輸入'); return; }
     if(recOn){ rec.stop(); recOn=false; btnMic()?.classList.remove('rec'); return; }
     try{ rec.start(); recOn=true; btnMic()?.classList.add('rec'); }catch{}
   }
-  function toggleTTS(){
-    ttsOn = !ttsOn;
-    btnTTS()?.classList.toggle('on', ttsOn);
-    if(!('speechSynthesis' in window)) return;
-    if(!ttsOn) speechSynthesis.cancel();
-    if(ttsOn){
-      const txt=lastAssistantText();
-      if(txt) speak(txt);
-    }
-  }
-  function lastAssistantText(){
-    return document.querySelector('#ai-messages .msg.assistant:last-of-type .bubble')?.textContent?.trim();
-  }
   function speak(text){
     if(!('speechSynthesis' in window) || !text) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const useVoice = (voices)=>{
-      const v = voices.find(v=>/zh[-_]?TW/i.test(v.lang)) || voices.find(v=>/zh/i.test(v.lang)) || voices[0];
-      if(v) u.voice=v; speechSynthesis.speak(u);
-    };
-    const voices = speechSynthesis.getVoices();
-    if(voices.length) useVoice(voices);
-    else speechSynthesis.addEventListener('voiceschanged', function onv(){
-      speechSynthesis.removeEventListener('voiceschanged', onv);
-      useVoice(speechSynthesis.getVoices());
-    });
+    const u=new SpeechSynthesisUtterance(text);
+    const useVoice=(voices)=>{ const v=voices.find(v=>/zh[-_]?TW/i.test(v.lang))||voices.find(v=>/zh/i.test(v.lang))||voices[0]; if(v) u.voice=v; speechSynthesis.speak(u); };
+    const vs=speechSynthesis.getVoices(); if(vs.length) useVoice(vs);
+    else speechSynthesis.addEventListener('voiceschanged', function onv(){ speechSynthesis.removeEventListener('voiceschanged', onv); useVoice(speechSynthesis.getVoices()); });
   }
-
-  function btnMic(){ return document.getElementById('ai-mic'); }
-  function btnTTS(){ return document.getElementById('ai-tts'); }
-
+  function toggleTTS(){
+    ttsOn=!ttsOn; btnTTS()?.classList.toggle('on', ttsOn);
+    if(!('speechSynthesis' in window)) return;
+    if(!ttsOn) speechSynthesis.cancel(); else { const t=lastAssistantText(); if(t) speak(t); }
+  }
   function init(){
-    if(inited) return; inited = true;
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(inited) return; inited=true;
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(SR){
-      rec = new SR();
-      rec.lang='zh-TW'; rec.interimResults=false; rec.continuous=false;
-      rec.addEventListener('result',(e)=>{
-        const text = Array.from(e.results).map(r=>r[0].transcript).join('').trim();
-        const input = document.getElementById('ai-text'); if(input) input.value = text;
-        document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
-      });
+      rec=new SR(); rec.lang='zh-TW'; rec.interimResults=false; rec.continuous=false;
+      rec.addEventListener('result',(e)=>{ const text=Array.from(e.results).map(r=>r[0].transcript).join('').trim(); const input=document.getElementById('ai-text'); if(input) input.value=text; document.getElementById('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); });
       rec.addEventListener('end',()=>{ recOn=false; btnMic()?.classList.remove('rec'); });
     }
     btnMic()?.addEventListener('click', toggleRec);
     btnTTS()?.addEventListener('click', toggleTTS);
-
-    // 新訊息自動朗讀（當喇叭為開）
     const list=document.getElementById('ai-messages');
     if(list){
-      const obs = new MutationObserver(()=>{
-        if(!ttsOn) return;
-        const txt=lastAssistantText(); if(txt) speak(txt);
-      });
-      obs.observe(list, { childList:true, subtree:true });
+      const obs=new MutationObserver(()=>{ if(!ttsOn) return; const t=lastAssistantText(); if(t) speak(t); });
+      obs.observe(list,{childList:true,subtree:true});
     }
   }
   return { init, toggleRec, toggleTTS, speak };
 })();
-document.addEventListener('DOMContentLoaded', () => window.Voice.init());
+document.addEventListener('DOMContentLoaded', ()=> window.Voice.init());
 
-(function loaderFix(){
-  const el = document.getElementById('page-loading');
-  if(!el) return;
+/* ========= 分頁切換（QA ↔ 影片）也顯示轉圈圈（各用各的圖片） ========= */
+(function tabsOverlay(){
+  const tabVideo=document.getElementById('tab-video');
+  const tabQA=document.getElementById('tab-qa');
+  const videoPanel=document.getElementById('video-panel');
+  const qaPanel=document.getElementById('qa-panel');
 
-  // 先確保可見
-  el.style.opacity = '1';
-  el.style.pointerEvents = 'auto';
-  el.classList.remove('hide');
-
-  let done = false;
-  function kill(){
-    if(done) return; done = true;
-    el.classList.add('hide');
-    const onEnd = ()=>{ 
-      el.removeEventListener('transitionend', onEnd);
-      if(el.parentNode) el.parentNode.removeChild(el);
-    };
-    el.addEventListener('transitionend', onEnd);
-    setTimeout(()=>{ if(document.body.contains(el)) el.remove(); }, 800);
+  function waitPanelReady(panel, readySelector, key){
+    const readyObs = new MutationObserver(()=>{
+      if(panel.querySelector(readySelector)){
+        readyObs.disconnect(); Loading.hide(key);
+      }
+    });
+    readyObs.observe(panel,{childList:true,subtree:true});
+    setTimeout(()=>{ readyObs.disconnect(); Loading.hide(key); }, 5000);
   }
 
-  // 確保 DOM 全部出現後再啟動倒數
-  window.addEventListener('load', ()=> setTimeout(kill, 1800), { once:true });
-  // 如果 load 沒觸發，也在 3 秒後強制收掉
-  setTimeout(kill, 3000);
+  tabVideo?.addEventListener('click', ()=>{
+    Loading.show('tab-video','載入影片頁面中，請稍候…');
+    setTimeout(()=> waitPanelReady(videoPanel, '#v-list *, iframe', 'tab-video'), 0);
+  });
+
+  tabQA?.addEventListener('click', ()=>{
+    Loading.show('tab-qa','載入 QA 頁面中，請稍候…');
+    setTimeout(()=> waitPanelReady(qaPanel, '.item', 'tab-qa'), 0);
+  });
 })();
-// === Loading：已有卡片＋轉圈圈；載入完成自動淡出（你的現有 hideLoader 已涵蓋） ===
-</script>
+
+/* ========= 分享（縮短文案） ========= */
+(function shareFix(){
+  const btn=document.getElementById('site-share'); if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const data={title:document.title, text:'鹿🦌的QA網站', url:location.href};
+    try{
+      if(navigator.share){ await navigator.share(data); }
+      else{ await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200); }
+    }catch{
+      const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000);
+    }
+  });
+})();
+
+/* ========= 分頁行為：換頁後回到最上面（再保險） ========= */
+['prev','next','page'].forEach(id=>{
+  const el=document.getElementById(id); if(!el) return;
+  const evt=id==='page'?'change':'click';
+  el.addEventListener(evt, ()=> window.scrollTo({top:0,behavior:'smooth'}));
+});
+
+/* ==== AI 開/關面板：只在開啟與關閉時顯示轉圈圈，聊天中不顯示 ==== */
+(function aiPanelOverlay(){
+  const fab   = document.getElementById('ai-fab');
+  const close = document.getElementById('ai-close');
+  const panel = document.getElementById('ai-panel');
+
+  function waitUntil(testFn, key){
+    const start = Date.now();
+    const it = setInterval(()=>{
+      if (testFn()) { clearInterval(it); Loading.hide(key); }
+      else if (Date.now() - start > 5000) { clearInterval(it); Loading.hide(key); } // 保底
+    }, 60);
+  }
+
+  fab?.addEventListener('click', ()=>{
+    Loading.show('ai-open', '開啟 AI 中，請稍候…');
+    waitUntil(()=> !panel.classList.contains('hidden') || panel.classList.contains('show'), 'ai-open');
+  });
+
+  close?.addEventListener('click', ()=>{
+    Loading.show('ai-close', '關閉 AI 中…');
+    waitUntil(()=> panel.classList.contains('hidden') && !panel.classList.contains('show'), 'ai-close');
+  });
+})();
+(function(){
+  const Ω = { live:false };
+  let k = localStorage.getItem('deerPIN') || '9527';
+
+  function deny(){ console.warn('ShadowOps :: gated'); }
+
+  const Ops = {
+    attune(tok){
+      if(String(tok)===String(k)){ Ω.live=true; console.info('ShadowOps :: channel up'); return true; }
+      console.warn('ShadowOps :: token mismatch'); return false;
+    },
+    sever(){ Ω.live=false; console.info('ShadowOps :: channel down'); },
+    rekey(tok){
+      if(!Ω.live) return deny();
+      k = String(tok||''); localStorage.setItem('deerPIN', k);
+      console.info('ShadowOps :: token rotated');
+    },
+    pulse(){ return { online:Ω.live, hint: k? (k[0]+'***'):'n/a' }; },
+
+    /* veils (loaders/overlays) */
+    despin(){
+      if(!Ω.live) return deny();
+      try{
+        document.querySelectorAll('#page-loading,.page-overlay,.mini-overlay').forEach(n=>n.remove());
+        document.body.style.overflow='';
+        console.info('ShadowOps :: veils dropped');
+      }catch(e){ console.error(e); }
+    },
+    pingveil(key='probe', note='phase check…'){
+      if(!Ω.live) return deny();
+      if(window.Loading?.show){
+        Loading.show(key, note);
+        setTimeout(()=>Loading.hide(key), 1200);
+        console.info('ShadowOps :: veil ping');
+      }else{
+        console.warn('ShadowOps :: no veil runtime');
+      }
+    },
+
+    /* QA fold */
+    unfurl(){
+      if(!Ω.live) return deny();
+      const items=document.querySelectorAll('#qa-list .item');
+      items.forEach(it=>{ it.classList.add('open'); const a=it.querySelector('.a'); if(a) a.style.height='auto'; });
+      console.info(`ShadowOps :: unfurled ${items.length}`);
+    },
+    refurl(){
+      if(!Ω.live) return deny();
+      const items=document.querySelectorAll('#qa-list .item.open');
+      items.forEach(it=>{ it.classList.remove('open'); const a=it.querySelector('.a'); if(a) a.style.height='0px'; });
+      console.info(`ShadowOps :: refurled ${items.length}`);
+    },
+
+    /* video */
+    reforgeFrame(){
+      if(!Ω.live) return deny();
+      const host=document.querySelector('#v-frame'); if(!host){ console.warn('ShadowOps :: no v-frame'); return; }
+      const cur=host.querySelector('iframe')?.src||'';
+      host.innerHTML='';
+      const w=document.createElement('div'); w.className='video-embed';
+      w.innerHTML=`<iframe src="${cur}" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      host.appendChild(w);
+      console.info('ShadowOps :: frame reforged');
+    },
+
+    /* AI panel */
+    paneOn(){
+      if(!Ω.live) return deny();
+      const p=document.getElementById('ai-panel'); if(p){ p.classList.remove('hidden'); p.classList.add('show'); console.info('ShadowOps :: pane up'); }
+    },
+    paneOff(){
+      if(!Ω.live) return deny();
+      const p=document.getElementById('ai-panel'); if(p){ p.classList.add('hidden'); p.classList.remove('show'); console.info('ShadowOps :: pane down'); }
+    },
+
+    purgeVeils(){
+      if(!Ω.live) return deny();
+      document.querySelectorAll('.page-overlay,.mini-overlay').forEach(n=>n.remove());
+      console.info('ShadowOps :: purged veils');
+    },
+
+    lexicon(){
+      console.table([
+        {call:'ShadowOps.attune("<pin>")',   note:'enter channel (PIN)'},
+        {call:'ShadowOps.sever()',           note:'leave channel'},
+        {call:'ShadowOps.rekey("<pin>")',    note:'rotate token'},
+        {call:'ShadowOps.pulse()',           note:'telemetry'},
+        {call:'ShadowOps.despin()',          note:'drop all veils/loaders'},
+        {call:'ShadowOps.pingveil()',        note:'1.2s test veil'},
+        {call:'ShadowOps.unfurl()',          note:'open all QA'},
+        {call:'ShadowOps.refurl()',          note:'close all QA'},
+        {call:'ShadowOps.reforgeFrame()',    note:'recreate video iframe'},
+        {call:'ShadowOps.paneOn()',          note:'force AI panel show'},
+        {call:'ShadowOps.paneOff()',         note:'force AI panel hide'},
+        {call:'ShadowOps.purgeVeils()',      note:'clear overlays'},
+      ]);
+      console.info('ShadowOps :: gated calls require attune() first');
+    }
+  };
+
+  // expose under a non-obvious handle
+  Object.defineProperty(window, 'ShadowOps', { value:Ops, configurable:false, enumerable:false, writable:false });
+
+  // logo quint-click → PIN prompt
+  const logo=document.getElementById('logo-img');
+  let taps=0, t=null;
+  logo?.addEventListener('click', ()=>{
+    taps++; clearTimeout(t); t=setTimeout(()=>taps=0, 820);
+    if(taps>=5){ taps=0; const tok=prompt('ShadowOps token'); if(tok) Ops.attune(tok); }
+  });
+
+  // console hint (discreet)
+  try{ console.log('%cShadowOps ready :: use ShadowOps.lexicon()', 'color:#72f5dd'); }catch{}
+})();
+  </script>
 </body>
 </html>

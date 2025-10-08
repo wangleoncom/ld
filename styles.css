@@ -460,3 +460,45 @@ h1{
 .tools .tool:active{ transform:scale(.96) }
 .tool.copied{ animation:copy-pop .28s ease }
 @keyframes copy-pop{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+/* === 通用頁面遮罩（可重用在 QA換頁、AI開啟、初始載入 等） === */
+.page-overlay{
+  position:fixed; inset:0; z-index:9999;
+  display:grid; place-items:center;
+  background:rgba(7,11,22,.78);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  transition:opacity .35s ease; opacity:1;
+  pointer-events:auto; /* 擋住所有點擊 */
+}
+.page-overlay.hide{ opacity:0; pointer-events:none }
+
+.page-overlay .card{
+  width:min(360px,86vw);
+  background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px; padding:20px; text-align:center; color:var(--text);
+  box-shadow:var(--shadow);
+}
+.page-overlay .title{font-weight:800; margin:6px 0 10px}
+
+/* 圖片式轉圈圈（正方形圖→圓形 + 旋轉） */
+.page-overlay .spinner{position:relative; width:96px; height:96px; margin:12px auto 6px; display:grid; place-items:center}
+.page-overlay .spinner .loading-img{
+  width:100%; height:100%; border-radius:50%;
+  object-fit:cover; animation:spinImg 1.8s linear infinite;
+  box-shadow:0 0 20px rgba(122,162,255,.35);
+}
+@keyframes spinImg{ to{ transform:rotate(360deg) } }
+
+/* 影片專用的小遮罩：覆蓋播放器區域 */
+#v-frame .mini-overlay{
+  position:absolute; inset:0; z-index:3;
+  display:grid; place-items:center;
+  background:rgba(7,11,22,.68);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+#v-frame{ position:relative } /* 讓 mini-overlay 能正確覆蓋 */
+
+ /* 分享按鈕在窄螢幕別太長 */
+#site-share{ white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis }
+@media (max-width:480px){ #site-share span{ display:none } } /* 小螢幕只留圖示 */
