@@ -407,4 +407,52 @@ window.addEventListener('DOMContentLoaded', () => {
       scrollBottom();
     }
   });
+  // 1) iOS 100vh 修正：計算 --vh
+(function setVh(){
+  const set = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+  set(); window.addEventListener('resize', set); window.addEventListener('orientationchange', set);
+})();
+
+// 2) 信心條只在點擊「AI 回覆泡泡」時顯示
+(function hookConfidence(){
+  const list = document.getElementById('ai-messages');
+  if(!list) return;
+  list.addEventListener('click', (e)=>{
+    const bubble = e.target.closest('.msg.assistant .bubble');
+    if(!bubble) return;
+    // 取最近一則 assistant 訊息容器拿 dataset
+    const msg = bubble.closest('.msg.assistant');
+    const conf = Number(msg?.dataset?.conf || 0);
+    const sourceQ = msg?.dataset?.sourceQ || '';
+
+    // 顯示置頂信心條（覆蓋最上方）
+    let bar = document.getElementById('ai-hint');
+    if(!bar){
+      bar = document.createElement('div');
+      bar.id = 'ai-hint';
+      bar.className = 'ai-hint';
+      document.getElementById('ai-panel')?.prepend(bar);
+    }
+    const level = conf>=0.60 ? 'high' : conf>=0.35 ? 'mid' : 'low';
+    bar.className = `ai-hint ${level} show`;
+    bar.innerHTML = `<strong>回答信心</strong><span>${(conf*100).toFixed(0)}%</span>`;
+
+    // 再開詳情 Modal：原本的 Q + 信心文字
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-card small">
+        <div class="modal-header">
+          <h2 class="title">來源與信心</h2>
+          <button class="btn ghost" id="m-close">關閉</button>
+        </div>
+        <div class="modal-body">
+          <p><strong>原本的 Q：</strong>${(sourceQ||'（無）').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}</p>
+          <p><strong>信心程度：</strong>${formatConfidence(conf)}</p>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#m-close').addEventListener('click',()=>modal.remove());
+  });
+})();
 });

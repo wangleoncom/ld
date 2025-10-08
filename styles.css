@@ -588,3 +588,90 @@ h1{
   box-shadow:0 0 0 6px rgba(122,162,255,.15);
 }
 @media (max-width:768px){ .page-input{ width:72px; } }
+
+/* ===== Mobile Fix Pack v1.0 ===== */
+
+/* 全站：避免橫向捲動、留出底部工具列安全區 */
+html,body{overflow-x:hidden}
+body{padding-bottom:calc(80px + env(safe-area-inset-bottom));}
+
+/* 頂部區：把右上角按鈕從絕對定位改為在文流內換行 */
+.top-actions{
+  position:static !important;
+  display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;
+}
+#site-share{position:static !important}
+
+/* 標題與副標在手機縮小，避免被按鈕頂到 */
+@media (max-width:768px){
+  .hero{padding:28px 16px 8px}
+  h1{font-size:clamp(20px,4.8vw,28px)}
+}
+
+/* 搜尋列：確保圓形清除鍵不擠壓輸入框 */
+.search-wrap{gap:8px}
+.input{min-height:44px}
+#clear{flex:0 0 auto}
+
+/* Stats：2 欄等寬 */
+@media (max-width:768px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
+/* QA 卡片：行高與內邊距加大、箭頭不擠壓文字 */
+#qa-list .q{padding:14px 16px}
+#qa-list .q svg.chev{flex:0 0 18px}
+
+/* 分頁器：風格化 number input，移除醜 spinner */
+.pager{gap:8px; justify-content:center}
+.pager input[type="number"]{
+  appearance:textfield; -webkit-appearance:none; -moz-appearance:textfield;
+  width:72px; padding:10px 12px; border-radius:12px;
+  background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%) !important;
+  color:var(--text) !important; border:1px solid rgba(255,255,255,.14) !important;
+  text-align:center; font-variant-numeric:tabular-nums; box-shadow:none !important;
+}
+.pager input[type="number"]::-webkit-outer-spin-button,
+.pager input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0; }
+
+/* 影片區：一律 16:9，自動高度；清單改可捲 */
+.video-layout{display:block;padding:12px}
+.video-left{margin-bottom:12px}
+.video-right{max-height:unset; overflow:visible; display:grid; gap:8px}
+#v-frame iframe,
+.video-frame iframe{
+  width:100% !important;
+  height:auto !important;
+  aspect-ratio:16 / 9;
+  min-height:unset !important;
+  border-radius:14px;
+}
+
+/* Tabs 可水平捲動且不出現突兀捲軸 */
+.tabs{overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+
+/* AI 面板：手機全螢幕＋安全區，背景不透出；訊息泡泡更寬 */
+@media (max-width:768px){
+  .ai-panel{
+    right:0; bottom:0; width:100vw;
+    height:calc(var(--vh, 1vh) * 100 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    border-radius:0; background:#0f1220 !important; background-image:none !important;
+    opacity:1; pointer-events:auto;
+  }
+  .ai-messages{gap:6px;padding:10px}
+  .msg .bubble{max-width:86%}
+}
+
+/* AI 浮動按鈕：避開底部工具列 */
+.ai-fab{right:calc(16px + env(safe-area-inset-right)); bottom:calc(16px + env(safe-area-inset-bottom));}
+
+/* iOS 底部分享列的膠囊按鈕、資訊 pill 一致間距 */
+.badge,.tab,.btn{min-height:40px}
+
+/* 置頂「信心提示條」：預設隱藏，僅在 JS 需要時才注入顯示 */
+#ai-hint{display:none}
+#ai-hint.show{display:flex}
+
+/* 影片資訊、長連結自動換行 */
+.modal-body .break, .modal-body a{word-break:break-all; overflow-wrap:anywhere}
