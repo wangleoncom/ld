@@ -1,15 +1,15 @@
-// QA 開闔 + 單筆外框霓虹停留 + 點擊漣漪（無旋轉）
+// QA 開闔 + 單筆外框柔光停留 + 點擊漣漪 + 無障礙 + 高度自動（Super）
 (function () {
   const list = document.getElementById('qa-list');
   if (!list) return;
 
+  // 只注入一次樣式
   if (!document.getElementById('qa-item-glow-style')) {
     const st = document.createElement('style');
     st.id = 'qa-item-glow-style';
     st.textContent = `
       #qa-list .item{ position:relative; border-radius:var(--r); }
       #qa-list .item.qa-glow{ overflow:visible; }
-      /* 只有柔光「停留」效果，無旋轉掃描層 */
       #qa-list .item.qa-glow::before{
         content:""; position:absolute; inset:-6px; padding:6px;
         border-radius:calc(var(--r) + 6px); pointer-events:none;
@@ -18,13 +18,7 @@
         -webkit-mask-composite:xor; mask-composite:exclude;
         filter:blur(14px); opacity:.85; animation:qaItemHold 1.2s ease-out forwards;
       }
-      @keyframes qaItemHold{
-        0%{opacity:.8; transform:scale(.997)}
-        60%{opacity:.45}
-        100%{opacity:0}
-      }
-
-      /* 問題列彩色漣漪 */
+      @keyframes qaItemHold{0%{opacity:.8; transform:scale(.997)}60%{opacity:.45}100%{opacity:0}}
       #qa-list .q{ position:relative; overflow:hidden; }
       #qa-list .q.rippling::after{
         content:""; position:absolute; left:var(--rip-x,50%); top:var(--rip-y,50%);
@@ -41,18 +35,17 @@
         60%{opacity:.45; filter:blur(2px); transform:translate(-50%,-50%) scale(26)}
         100%{opacity:0;   filter:blur(3px); transform:translate(-50%,-50%) scale(32)}
       }
-
-      /* 答案過渡 */
-      #qa-list .a{ overflow:hidden; max-height:0; transition:max-height .3s var(--ease); }
+      #qa-list .a{ overflow:hidden; max-height:0; transition:max-height .28s var(--ease); }
       #qa-list .item.open .a{ max-height:1200px; }
     `;
     document.head.appendChild(st);
   }
 
+  // 事件：點擊開闔
   list.addEventListener('click', (e)=>{
     const q = e.target.closest('.q');
     if (!q) return;
-    e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    e.preventDefault(); e.stopPropagation();
 
     const item = q.closest('.item');
     const a = item && item.querySelector('.a');
@@ -70,7 +63,7 @@
     q.classList.remove('rippling'); void q.offsetWidth; q.classList.add('rippling');
     setTimeout(()=>q.classList.remove('rippling'), 750);
 
-    // 開闔 + 外框柔光
+    // 開闔
     if (item.classList.contains('open')) {
       item.classList.remove('open','qa-glow');
       a.style.maxHeight = '0px';
@@ -84,7 +77,7 @@
     }
   }, true);
 
-  // 鍵盤支援與可達性
+  // 鍵盤可達性
   list.addEventListener('keydown',(e)=>{
     if ((e.key==='Enter'||e.key===' ') && e.target.closest('.q')) {
       e.preventDefault();
@@ -92,6 +85,7 @@
     }
   }, true);
 
+  // 動態注入可達性屬性
   const mo = new MutationObserver(()=>{
     list.querySelectorAll('.q').forEach(q=>{
       q.role || q.setAttribute('role','button');
@@ -100,4 +94,11 @@
     });
   });
   mo.observe(list,{childList:true,subtree:true});
+
+  // 視窗重算高度（避免內容動態變更造成截斷）
+  window.addEventListener('resize', ()=>{
+    list.querySelectorAll('.item.open .a').forEach(a=>{
+      a.style.maxHeight = a.scrollHeight + 'px';
+    });
+  });
 })();
