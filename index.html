@@ -243,10 +243,26 @@ const Loading=(()=>{const MIN=800,map=new Map();
 })();
 
 /* ===== 公告 ===== */
-const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架TikTo特效了。',start:'2025-10-10'}];
-(function(){const bell=$('#site-bell'); if(!bell) return; on(bell,'click',()=>{const now=Date.now(); const active=ANNOUNCEMENTS.filter(a=>{const st=a.start?new Date(a.start).getTime():-Infinity; const ed=a.end?new Date(a.end).getTime():Infinity; return now>=st&&now<=ed;});
-  const html=active.length?`<div class="ann-list">${active.map(a=>`<article class="ann-item" style="margin:10px 0"><h4 style="margin:.2rem 0">${a.title}</h4><div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div><p style="margin:.4rem 0 0">${a.body}</p></article>`).join('')}</div>`:`<p class="muted">目前沒有公告。</p>`;
-  const m=$('#ann-modal'); m.classList.remove('hidden'); $('#ann-body').innerHTML=html; on($('#ann-close'),'click',()=>m.classList.add('hidden'),{once:true});});})();
+const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架 TikTok 特效了。',start:'2025-10-10'}];
+(function(){
+  const bell = $('#site-bell');
+  if(!bell) return;
+  on(bell,'click',()=>{
+    const now = Date.now();
+    const active = ANNOUNCEMENTS.filter(a=>{
+      const st = a.start ? new Date(a.start).getTime() : -Infinity;
+      const ed = a.end   ? new Date(a.end).getTime()   :  Infinity;
+      return now >= st && now <= ed;
+    });
+    const html = active.length
+      ? `<div class="ann-list">${active.map(a=>`<article class="ann-item" style="margin:10px 0"><h4 style="margin:.2rem 0">${a.title}</h4><div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div><p style="margin:.4rem 0 0">${a.body}</p></article>`).join('')}</div>`
+      : `<p class="muted">目前沒有公告。</p>`;
+    const m = $('#ann-modal');
+    m.classList.remove('hidden');
+    $('#ann-body').innerHTML = html;
+    on($('#ann-close'),'click',()=>m.classList.add('hidden'),{once:true});
+  });
+})();
 
 /* ===== 分享 ===== */
 (function shareFix(){
@@ -306,55 +322,6 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架TikTo特�
     .observe(list,{childList:true,subtree:true});
 })();
 
-/* ===== 影片點擊渲染 + 小遮罩 ===== */
-(function videoClickOnce(){
-  const list=$('#v-list'), frame=$('#v-frame'), title=$('#v-title'); if(!list||!frame) return;
-  // Helper: Add autoplay/mute/playsinline for various video URLs (esp. YouTube)
-  const addAutoplay = (u)=>{
-    try{
-      if(!u) return '';
-      const url = new URL(u, location.href);
-      const isYT = /(youtube\.com|youtu\.be)/.test(url.href);
-      if(isYT){
-        if(url.host.includes('youtu.be')){
-          const id = url.pathname.slice(1);
-          url.href = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1`;
-        }else{
-          if(url.pathname.startsWith('/watch')){
-            const v = url.searchParams.get('v') || '';
-            url.pathname = `/embed/${v}`;
-            url.search = '';
-          }
-          url.searchParams.set('autoplay','1');
-          url.searchParams.set('mute','1');
-          url.searchParams.set('playsinline','1');
-        }
-      }else{
-        // Generic players: best-effort autoplay flag
-        if(!url.searchParams.has('autoplay')) url.searchParams.set('autoplay','1');
-      }
-      return url.toString();
-    }catch{
-      return u;
-    }
-  };
-  let lock=false,lastKey='';
-  on(list,'click',e=>{
-    const item=e.target.closest('[data-video]'); if(!item) return;
-    if(lock) return; lock=true; setTimeout(()=>lock=false,500);
-    try{
-      const data=JSON.parse(item.dataset.video||'{}'); const key=(data.id||data.url||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
-      frame.innerHTML='';
-      const wrap=document.createElement('div'); wrap.className='video-embed';
-      const src = addAutoplay(data.url||'');
-      wrap.innerHTML = `<iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen playsinline loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      frame.appendChild(wrap); if(title) title.textContent=data.title||'影片';
-      const mark=Loading.videoShow();
-      const timer=setInterval(()=>{const ifr=frame.querySelector('iframe'); if(ifr){clearInterval(timer); on(ifr,'load',()=>Loading.videoHide(mark),{once:true}); setTimeout(()=>Loading.videoHide(mark),3000);}},60);
-      setTimeout(()=>clearInterval(timer),1600);
-    }catch{}
-  },true);
-})();
 
 /* ===== QA 分頁遮罩 + 捲頂 ===== */
 (function qaPagingOverlay(){
@@ -421,45 +388,124 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架TikTo特�
 })();
 
 /* ===== 手機影片抽屜（單版） ===== */
+
+/* ---- 共用：建立可自動播放的 iframe ---- */
+function withParams(u, obj){ try{const url=new URL(u, location.href); Object.entries(obj||{}).forEach(([k,v])=>url.searchParams.set(k,String(v))); return url.toString(); }catch{return u;} }
+function isYouTube(u){ return /youtube\.com|youtu\.be/.test(u||''); }
+function buildPlayerHTML(src){
+  // 僅開放需要的權限；不含 accelerometer
+  return `<iframe src="${src}"
+           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+           allowfullscreen playsinline referrerpolicy="strict-origin-when-cross-origin"
+           loading="lazy"></iframe>`;
+}
+function tryUnmuteYouTube(ifr){
+  // 使用者剛點擊清單 => 屬於「使用者手勢」，可要求取消靜音與播放
+  let tries = 0;
+  const tick = setInterval(()=>{
+    tries++;
+    try{
+      if (!ifr.contentWindow) return;
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'unMute'}), '*');
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[100]}), '*');
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo'}), '*');
+    }catch{}
+    if (tries>12) clearInterval(tick); // 最多嘗試 ~3.6s
+  }, 300);
+}
+
+/* ---- 左右欄清單：點一次渲染 + 小遮罩 + 自動播放/解靜音 ---- */
+(function videoClickOnce(){
+  const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title');
+  if(!list||!frame) return;
+  let lock=false,lastKey='';
+  list.addEventListener('click',e=>{
+    const item=e.target.closest('[data-video]'); if(!item) return;
+    if(lock) return; lock=true; setTimeout(()=>lock=false,480);
+
+    // 手機目錄面板：點影片就關
+    document.body.classList.remove('catalog-open');
+
+    try{
+      const data=JSON.parse(item.dataset.video||'{}');
+      const raw = data.url||'';
+      const yt  = isYouTube(raw);
+      const src = yt
+        ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
+        : withParams(raw, {autoplay:1, playsinline:1});
+
+      const key=(src||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
+
+      frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
+      if(title) title.textContent=data.title||'影片';
+
+      const mark=Loading?.videoShow?.();
+      const ifr = frame.querySelector('iframe');
+
+      ifr?.addEventListener('load', ()=>{
+        Loading?.videoHide?.(mark);
+        // YouTube：嘗試解除靜音並播放（多次 postMessage 直到就緒）
+        if (yt) tryUnmuteYouTube(ifr);
+      }, {once:true});
+
+      // 滑到播放器頂端並聚焦
+      frame.scrollIntoView({behavior:'smooth', block:'start'});
+      setTimeout(()=>ifr?.focus?.(), 300);
+    }catch{}
+  }, true);
+})();
+
+(function patchVideoCatalogClick(){
+  const list   = document.getElementById('v-list');
+  const frame  = document.getElementById('v-frame');
+  const vTitle = document.getElementById('v-title');
+  if(!list||!frame) return;
+
+  list.addEventListener('click', e=>{
+    const item = e.target.closest('[data-video]'); if(!item) return;
+
+    // 先關抽屜
+    document.body.classList.remove('catalog-open');
+
+    try{
+      const data=JSON.parse(item.dataset.video||'{}');
+      const raw = data.url||'';
+      const yt  = isYouTube(raw);
+      const src = yt
+        ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
+        : withParams(raw, {autoplay:1, playsinline:1});
+
+      frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
+      if(vTitle) vTitle.textContent = data.title || '影片';
+
+      const mark=Loading?.videoShow?.();
+      const ifr = frame.querySelector('iframe');
+      ifr?.addEventListener('load', ()=>{
+        Loading?.videoHide?.(mark);
+        if (yt) tryUnmuteYouTube(ifr);
+      }, {once:true});
+
+      frame.scrollIntoView({behavior:'smooth', block:'start'});
+      setTimeout(()=>ifr?.focus?.(), 300);
+    }catch{}
+  }, true);
+})();
+
+
+/* ===== 手機影片抽屜（目錄 UI） ===== */
 (function setupVideoCatalog(){
-  const header = document.querySelector('.video-controls.top');
+  const header = document.querySelector('.video-controls top, .video-controls.top');
   const list   = document.getElementById('v-list');
   const frame  = document.getElementById('v-frame');
   const vTitle = document.getElementById('v-title');
   if(!header || !list || !frame) return;
-  // Helper: Add autoplay/mute/playsinline for various video URLs (esp. YouTube)
-  const addAutoplay = (u)=>{
-    try{
-      if(!u) return '';
-      const url = new URL(u, location.href);
-      const isYT = /(youtube\.com|youtu\.be)/.test(url.href);
-      if(isYT){
-        if(url.host.includes('youtu.be')){
-          const id = url.pathname.slice(1);
-          url.href = `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1`;
-        }else{
-          if(url.pathname.startsWith('/watch')){
-            const v = url.searchParams.get('v') || '';
-            url.pathname = `/embed/${v}`;
-            url.search = '';
-          }
-          url.searchParams.set('autoplay','1');
-          url.searchParams.set('mute','1');
-          url.searchParams.set('playsinline','1');
-        }
-      }else{
-        if(!url.searchParams.has('autoplay')) url.searchParams.set('autoplay','1');
-      }
-      return url.toString();
-    }catch{
-      return u;
-    }
-  };
 
   let dirBtn = document.getElementById('v-dir');
   if(!dirBtn){
     dirBtn = document.createElement('button');
-    dirBtn.id = 'v-dir'; dirBtn.className = 'btn ghost'; dirBtn.textContent = '目錄';
+    dirBtn.id = 'v-dir';
+    dirBtn.className = 'btn ghost';
+    dirBtn.textContent = '目錄';
     header.appendChild(dirBtn);
   }
 
@@ -492,23 +538,6 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架TikTo特�
     if(!inBody && !inHead) close();
   });
   window.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); }, true);
-
-  list.addEventListener('click', e=>{
-    const item = e.target.closest('[data-video]');
-    if(!item) return;
-    try{
-      const data = JSON.parse(item.dataset.video || '{}');
-      // 關掉目錄
-      close();
-      // 建立播放器並自動播放
-      const src = addAutoplay(data.url||'');
-      frame.innerHTML = `<div class="video-embed"><iframe src="${src}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen playsinline loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
-      if(vTitle) vTitle.textContent = data.title || '影片';
-      // 滾到播放器頂部並聚焦
-      frame.scrollIntoView({behavior:'smooth', block:'start'});
-      const ifr = frame.querySelector('iframe'); if(ifr) ifr.focus?.();
-    }catch{}
-  });
 })();
 
 /* ===== 特效資料 ===== */
