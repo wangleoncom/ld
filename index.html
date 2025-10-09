@@ -421,6 +421,7 @@ function playVideoFromItem(item){
 
   // 關抽屜（目錄）
   document.body.classList.remove('catalog-open');
+  document.body.classList.remove('vlist-open'); // ← 兼容舊版腳本
 
   try{
     const data = JSON.parse(item.dataset.video || '{}');
@@ -475,6 +476,7 @@ function playVideoFromItem(item){
     dirBtn.textContent = '目錄';
     header.appendChild(dirBtn);
   }
+  
 
   let catalog = document.getElementById('v-catalog');
   if(!catalog){
@@ -489,7 +491,41 @@ function playVideoFromItem(item){
     `;
     document.body.appendChild(catalog);
   }
+/* ===== 兼容 deer-video-min.js：攔截全域 play()，關閉目錄 + 自動播放 + 嘗試解除靜音 ===== */
+(function hookExternalPlay(){
+  const closeAll = ()=>{ document.body.classList.remove('catalog-open'); document.body.classList.remove('vlist-open'); };
 
+  const oldPlay = window.play;
+  window.play = function(url, title){
+    // 交給原本的 play 建立 iframe
+    if (typeof oldPlay === 'function') oldPlay.apply(this, arguments);
+
+    // 關任何目錄 UI
+    closeAll();
+
+    // 補上自動播放 / JS API 參數
+    const ifr = document.querySelector('#v-frame iframe');
+    if (ifr) {
+      const want = (u)=>withParams(u, {
+        autoplay: 1, mute: 1, playsinline: 1, enablejsapi: 1, origin: location.origin
+      });
+      try { ifr.src = want(ifr.src || url || ''); } catch {}
+
+      // YouTube：嘗試解除靜音並播放
+      const yt = isYouTube(ifr.src || url);
+      if (yt) {
+        const onload = ()=>{ tryUnmuteYouTube(ifr); };
+        ifr.addEventListener('load', onload, { once:true });
+        setTimeout(()=>tryUnmuteYouTube(ifr), 500);
+      }
+    }
+
+    // 捲到播放器並聚焦
+    const frame = document.getElementById('v-frame');
+    frame?.scrollIntoView({ behavior:'smooth', block:'start' });
+    setTimeout(()=>ifr?.focus?.(), 300);
+  };
+})();
   const body = catalog.querySelector('#v-cat-body');
   if(body && list.parentElement !== body){ body.appendChild(list); }
 
