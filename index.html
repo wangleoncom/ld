@@ -393,9 +393,9 @@ const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架 TikTok �
 function withParams(u, obj){ try{const url=new URL(u, location.href); Object.entries(obj||{}).forEach(([k,v])=>url.searchParams.set(k,String(v))); return url.toString(); }catch{return u;} }
 function isYouTube(u){ return /youtube\.com|youtu\.be/.test(u||''); }
 function buildPlayerHTML(src){
-  // 僅開放需要的權限；不含 accelerometer
+  // 僅開放需要的權限；不含 accelerometer，也不在 allow 內放 fullscreen（避免警告）
   return `<iframe src="${src}"
-           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+           allow="autoplay; encrypted-media; picture-in-picture"
            allowfullscreen playsinline referrerpolicy="strict-origin-when-cross-origin"
            loading="lazy"></iframe>`;
 }
@@ -414,87 +414,54 @@ function tryUnmuteYouTube(ifr){
   }, 300);
 }
 
+function playVideoFromItem(item){
+  const frame = document.getElementById('v-frame');
+  const vTitle = document.getElementById('v-title');
+  if(!item || !frame) return;
+
+  // 關抽屜（目錄）
+  document.body.classList.remove('catalog-open');
+
+  try{
+    const data = JSON.parse(item.dataset.video || '{}');
+    const raw  = data.url || '';
+    const yt   = isYouTube(raw);
+    const src  = yt
+      ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
+      : withParams(raw, {autoplay:1, playsinline:1});
+
+    frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
+    if(vTitle) vTitle.textContent = data.title || '影片';
+
+    const mark = Loading?.videoShow?.();
+    const ifr  = frame.querySelector('iframe');
+    ifr?.addEventListener('load', ()=>{
+      Loading?.videoHide?.(mark);
+      if (yt) tryUnmuteYouTube(ifr);
+    }, {once:true});
+
+    frame.scrollIntoView({behavior:'smooth', block:'start'});
+    setTimeout(()=>ifr?.focus?.(), 300);
+  }catch{}
+}
+
 /* ---- 左右欄清單：點一次渲染 + 小遮罩 + 自動播放/解靜音 ---- */
 (function videoClickOnce(){
-  const list=document.getElementById('v-list'), frame=document.getElementById('v-frame'), title=document.getElementById('v-title');
-  if(!list||!frame) return;
-  let lock=false,lastKey='';
-  list.addEventListener('click',e=>{
-    const item=e.target.closest('[data-video]'); if(!item) return;
-    if(lock) return; lock=true; setTimeout(()=>lock=false,480);
-
-    // 手機目錄面板：點影片就關
-    document.body.classList.remove('catalog-open');
-
-    try{
-      const data=JSON.parse(item.dataset.video||'{}');
-      const raw = data.url||'';
-      const yt  = isYouTube(raw);
-      const src = yt
-        ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
-        : withParams(raw, {autoplay:1, playsinline:1});
-
-      const key=(src||'')+'|'+(data.title||''); if(key===lastKey) return; lastKey=key;
-
-      frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
-      if(title) title.textContent=data.title||'影片';
-
-      const mark=Loading?.videoShow?.();
-      const ifr = frame.querySelector('iframe');
-
-      ifr?.addEventListener('load', ()=>{
-        Loading?.videoHide?.(mark);
-        // YouTube：嘗試解除靜音並播放（多次 postMessage 直到就緒）
-        if (yt) tryUnmuteYouTube(ifr);
-      }, {once:true});
-
-      // 滑到播放器頂端並聚焦
-      frame.scrollIntoView({behavior:'smooth', block:'start'});
-      setTimeout(()=>ifr?.focus?.(), 300);
-    }catch{}
-  }, true);
-})();
-
-(function patchVideoCatalogClick(){
-  const list   = document.getElementById('v-list');
-  const frame  = document.getElementById('v-frame');
-  const vTitle = document.getElementById('v-title');
-  if(!list||!frame) return;
-
+  const list=document.getElementById('v-list');
+  if(!list) return;
+  let lock=false;
   list.addEventListener('click', e=>{
     const item = e.target.closest('[data-video]'); if(!item) return;
-
-    // 先關抽屜
-    document.body.classList.remove('catalog-open');
-
-    try{
-      const data=JSON.parse(item.dataset.video||'{}');
-      const raw = data.url||'';
-      const yt  = isYouTube(raw);
-      const src = yt
-        ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
-        : withParams(raw, {autoplay:1, playsinline:1});
-
-      frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
-      if(vTitle) vTitle.textContent = data.title || '影片';
-
-      const mark=Loading?.videoShow?.();
-      const ifr = frame.querySelector('iframe');
-      ifr?.addEventListener('load', ()=>{
-        Loading?.videoHide?.(mark);
-        if (yt) tryUnmuteYouTube(ifr);
-      }, {once:true});
-
-      frame.scrollIntoView({behavior:'smooth', block:'start'});
-      setTimeout(()=>ifr?.focus?.(), 300);
-    }catch{}
+    if(lock) return; lock=true; setTimeout(()=>lock=false,480);
+    playVideoFromItem(item);
   }, true);
 })();
+
 
 
 /* ===== 手機影片抽屜（目錄 UI） ===== */
 (function setupVideoCatalog(){
-  const header = document.querySelector('.video-controls top, .video-controls.top');
+  const header = document.querySelector('.video-controls.top');
   const list   = document.getElementById('v-list');
   const frame  = document.getElementById('v-frame');
   const vTitle = document.getElementById('v-title');
@@ -538,6 +505,22 @@ function tryUnmuteYouTube(ifr){
     if(!inBody && !inHead) close();
   });
   window.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); }, true);
+
+  // 在目錄內點影片：自動關閉並播放
+  catalog.addEventListener('click', e=>{
+    const item = e.target.closest('[data-video]');
+    if(!item) return;
+    playVideoFromItem(item);
+  }, true);
+
+  // 鍵盤支援：Enter/Space 選取清單
+  catalog.addEventListener('keydown', e=>{
+    if((e.key==='Enter' || e.key===' ') && e.target.closest('[data-video]')){
+      e.preventDefault();
+      const item = e.target.closest('[data-video]');
+      playVideoFromItem(item);
+    }
+  }, true);
 })();
 
 /* ===== 特效資料 ===== */
