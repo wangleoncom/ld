@@ -407,6 +407,52 @@ function shareTop(){} // 佔位，若有需要再實作
 function openInstallTip(){} function closeInstallTip(){}
 function openChangelog(){} function closeChangelog(){}
 
+/* ==== deer-video-min.js 相關（renderList/play） ==== */
+// 假設這段會被合併到 deer-video-min.js
+// 以下為指令要求的修正內容
+
+// ---- renderList(arr) 內部 .video-item 點擊 handler 片段 ----
+//   if(v){ play(v); switchTab('video'); }
+//   ->
+//   if(v){
+//     play(v);
+//     switchTab('video');
+//     // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
+//     document.body.classList.remove('catalog-open');
+//     document.body.classList.remove('vlist-open');
+//   }
+
+// ---- play(v) 內部 iframe 建立片段 ----
+//   frameWrap.querySelector('iframe')?.remove();
+//   const iframe = document.createElement('iframe');
+//   iframe.setAttribute('allowfullscreen','');
+//   iframe.setAttribute('loading','lazy');
+//   iframe.setAttribute('allow','clipboard-write; encrypted-media; picture-in-picture; fullscreen');
+//   iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+//   iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
+//   iframe.src = `https://www.tiktok.com/embed/v2/${v.id}`;
+//   frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
+//   aiHintForCurrent();
+//   ->
+//   frameWrap.querySelector('iframe')?.remove();
+//   const iframe = document.createElement('iframe');
+//   // iOS/Safari 對自動播放策略：預設靜音自動播放，點擊來自清單屬於使用者手勢
+//   iframe.setAttribute('allowfullscreen','');
+//   iframe.setAttribute('loading','lazy');
+//   // 不把 fullscreen 放在 allow 內，避免「Allow attribute will take precedence over 'allowfullscreen'」警告
+//   iframe.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; clipboard-write');
+//   iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+//   iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
+//   iframe.src = `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&muted=1&playsinline=1`;
+//   frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
+//
+//   // 載入後盡量把焦點給播放器（配合使用者點擊），提高播放成功率
+//   iframe.addEventListener('load', ()=>{
+//     try { iframe.contentWindow?.focus?.(); } catch {}
+//   }, { once:true });
+//
+//   aiHintForCurrent();
+
 /* ==== Loading：DOMContentLoaded 顯示，load 後關閉 ==== */
 (function wireLoading(){
   const box = document.getElementById('page-loading');

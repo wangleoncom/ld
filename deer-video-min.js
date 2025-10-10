@@ -115,7 +115,13 @@
         if(e.target.classList.contains('info-btn')) return;
         const id=item.dataset.id;
         const v=videos.find(x=>x.id===id);
-        if(v){ play(v); switchTab('video'); }
+        if(v){
+  play(v);
+  switchTab('video');
+  // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
+  document.body.classList.remove('catalog-open');
+  document.body.classList.remove('vlist-open');
+}
       });
     });
     list.querySelectorAll('.info-btn.small').forEach(btn=>{
@@ -132,15 +138,23 @@
     current=v;
     title.textContent = v.title;
     frameWrap.querySelector('iframe')?.remove();
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('allowfullscreen','');
-    iframe.setAttribute('loading','lazy');
-    iframe.setAttribute('allow','clipboard-write; encrypted-media; picture-in-picture; fullscreen');
-    iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
-    iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
-    iframe.src = `https://www.tiktok.com/embed/v2/${v.id}`;
-    frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
-    aiHintForCurrent();
+const iframe = document.createElement('iframe');
+// iOS/Safari 策略：預設靜音自動播放，點清單屬於使用者手勢
+iframe.setAttribute('allowfullscreen','');
+iframe.setAttribute('loading','lazy');
+// 不把 fullscreen 放 allow 內，避免警告（以 allowfullscreen 屬性為準）
+iframe.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; clipboard-write');
+iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
+iframe.src = `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&muted=1&playsinline=1`;
+frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
+
+// 載入後把焦點給播放器（配合使用者點擊，提高播放成功率）
+iframe.addEventListener('load', ()=>{
+  try { iframe.contentWindow?.focus?.(); } catch {}
+}, { once:true });
+
+aiHintForCurrent();
   }
 
   function showInfo(v){
