@@ -27,13 +27,20 @@
   const aiForm = document.getElementById('ai-form');
   const aiInput = document.getElementById('ai-text');
   const aiMsgs = document.getElementById('ai-messages');
+  let userAudioActivated = false;
 
   let videos = [];
   let current = null;
 
   // 全域一次性解鎖音訊：任何首次互動都嘗試解鎖，提升自動開聲成功率
   (function setupUserActivation(){
-    const once = ()=>{ tryUnlockAudio(); window.removeEventListener('pointerdown', once, true); window.removeEventListener('keydown', once, true); };
+    const once = ()=>{
+      tryUnlockAudio();
+      userAudioActivated = true;
+      try { localStorage.setItem('deer_audio_activated','1'); } catch {}
+      window.removeEventListener('pointerdown', once, true);
+      window.removeEventListener('keydown', once, true);
+    };
     window.addEventListener('pointerdown', once, true);
     window.addEventListener('keydown', once, true);
   })();
@@ -73,6 +80,7 @@
   init().catch(()=>{ frameWrap.textContent='無法載入 videos.csv'; });
 
   async function init(){
+    try { userAudioActivated = localStorage.getItem('deer_audio_activated') === '1'; } catch {}
     const csv = await fetch('videos.csv',{cache:'no-store'}).then(r=>r.text());
     const rows = parseCSV(csv);
     if(rows.length<=1){ frameWrap.textContent='無影片資料'; return; }
@@ -98,6 +106,7 @@
 
     renderList(videos);
     ensureMobileCatalog();
+    ensureAudioGate();
 
     // 事件
     infoBtn.addEventListener('click',()=>{ if(current) showInfo(current); });
@@ -110,6 +119,37 @@
       document.querySelector('.iframe-shield')?.addEventListener(ev, e=>{ e.preventDefault(); }, {passive:false});
     });
     window.addEventListener('resize', ensureMobileCatalog);
+  }
+  function ensureAudioGate(){
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (userAudioActivated || !isMobile) return;
+    if (document.getElementById('audio-gate')) return;
+    const gate = document.createElement('div');
+    gate.id = 'audio-gate';
+    gate.setAttribute('role','dialog');
+    gate.setAttribute('aria-modal','true');
+    gate.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:center;max-width:420px;margin:auto;padding:20px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:linear-gradient(180deg,rgba(22,26,48,.86),rgba(28,33,62,.86));">
+        <div style="font-weight:800;font-size:18px">開始觀看</div>
+        <div style="opacity:.8;text-align:center">行動瀏覽器限制需要一次點擊才能開聲音</div>
+        <button id="audio-gate-btn" class="btn primary" style="min-width:220px">🔊 點一下開聲音並開始</button>
+      </div>`;
+    Object.assign(gate.style, {
+      position:'fixed', inset:'0', zIndex:'10001',
+      display:'grid', placeItems:'center',
+      background:'rgba(5,8,16,.86)',
+      WebkitBackdropFilter:'blur(8px)', backdropFilter:'blur(8px)'
+    });
+    document.body.appendChild(gate);
+    document.getElementById('audio-gate-btn').addEventListener('click', ()=>{
+      tryUnlockAudio();
+      userAudioActivated = true;
+      try { localStorage.setItem('deer_audio_activated','1'); } catch {}
+      gate.remove();
+      // 重新播放當前或隨機播放一支，確保有聲
+      if (current) play(current, true);
+      else if (videos && videos.length) play(videos[0], true);
+    }, { once:true });
   }
 
   function ensureMobileCatalog(){
@@ -232,6 +272,7 @@
         const v=videos.find(x=>x.id===id);
         if(v){
           tryUnlockAudio();               // 先解鎖 iOS 音訊
+          userAudioActivated = true; try { localStorage.setItem('deer_audio_activated','1'); } catch {}
           play(v, true);                  // 嘗試有聲播放（失敗則靜音）
           switchTab('video');
           // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
@@ -266,7 +307,7 @@
     iframe.setAttribute('allowfullscreen', '');
     iframe.setAttribute('loading', 'lazy');
     // 不把 fullscreen 放 allow 內，避免 console 警告
-    iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; clipboard-write');
+    iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; clipboard-write; accelerometer; gyroscope');
     iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
 
@@ -314,6 +355,11 @@
     iframe.addEventListener('load', ()=>{
       try { iframe.contentWindow?.focus?.(); } catch {}
       if (preferUnmute) tryUnmuteIframe(iframe, isYT);
+      // 若尚未解鎖且是行動裝置，顯示提示
+      if (!userAudioActivated && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        const tip = frameWrap.querySelector('.tap-sound-tip');
+        if (tip) tip.style.display = 'block';
+      }
     }, { once: true });
 
     aiHintForCurrent();
