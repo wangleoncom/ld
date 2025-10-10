@@ -90,6 +90,7 @@
     }).filter(Boolean);
 
     renderList(videos);
+    ensureMobileCatalog();
 
     // 事件
     infoBtn.addEventListener('click',()=>{ if(current) showInfo(current); });
@@ -101,6 +102,94 @@
     ['wheel','touchmove'].forEach(ev=>{
       document.querySelector('.iframe-shield')?.addEventListener(ev, e=>{ e.preventDefault(); }, {passive:false});
     });
+    window.addEventListener('resize', ensureMobileCatalog);
+  }
+
+  function ensureMobileCatalog(){
+    // Create "目錄" button in the video controls (desktop shows list at right; mobile uses overlay)
+    const ctrlTop = document.querySelector('.video-controls.top');
+    if (ctrlTop && !document.getElementById('v-dir')) {
+      const btn = document.createElement('button');
+      btn.id = 'v-dir';
+      btn.className = 'btn ghost';
+      btn.textContent = '目錄';
+      btn.addEventListener('click', openCatalog);
+      ctrlTop.appendChild(btn);
+    }
+
+    // Build overlay container if missing
+    let catalog = document.getElementById('v-catalog');
+    if (!catalog) {
+      catalog = document.createElement('div');
+      catalog.id = 'v-catalog';
+      catalog.setAttribute('role','dialog');
+      catalog.setAttribute('aria-modal','true');
+      catalog.innerHTML = `
+        <div id="v-cat-head" style="
+          display:flex;align-items:center;gap:10px;height:56px;padding:0 12px;
+          border-bottom:1px solid rgba(255,255,255,.12);
+          background:linear-gradient(180deg,rgba(22,26,48,.72),rgba(28,33,62,.72));
+          -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);">
+          <div id="v-cat-title" style="font-weight:800">影片目錄</div>
+          <button id="v-cat-close" class="btn ghost" style="margin-left:auto">❌關閉影片目錄</button>
+        </div>
+        <div id="v-cat-body" style="overflow:auto;padding:10px 12px 20px;"></div>
+      `;
+      Object.assign(catalog.style, {
+        position:'fixed', inset:'0', zIndex:'10000',
+        display:'none', gridTemplateRows:'56px 1fr',
+        background:'rgba(5,8,16,.86)',
+        WebkitBackdropFilter:'blur(8px)',
+        backdropFilter:'blur(8px)'
+      });
+      document.body.appendChild(catalog);
+      catalog.querySelector('#v-cat-close').addEventListener('click', closeCatalog);
+      catalog.addEventListener('click', (e)=>{
+        const body = document.getElementById('v-cat-body');
+        const head = document.getElementById('v-cat-head');
+        if (!body.contains(e.target) && !head.contains(e.target)) closeCatalog();
+      });
+      window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeCatalog(); }, true);
+    }
+
+    // Move #v-list into overlay body on mobile (<= 768px); otherwise move it back to original right side
+    const body = document.getElementById('v-cat-body');
+    const rightCol = document.querySelector('.video-right');
+    if (!body || !rightCol || !list) return;
+
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      if (list.parentElement !== body) body.appendChild(list);
+      // Ensure items are visible on iPhone even if site CSS fails to load
+      list.style.display = 'flex';
+      list.style.flexDirection = 'column';
+      list.style.gap = '10px';
+      list.style.padding = '10px 2px 22px';
+      list.style.overflow = 'auto';
+      // Each item fallback style
+      list.querySelectorAll('.video-item').forEach(it=>{
+        it.style.background = 'linear-gradient(180deg,rgba(22,26,48,.72),rgba(28,33,62,.72))';
+        it.style.border = '1px solid rgba(255,255,255,.12)';
+        it.style.borderRadius = '12px';
+        it.style.padding = '10px 12px';
+        it.style.display = 'flex';
+        it.style.alignItems = 'center';
+        it.style.justifyContent = 'space-between';
+        it.style.color = '#f6f8ff';
+      });
+    } else {
+      if (list.parentElement !== rightCol) rightCol.appendChild(list);
+      // reset overlay if open on desktop
+      closeCatalog();
+    }
+
+    function openCatalog(){
+      catalog.style.display = 'grid';
+      document.body.classList.add('catalog-open');
+    }
+    function closeCatalog(){
+      catalog.style.display = 'none';
+      document.body.classList.remove('catalog-open');
+    }
   }
 
   function renderList(arr){
@@ -122,6 +211,8 @@
           // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
           document.body.classList.remove('catalog-open');
           document.body.classList.remove('vlist-open');
+          const vc = document.getElementById('v-catalog');
+          if (vc) vc.style.display = 'none';
         }
       });
     });
@@ -133,6 +224,8 @@
         if(v) showInfo(v);
       });
     });
+    // refresh mobile overlay styles when list re-rendered
+    ensureMobileCatalog();
   }
 
   function play(v, preferUnmute){
