@@ -189,7 +189,10 @@
         WebkitBackdropFilter:'blur(8px)',
         backdropFilter:'blur(8px)'
       });
-      document.body.appendChild(catalog);
+      // 確保 overlay 不會被插入到 #v-list 之內
+      (list && list.contains(catalog)) ? document.body.appendChild(catalog.cloneNode(true)) : document.body.appendChild(catalog);
+      // 重新查詢 catalog，可能是 clone 後的
+      catalog = document.getElementById('v-catalog');
       catalog.querySelector('#v-cat-close').addEventListener('click', closeCatalog);
       catalog.addEventListener('click', (e)=>{
         const body = document.getElementById('v-cat-body');
@@ -205,7 +208,10 @@
     if (!body || !rightCol || !list) return;
 
     if (window.matchMedia('(max-width: 768px)').matches) {
-      if (list.parentElement !== body) body.appendChild(list);
+      // 僅在彼此不互相包含時再搬移，避免 HierarchyRequestError
+      if (list.parentElement !== body && !body.contains(list) && !list.contains(body)) {
+        body.appendChild(list);
+      }
       // Ensure items are visible on iPhone even if site CSS fails to load
       list.style.display = 'flex';
       list.style.flexDirection = 'column';
@@ -243,9 +249,17 @@
         vcHack.style.backdropFilter = 'blur(8px)';
       }
     } else {
-      if (list.parentElement !== rightCol) rightCol.appendChild(list);
+      // 僅在彼此不互相包含時再搬移，避免 HierarchyRequestError
+      if (list.parentElement !== rightCol && !rightCol.contains(list) && !list.contains(rightCol)) {
+        rightCol.appendChild(list);
+      }
       // reset overlay if open on desktop
       closeCatalog();
+    }
+
+    // 確保 list 不會在 overlay 內部造成結構問題
+    if (list && catalog.contains(list) && !document.getElementById('v-cat-body').contains(list)) {
+      document.getElementById('v-cat-body').appendChild(list);
     }
 
     function openCatalog(){
@@ -378,10 +392,9 @@
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
-      const ctx = new AC();
-      // 有些瀏覽器需多次 resume；這裡以微延遲再呼叫一次
-      ctx.resume?.();
-      setTimeout(()=>ctx.resume?.(), 50);
+      if (!window.__deerAC) window.__deerAC = new AC();
+      // 嘗試在手勢事件內 resume
+      window.__deerAC.resume?.();
     }catch{}
   }
 
