@@ -518,6 +518,13 @@ body.catalog-open #v-catalog{ display:grid }
   gap:12px;
   max-height:none !important;
   overflow:visible !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  z-index: auto !important;
+  background: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* 更小螢幕（含 iPhone SE）單欄或較小卡片 */
@@ -565,7 +572,7 @@ body.catalog-open #v-catalog{ display:grid }
 
 /* 防止與桌面右欄樣式衝突 */
 @media (min-width:769px){
-  .video-right#v-list{ max-height:700px; overflow:auto }
+  .video-right #v-list{ max-height:700px; overflow:auto }
 }
 
 @media (max-width:768px){

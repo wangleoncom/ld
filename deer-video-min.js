@@ -165,6 +165,15 @@
       list.style.gap = '10px';
       list.style.padding = '10px 2px 22px';
       list.style.overflow = 'auto';
+      // 重置抽屜樣式，避免黑屏與無法捲動
+      list.style.position = 'static';
+      list.style.inset = 'auto';
+      list.style.transform = 'none';
+      list.style.zIndex = 'auto';
+      list.style.background = 'transparent';
+      list.style.webkitBackdropFilter = 'none';
+      list.style.backdropFilter = 'none';
+      document.body.classList.remove('vlist-open');
       // Each item fallback style
       list.querySelectorAll('.video-item').forEach(it=>{
         it.style.background = 'linear-gradient(180deg,rgba(22,26,48,.72),rgba(28,33,62,.72))';
@@ -176,6 +185,16 @@
         it.style.justifyContent = 'space-between';
         it.style.color = '#f6f8ff';
       });
+      // 保證浮層可捲動且在最上層
+      const vcHack = document.getElementById('v-catalog');
+      if (vcHack) {
+        vcHack.style.position = 'fixed';
+        vcHack.style.inset = '0';
+        vcHack.style.zIndex = '10000';
+        vcHack.style.background = 'rgba(5,8,16,.86)';
+        vcHack.style.webkitBackdropFilter = 'blur(8px)';
+        vcHack.style.backdropFilter = 'blur(8px)';
+      }
     } else {
       if (list.parentElement !== rightCol) rightCol.appendChild(list);
       // reset overlay if open on desktop
@@ -229,6 +248,8 @@
   }
 
   function play(v, preferUnmute){
+    // 預設嘗試有聲播放；若瀏覽器不允許則保持靜音
+    preferUnmute = (preferUnmute === undefined) ? true : preferUnmute;
     current = v;
     title.textContent = v.title;
     frameWrap.querySelector('iframe')?.remove();
