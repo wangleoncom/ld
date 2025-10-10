@@ -159,6 +159,22 @@
     iframe.src = src;
     frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
 
+    // 若為 iOS + TikTok，無法跨 iframe 自動開聲音；提供點一下開聲音的提示層
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+    let tapSound;
+    if (!isYT) {
+      tapSound = document.createElement('button');
+      tapSound.className = 'tap-sound-tip';
+      tapSound.type = 'button';
+      tapSound.textContent = '🔊 點一下開聲音';
+      tapSound.addEventListener('click', ()=>{
+        tryUnlockAudio();
+        tryUnmuteIframe(iframe, false); // 嘗試向 TikTok 傳送 unmute/play
+        tapSound.remove();
+      }, { once:true });
+      frameWrap.appendChild(tapSound);
+    }
+
     // 載入後把焦點給播放器（配合使用者點擊，提高播放成功率）並嘗試解除靜音
     iframe.addEventListener('load', ()=>{
       try { iframe.contentWindow?.focus?.(); } catch {}
@@ -206,6 +222,8 @@
         // 某些版本接受這些別名
         iframe.contentWindow?.postMessage({ type:'player:unmute' }, '*');
         iframe.contentWindow?.postMessage({ type:'player:play' }, '*');
+        iframe.contentWindow?.postMessage({ action:'play' }, '*');
+        iframe.contentWindow?.postMessage({ action:'unmute' }, '*');
       }catch{}
     };
 
