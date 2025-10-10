@@ -31,6 +31,13 @@
   let videos = [];
   let current = null;
 
+  // 全域一次性解鎖音訊：任何首次互動都嘗試解鎖，提升自動開聲成功率
+  (function setupUserActivation(){
+    const once = ()=>{ tryUnlockAudio(); window.removeEventListener('pointerdown', once, true); window.removeEventListener('keydown', once, true); };
+    window.addEventListener('pointerdown', once, true);
+    window.addEventListener('keydown', once, true);
+  })();
+
   // Tabs
   tabQA?.addEventListener('click',()=>switchTab('qa'));
   tabVideo?.addEventListener('click',()=>switchTab('video'));
@@ -267,8 +274,8 @@
     const base = v.link || '';
     const isYT = /youtube\.com|youtu\.be/i.test(base);
     const src = isYT
-      ? addParams(base, { autoplay: 1, playsinline: 1, enablejsapi: 1, mute: 1 })
-      : `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&amp;muted=1&amp;playsinline=1&amp;enablejsapi=1`;
+      ? addParams(base, { autoplay: 1, playsinline: 1, enablejsapi: 1, mute: preferUnmute ? 0 : 1 })
+      : `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&amp;muted=${preferUnmute ? 0 : 1}&amp;playsinline=1&amp;enablejsapi=1`;
 
     iframe.src = src;
     frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
@@ -287,6 +294,20 @@
         tapSound.remove();
       }, { once:true });
       frameWrap.appendChild(tapSound);
+    }
+
+    // 若為 YouTube 且 preferUnmute，提供點一下開聲音提示層
+    if (isYT && preferUnmute) {
+      const tapYT = document.createElement('button');
+      tapYT.className = 'tap-sound-tip';
+      tapYT.type = 'button';
+      tapYT.textContent = '🔊 點一下開聲音';
+      tapYT.addEventListener('click', ()=>{
+        tryUnlockAudio();
+        tryUnmuteIframe(iframe, true);
+        tapYT.remove();
+      }, { once:true });
+      frameWrap.appendChild(tapYT);
     }
 
     // 載入後把焦點給播放器（配合使用者點擊，提高播放成功率）並嘗試解除靜音
