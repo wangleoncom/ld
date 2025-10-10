@@ -116,12 +116,13 @@
         const id=item.dataset.id;
         const v=videos.find(x=>x.id===id);
         if(v){
-  play(v);
-  switchTab('video');
-  // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
-  document.body.classList.remove('catalog-open');
-  document.body.classList.remove('vlist-open');
-}
+          tryUnlockAudio();               // 先解鎖 iOS 音訊
+          play(v, true);                  // 嘗試有聲播放（失敗則靜音）
+          switchTab('video');
+          // 自動關閉任何目錄/抽屜樣式（兩種舊/新 class 皆處理）
+          document.body.classList.remove('catalog-open');
+          document.body.classList.remove('vlist-open');
+        }
       });
     });
     list.querySelectorAll('.info-btn.small').forEach(btn=>{
@@ -134,27 +135,85 @@
     });
   }
 
-  function play(v){
-    current=v;
+  function play(v, preferUnmute){
+    current = v;
     title.textContent = v.title;
     frameWrap.querySelector('iframe')?.remove();
-const iframe = document.createElement('iframe');
-// iOS/Safari 策略：預設靜音自動播放，點清單屬於使用者手勢
-iframe.setAttribute('allowfullscreen','');
-iframe.setAttribute('loading','lazy');
-// 不把 fullscreen 放 allow 內，避免警告（以 allowfullscreen 屬性為準）
-iframe.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; clipboard-write');
-iframe.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
-iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-presentation');
-iframe.src = `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&muted=1&playsinline=1`;
-frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
 
-// 載入後把焦點給播放器（配合使用者點擊，提高播放成功率）
-iframe.addEventListener('load', ()=>{
-  try { iframe.contentWindow?.focus?.(); } catch {}
-}, { once:true });
+    const iframe = document.createElement('iframe');
+    // iOS/Safari 策略：預設靜音自動播放；之後再嘗試解除靜音
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('loading', 'lazy');
+    // 不把 fullscreen 放 allow 內，避免 console 警告
+    iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; clipboard-write');
+    iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-presentation');
 
-aiHintForCurrent();
+    // 來源網址（TikTok 以 v2 embed）
+    const base = v.link || '';
+    const isYT = /youtube\.com|youtu\.be/i.test(base);
+    const src = isYT
+      ? addParams(base, { autoplay: 1, playsinline: 1, enablejsapi: 1, mute: 1 })
+      : `https://www.tiktok.com/embed/v2/${v.id}?autoplay=1&amp;muted=1&amp;playsinline=1&amp;enablejsapi=1`;
+
+    iframe.src = src;
+    frameWrap.insertBefore(iframe, frameWrap.firstChild); // 保留遮罩在最上層
+
+    // 載入後把焦點給播放器（配合使用者點擊，提高播放成功率）並嘗試解除靜音
+    iframe.addEventListener('load', ()=>{
+      try { iframe.contentWindow?.focus?.(); } catch {}
+      if (preferUnmute) tryUnmuteIframe(iframe, isYT);
+    }, { once: true });
+
+    aiHintForCurrent();
+  }
+
+  function addParams(u, obj){
+    try{
+      const url = new URL(u, location.href);
+      Object.entries(obj || {}).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+      return url.toString();
+    }catch{return u;}
+  }
+
+  // 嘗試解鎖 iOS 音訊（需在使用者手勢事件鏈內呼叫）
+  function tryUnlockAudio(){
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      // 有些瀏覽器需多次 resume；這裡以微延遲再呼叫一次
+      ctx.resume?.();
+      setTimeout(()=>ctx.resume?.(), 50);
+    }catch{}
+  }
+
+  // 嘗試解除靜音並播放（YouTube 與 TikTok）
+  function tryUnmuteIframe(iframe, isYT){
+    let tries = 0;
+    const postYT = () => {
+      try{
+        iframe.contentWindow?.postMessage(JSON.stringify({ event:'command', func:'unMute' }), '*');
+        iframe.contentWindow?.postMessage(JSON.stringify({ event:'command', func:'setVolume', args:[100] }), '*');
+        iframe.contentWindow?.postMessage(JSON.stringify({ event:'command', func:'playVideo' }), '*');
+      }catch{}
+    };
+    const postTT = () => {
+      try{
+        // TikTok 沒正式 API；傳常見訊息名稱，若平台忽略則不影響
+        iframe.contentWindow?.postMessage({ type:'tiktok:player:unmute' }, '*');
+        iframe.contentWindow?.postMessage({ type:'tiktok:player:play' }, '*');
+        // 某些版本接受這些別名
+        iframe.contentWindow?.postMessage({ type:'player:unmute' }, '*');
+        iframe.contentWindow?.postMessage({ type:'player:play' }, '*');
+      }catch{}
+    };
+
+    const timer = setInterval(()=>{
+      tries++;
+      if (isYT) postYT(); else postTT();
+      if (tries > 15) clearInterval(timer); // 最多嘗試 ~4.5s
+    }, 300);
   }
 
   function showInfo(v){

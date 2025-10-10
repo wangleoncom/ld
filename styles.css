@@ -483,6 +483,7 @@ h1{
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #qa-list,#qa-list *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 
+
 #v-catalog{
   position:fixed; inset:0; z-index:10000;
   display:none; grid-template-rows:auto 1fr;
@@ -493,18 +494,79 @@ body.catalog-open{ overflow:hidden }
 body.catalog-open #v-catalog{ display:grid }
 
 #v-cat-head{
+  position:sticky; top:0; z-index:2;
   display:flex; align-items:center; justify-content:space-between;
-  padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.12);
+  padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 10px calc(14px + env(safe-area-inset-left));
+  border-bottom:1px solid rgba(255,255,255,.12);
   background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
 }
 #v-cat-title{ font-weight:800 }
 #v-cat-close{
-  padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.10);
+  padding:10px 12px; border-radius:10px; background:rgba(255,255,255,.10);
   color:#fff; border:0; cursor:pointer
 }
-#v-cat-body{ overflow:auto; padding:12px 14px }
-#v-cat-body #v-list{ display:flex; flex-direction:column; gap:10px }
+
+#v-cat-body{
+  overflow:auto; -webkit-overflow-scrolling:touch;
+  padding:12px calc(14px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+}
+
+/* 讓在 catalog 裡的 #v-list 變成自適應網格；覆寫右欄清單樣式 */
+#v-cat-body #v-list{
+  display:grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap:12px;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+/* 更小螢幕（含 iPhone SE）單欄或較小卡片 */
+@media (max-width:600px){
+  #v-cat-body #v-list{
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap:10px;
+  }
+}
+
+/* 目錄卡片在網格裡的呈現 */
+#v-cat-body #v-list .video-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  min-height:72px;
+  padding:10px 12px;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card2) 100%);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  cursor:pointer;
+  transition:.18s var(--ease);
+  color:inherit;
+}
+#v-cat-body #v-list .video-item:hover{
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+  color:#0f1220;
+}
+#v-cat-body #v-list .thumb{
+  width:88px; height:56px; flex:0 0 auto;
+  border-radius:8px; background:#111; overflow:hidden;
+}
+#v-cat-body #v-list .meta{ min-width:0; display:flex; flex-direction:column; gap:4px }
+#v-cat-body #v-list .title{
+  font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+#v-cat-body #v-list .sub{ font-size:.85rem; color:#bfc6ff }
+
+/* 目錄開啟按鈕微調 */
 #v-dir{ margin-left:8px }
+
+/* iOS 滑動回彈優化（避免內容看起來空白） */
+#v-cat-body, #v-cat-body #v-list{ -webkit-overflow-scrolling:touch }
+
+/* 防止與桌面右欄樣式衝突 */
+@media (min-width:769px){
+  .video-right#v-list{ max-height:700px; overflow:auto }
+}
 
 @media (max-width:768px){
   .video-frame{ position:relative; width:100%; height:78vh; }
