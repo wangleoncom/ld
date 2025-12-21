@@ -1,237 +1,88 @@
-/* --- 鹿🦌 Elite 2025 專業級視覺規範 --- */
+/* --- 鹿🦌 Elite 2025 專業級介面規範 --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap');
 
 :root {
-  /* 基礎色譜：使用 Slate 深藍灰，提升穩定感 */
   --bg: #020617;
-  --surface-low: #0f172a;    /* 層級 1：基礎卡片 */
-  --surface-mid: #1e293b;    /* 層級 2：互動組件 */
-  --surface-high: #334155;   /* 層級 3：邊框與控制項 */
-
-  /* 品牌重點色：亮藍色與薄紫色的平衡 */
+  --surface-low: #0f172a;
+  --surface-mid: #1e293b;
+  --surface-high: #334155;
   --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.1);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  
-  /* 專業級陰影系統 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  
-  /* 物理與動效 */
   --radius: 12px;
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --glass: blur(16px) saturate(180%);
 }
 
-/* --- 全域重設 --- */
+/* --- 全域設定 --- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
 body {
-  margin: 0;
-  background-color: var(--bg);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.05) 0, transparent 50%);
-  color: var(--text-main);
-  font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  padding-bottom: env(safe-area-inset-bottom);
+  margin: 0; background-color: var(--bg); color: var(--text-main);
+  font-family: 'Inter', 'Noto Sans TC', sans-serif; line-height: 1.5;
+  padding-top: 50px; /* 為置頂公告留空間 */
 }
 
-/* --- Hero 標頭區塊 --- */
-.hero {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 60px 24px 20px;
-  text-align: left; /* 改為左對齊，更符合管理後台風格 */
+/* --- 置頂專業公告 --- */
+#top-banner {
+  position: fixed; top: 0; width: 100%; z-index: 1000;
+  background: var(--surface-mid); border-bottom: 1px solid var(--surface-high);
+  padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+  backdrop-filter: blur(10px);
 }
 
-.brand { display: flex; align-items: center; gap: 20px; }
-
-.brand h1 {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0;
-  color: #fff;
+/* --- 分類切換 (Tabs) --- */
+.tabs-container {
+  display: flex; justify-content: center; margin: 30px 0;
 }
-
-.logo-img {
-  width: 56px; height: 56px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
-}
-
-/* --- 頂部操作按鈕 --- */
-.top-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 24px;
-}
-
-/* --- 導航標籤 (Tabs) --- */
 .tabs {
-  display: flex;
-  gap: 8px;
-  background: var(--surface-low);
-  padding: 4px;
-  border-radius: 50px;
-  width: fit-content;
-  margin: 32px 0;
-  border: 1px solid var(--surface-high);
+  background: var(--surface-low); padding: 5px; border-radius: 50px;
+  border: 1px solid var(--surface-high); display: flex; gap: 5px;
 }
-
 .tab {
-  padding: 8px 24px;
-  border-radius: 40px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s var(--spring);
+  padding: 10px 25px; border-radius: 40px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-muted); font-weight: 600; transition: 0.3s var(--spring);
 }
+.tab.active { background: var(--surface-high); color: var(--accent); }
 
-.tab.active {
-  background: var(--surface-high);
-  color: var(--accent);
-  box-shadow: var(--shadow-sm);
-}
-
-/* --- 搜尋與統計 --- */
-.search-wrap {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.input {
-  flex: 1;
-  background: var(--surface-low);
-  border: 1px solid var(--surface-high);
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  color: #fff;
-  transition: border-color 0.2s;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.stat {
-  background: var(--surface-low);
-  padding: 16px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stat .value { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
-.stat .label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
-
-/* --- QA 專業清單 (手風琴) --- */
+/* --- QA 項目動畫 --- */
+.accordion { max-width: 900px; margin: 0 auto; display: grid; gap: 12px; }
 .item {
-  background: var(--surface-low);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  overflow: hidden;
-  transition: all 0.2s;
+  background: var(--surface-low); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: var(--radius); overflow: hidden; opacity: 0; transform: translateY(20px);
+  animation: itemIn 0.5s var(--spring) forwards;
 }
-
-.item:hover { background: var(--surface-mid); }
+@keyframes itemIn { to { opacity: 1; transform: translateY(0); } }
 
 .q {
-  padding: 16px 20px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
+  padding: 20px; cursor: pointer; display: flex; justify-content: space-between;
+  align-items: center; font-weight: 600; transition: background 0.3s;
 }
+.q:hover { background: var(--surface-mid); }
+.q::after { content: '＋'; transition: transform 0.3s; color: var(--accent); }
+.item.open .q::after { transform: rotate(45deg); }
 
-.a-inner {
-  padding: 0 20px 20px;
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
+.a {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s var(--spring), padding 0.3s;
+  background: rgba(0,0,0,0.2);
 }
+.item.open .a { max-height: 500px; padding-bottom: 20px; }
+.a-inner { padding: 0 20px; color: var(--text-muted); }
 
-/* --- 按鈕系統 --- */
-.btn {
-  padding: 10px 20px;
-  border-radius: var(--radius);
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--surface-high);
-  background: var(--surface-low);
-  color: #fff;
-  transition: all 0.2s var(--spring);
+/* --- 分頁導航 --- */
+.pager {
+  display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 40px;
 }
-
-.btn.primary {
-  background: var(--accent);
-  color: var(--bg);
-  border: none;
+.page-btn {
+  background: var(--surface-low); border: 1px solid var(--surface-high);
+  color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;
 }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-.btn.ghost { background: transparent; border-color: var(--surface-high); }
-
-.btn:active { transform: scale(0.96); }
-
-/* --- 影片中心 --- */
+/* --- 影片播放器修復 --- */
+.video-container { max-width: 1000px; margin: 0 auto; position: relative; }
 .video-frame {
-  background: #000;
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--surface-high);
+  width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px;
+  border: 1px solid var(--surface-high); overflow: hidden;
 }
-
-/* --- 特效 Pro 展示 --- */
-.effect-pro {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-
-.phone-bezel {
-  background: #000;
-  border: 8px solid #1e293b;
-  border-radius: 40px;
-  aspect-ratio: 9/16;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-/* --- AI 聊天面板 --- */
-.ai-panel {
-  background: rgba(15, 23, 42, 0.95) !important;
-  backdrop-filter: var(--glass);
-  border-radius: 20px;
-  border: 1px solid var(--surface-high);
-}
-
-/* --- 響應式優化 --- */
-@media (max-width: 768px) {
-  .hero { padding: 40px 20px; }
-  .effect-pro { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: 1fr 1fr; }
-}
+iframe { width: 100%; height: 100%; border: none; }
 
 .hidden { display: none !important; }
