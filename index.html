@@ -3,208 +3,201 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>鹿🦌的QA網站</title>
-  <meta name="theme-color" content="#020617" />
-  <link rel="icon" type="image/png" href="網站頂端icon.JPG">
-  <link rel="stylesheet" href="styles.css?v=2025Elite" />
+  <title>鹿🦌的QA網站 - 專業版</title>
+  <style>
+    /* 核心變數設定 */
+    :root {
+      --bg: #020617;
+      --surface-low: #0f172a;
+      --surface-mid: #1e293b;
+      --surface-high: #334155;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 全域樣式 */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* 強制置頂公告欄 (最上層) */
+    #top-sticky-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 9999;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    #top-sticky-banner button {
+      background: rgba(0,0,0,0.2);
+      border: none;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* 頁首與分類導航 */
+    header.hero {
+      max-width: 1100px;
+      margin: 60px auto 20px; /* 預留空間給置頂公告 */
+      padding: 24px;
+    }
+    .tabs {
+      display: flex;
+      gap: 12px;
+      background: var(--surface-low);
+      padding: 6px;
+      border-radius: 50px;
+      width: fit-content;
+      margin: 20px 0;
+      border: 1px solid var(--surface-high);
+    }
+    .tab {
+      padding: 10px 24px;
+      border-radius: 40px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--spring);
+    }
+    .tab.active {
+      background: var(--surface-high);
+      color: var(--accent);
+    }
+
+    /* 內容區塊分類顯示邏輯 */
+    .tab-content { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
+    .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* QA、影片、特效專用樣式 */
+    .card {
+      background: var(--surface-low);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    
+    /* 特效預覽手機框 */
+    .phone-bezel {
+      max-width: 300px;
+      aspect-ratio: 9/16;
+      border: 8px solid var(--surface-high);
+      border-radius: 36px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .phone-preview { width: 100%; height: 100%; object-fit: cover; }
+
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-  <div id="page-loading" aria-live="polite" aria-busy="true">
-    <div class="card">
-      <div class="spinner"><img src="轉圈圈.png" alt="載入中" class="loading-img"></div>
-      <div class="title">系統初始化中</div>
-      <div class="muted">正在建構 Elite 專業級介面...</div>
-    </div>
-  </div>
 
-  <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2>網站公告</h2>
-        <button id="ann-close" class="btn ghost">關閉</button>
-      </div>
-      <div class="modal-body" id="ann-body"></div>
-    </div>
+  <div id="top-sticky-banner">
+    <span>📢 歡迎來到鹿🦌的專業 QA 系統！V4.2 正式上線。</span>
+    <button onclick="document.getElementById('top-sticky-banner').style.display='none'">關閉 ❌</button>
   </div>
-
-  <div id="errbar" class="errbar hidden" role="status"></div>
 
   <header class="hero">
     <div class="brand">
-      <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
-      <div>
-        <h1>鹿🦌的QA網站</h1>
-        <p class="muted">專業資料庫查詢與沉浸式影片體驗</p>
-      </div>
+      <h1>鹿🦌的QA網站</h1>
+      <p style="color: var(--text-muted)">請選擇下方分類進入不同功能模組</p>
     </div>
 
-    <div class="top-actions">
-      <button id="site-bell" class="btn ghost">🔔 公告</button>
-      <button id="site-share" class="btn primary">分享網站</button>
-      <a id="contact-eng" class="btn ghost" href="mailto:wanglien214@gmail.com">📧 聯絡工程師</a>
-    </div>
-
-    <nav class="tabs" role="tablist">
-      <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">知識問答</button>
-      <button id="tab-video" class="tab" role="tab" aria-selected="false" aria-controls="video-panel">影片中心</button>
-      <button id="tab-effect" class="tab" role="tab" aria-selected="false" aria-controls="effect-panel">特效展示</button>
+    <nav class="tabs">
+      <button class="tab active" onclick="switchTab('qa', this)">知識 QA</button>
+      <button class="tab" onclick="switchTab('video', this)">影音中心</button>
+      <button class="tab" onclick="switchTab('effect', this)">TikTok 特效</button>
     </nav>
-
-    <div id="qa-toolbar" class="search-wrap">
-      <input id="search" class="input" type="search" placeholder="搜尋關鍵字..." />
-      <button id="clear" class="btn ghost">清除</button>
-    </div>
-
-    <div class="stats" id="qa-stats">
-      <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
-      <div class="stat"><span id="stat-page" class="value">1</span><span class="label">當前頁</span></div>
-      <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
-      <div class="stat"><span id="stat-filtered" class="value">0</span><span class="label">篩選中</span></div>
-    </div>
   </header>
 
-  <main class="container">
-    <section id="qa-panel" class="tabpanel">
-      <section id="qa-list" class="accordion"></section>
-      <nav class="pager">
-        <button id="prev" class="btn">上一頁</button>
-        <input id="page" class="page-input" type="text" inputmode="numeric" value="1">
-        <span class="slash">/</span>
-        <span id="pages" class="pages-badge">1</span>
-        <button id="next" class="btn">下一頁</button>
-      </nav>
-    </section>
-
-    <section id="video-panel" class="tabpanel hidden">
-      <div class="video-layout">
-        <div class="video-left">
-          <div class="video-controls top">
-            <button id="v-random" class="btn primary">隨機影片</button>
-            <button id="v-dir" class="btn ghost">影片目錄</button>
-          </div>
-          <div class="video-header">
-            <span id="v-title" class="video-title">請選擇影片</span>
-            <button id="v-info-btn" class="info-btn">ℹ️</button>
-          </div>
-          <div id="v-frame" class="video-frame"></div>
-        </div>
-        <div class="video-right" id="v-list"></div>
+  <main>
+    <section id="qa-panel" class="tab-content active">
+      <div class="card">
+        <h3>🔍 搜尋資料庫</h3>
+        <input type="text" class="card" style="width: 100%; background: var(--bg); color: white;" placeholder="輸入關鍵字...">
+      </div>
+      <div id="qa-list" class="accordion">
+        <p class="text-muted">正在載入 QA 資料庫...</p>
       </div>
     </section>
 
-    <section id="effect-panel" class="tabpanel hidden">
-      <div class="effect-pro">
-        <div class="effect-phone">
-          <div class="phone-bezel">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-              <img id="effect-demo" alt="預覽" class="phone-preview" />
-            </div>
+    <section id="video-panel" class="tab-content">
+      <div class="card">
+        <h3>🎬 影片中心</h3>
+        <div id="v-frame" style="background: black; width: 100%; aspect-ratio: 16/9; border-radius: 12px;">
           </div>
-          <p class="muted effect-caption">授權特效展示</p>
+      </div>
+    </section>
+
+    <section id="effect-panel" class="tab-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="phone-bezel">
+          <img src="鹿🦌超好笑特效.png" class="phone-preview" alt="特效預覽">
         </div>
-        <aside class="effect-side card">
-          <header class="side-head">
-            <h3 id="effect-title" class="side-title">TikTok 特效</h3>
-            <div class="side-actions">
-              <button id="effect-play" class="btn primary">立即體驗</button>
-            </div>
-          </header>
-          <div class="side-body">
-            <ul class="bullets">
-              <li>專業 9:16 直式視覺設計</li>
-              <li>掃描下方 QR Code 快速開啟</li>
-            </ul>
-            <div class="qr-wrap">
-              <img id="effect-qr" alt="QR" class="qr-img" />
-              <div class="qr-meta">
-                <div class="label">預覽連結</div>
-                <code class="qr-url" id="effect-url-copy"></code>
-                <button class="btn ghost" id="copy-effect-url">複製連結</button>
-              </div>
-            </div>
-          </div>
-        </aside>
+        <div class="card">
+          <h3>✨ TikTok 特效</h3>
+          <p class="text-muted">掃描 QR Code 或點擊下方按鈕立即體驗。</p>
+          <img src="QR Code.png" style="width: 150px; margin: 10px 0;">
+          <br>
+          <button class="btn btn-primary" onclick="window.open('https://vm.tiktok.com/ZMAXNfQ4v/')">立即體驗</button>
+        </div>
       </div>
     </section>
   </main>
-
-  <div id="v-catalog" class="modal hidden">
-    <div id="v-cat-head">
-      <div id="v-cat-title">影片清單</div>
-      <button id="v-cat-close" class="btn ghost">關閉</button>
-    </div>
-    <div id="v-cat-body"></div>
-  </div>
-
-  <button id="ai-fab" class="ai-fab">
-    <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 19h20L12 2z"/></svg>
-  </button>
-
-  <aside id="ai-panel" class="ai-panel hidden">
-    <header class="ai-header"><h2>AI 助手</h2><button id="ai-close" class="btn ghost">❌</button></header>
-    <div id="ai-messages" class="ai-messages"></div>
-    <form id="ai-form" class="ai-input">
-      <input id="ai-text" class="input" placeholder="詢問任何問題..." />
-      <button class="btn primary" type="submit">發送</button>
-    </form>
-  </aside>
 
   <script src="deer-qa.js"></script>
   <script src="app.js"></script>
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
+
   <script>
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
-
-    (function initLoader() {
-      window.addEventListener('load', () => {
-        setTimeout(() => $('#page-loading').classList.add('hide'), 1000);
-      });
-    })();
-
-    (function initTabs() {
-      const tabs = $$('.tab');
-      tabs.forEach(t => {
-        t.onclick = () => {
-          tabs.forEach(x => {
-            x.classList.remove('active');
-            $(`#${x.getAttribute('aria-controls')}`).classList.add('hidden');
-          });
-          t.classList.add('active');
-          $(`#${t.getAttribute('aria-controls')}`).classList.remove('hidden');
-        };
-      });
-    })();
-
-    const EFFECT_INFO = {
-      title: '鹿🦌超好笑特效',
-      url: 'https://vm.tiktok.com/ZMAXNfQ4v/',
-      qr: 'QR Code.png',
-      demo: '鹿🦌超好笑特效.png'
-    };
-
-    (function initEffect() {
-      $('#effect-title').textContent = EFFECT_INFO.title;
-      $('#effect-qr').src = EFFECT_INFO.qr;
-      $('#effect-demo').src = EFFECT_INFO.demo;
-      $('#effect-url-copy').textContent = EFFECT_INFO.url;
-      $('#effect-play').onclick = () => location.href = EFFECT_INFO.url;
-      $('#copy-effect-url').onclick = () => {
-        navigator.clipboard.writeText(EFFECT_INFO.url);
-        $('#copy-effect-url').textContent = '已複製';
-        setTimeout(() => $('#copy-effect-url').textContent = '複製連結', 2000);
-      };
-    })();
-
-    $('#ai-fab').onclick = () => $('#ai-panel').classList.remove('hidden');
-    $('#ai-close').onclick = () => $('#ai-panel').classList.add('hidden');
-    $('#v-dir').onclick = () => {
-      $('#v-cat-body').appendChild($('#v-list'));
-      $('#v-catalog').classList.remove('hidden');
-    };
-    $('#v-cat-close').onclick = () => $('#v-catalog').classList.add('hidden');
+    // 分類切換邏輯
+    function switchTab(targetId, btnEl) {
+      // 隱藏所有區塊
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      
+      // 顯示目標區塊
+      document.getElementById(targetId + '-panel').classList.add('active');
+      btnEl.classList.add('active');
+    }
   </script>
 </body>
 </html>
