@@ -1,246 +1,186 @@
-/* * 鹿🦌 Elite 2025 — 專業級介面規範
- * 核心：層次對比、彈性動效、資訊優先
- */
-
+/* --- 鹿🦌 Elite 2025 專業級視覺規範 --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap');
 
 :root {
-  /* 基礎色譜 - 使用低對比度 Slate 藍灰，減少視覺疲勞 */
+  /* 基礎色譜：使用 Slate 深藍灰，提升穩定感 */
   --bg: #020617;
-  --surface-low: #0f172a;    /* 層級 1：卡片底色 */
-  --surface-mid: #1e293b;    /* 層級 2：懸浮/對話 */
-  --surface-high: #334155;   /* 層級 3：邊框/控制項 */
+  --surface-low: #0f172a;    /* 層級 1：基礎卡片 */
+  --surface-mid: #1e293b;    /* 層級 2：互動組件 */
+  --surface-high: #334155;   /* 層級 3：邊框與控制項 */
 
-  /* 品牌重點色 - 調整為高純度但平衡的色調 */
+  /* 品牌重點色：亮藍色與薄紫色的平衡 */
   --accent: #38bdf8;
-  --accent-2: #818cf8;
   --accent-soft: rgba(56, 189, 248, 0.1);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   
-  /* 專業級陰影系統 (Ambient Reflection) */
+  /* 專業級陰影系統 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   
-  /* 動效與形狀 */
+  /* 物理與動效 */
   --radius: 12px;
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --glass: blur(12px) saturate(160%);
+  --glass: blur(16px) saturate(180%);
 }
 
-/* --- 全域設定 --- */
+/* --- 全域重設 --- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
   margin: 0;
   background-color: var(--bg);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.08) 0, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.05) 0, transparent 50%);
   color: var(--text-main);
   font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  padding-bottom: 80px;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* --- 精緻 Hero 區塊 --- */
+/* --- Hero 標頭區塊 --- */
 .hero {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 60px 24px 20px;
-  text-align: center;
+  text-align: left; /* 改為左對齊，更符合管理後台風格 */
 }
 
+.brand { display: flex; align-items: center; gap: 20px; }
+
 .brand h1 {
-  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, #fff 0%, var(--text-muted) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: #fff;
 }
 
 .logo-img {
-  width: 64px; height: 64px;
-  border-radius: 18px;
-  box-shadow: 0 0 40px rgba(56, 189, 248, 0.2);
-  margin-bottom: 16px;
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
-/* --- 專業導航 (Tabs) --- */
+/* --- 頂部操作按鈕 --- */
+.top-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* --- 導航標籤 (Tabs) --- */
 .tabs {
   display: flex;
-  justify-content: center;
   gap: 8px;
+  background: var(--surface-low);
+  padding: 4px;
+  border-radius: 50px;
+  width: fit-content;
   margin: 32px 0;
+  border: 1px solid var(--surface-high);
 }
 
 .tab {
-  padding: 10px 24px;
+  padding: 8px 24px;
   border-radius: 40px;
-  border: 1px solid var(--surface-high);
-  background: var(--surface-low);
+  border: none;
+  background: transparent;
   color: var(--text-muted);
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s var(--spring);
+  transition: all 0.2s var(--spring);
 }
-
-.tab:hover { border-color: var(--accent); color: white; }
 
 .tab.active {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: var(--accent);
-  box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+  background: var(--surface-high);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
-/* --- 搜尋與輸入框 --- */
+/* --- 搜尋與統計 --- */
 .search-wrap {
-  max-width: 600px;
-  margin: 0 auto 40px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .input {
+  flex: 1;
   background: var(--surface-low);
   border: 1px solid var(--surface-high);
-  padding: 14px 20px;
+  padding: 12px 16px;
   border-radius: var(--radius);
-  color: white;
-  font-size: 1rem;
-  transition: all 0.2s ease;
+  color: #fff;
+  transition: border-color 0.2s;
 }
 
 .input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* --- 統計數據網格 --- */
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 16px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .stat {
   background: var(--surface-low);
-  border: 1px solid rgba(255, 255, 255, 0.03);
-  padding: 20px;
+  padding: 16px;
   border-radius: var(--radius);
-  text-align: center;
-  transition: transform 0.3s var(--spring);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.stat:hover { transform: translateY(-4px); background: var(--surface-mid); }
+.stat .value { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+.stat .label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
 
-.stat .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); display: block; }
-.stat .label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-/* --- QA 專業清單 --- */
+/* --- QA 專業清單 (手風琴) --- */
 .item {
   background: var(--surface-low);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius);
   margin-bottom: 12px;
-  transition: all 0.2s ease;
+  overflow: hidden;
+  transition: all 0.2s;
 }
 
-.item:hover { border-color: rgba(56, 189, 248, 0.3); }
+.item:hover { background: var(--surface-mid); }
 
 .q {
-  padding: 18px 24px;
-  font-weight: 600;
+  padding: 16px 20px;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-weight: 600;
 }
 
 .a-inner {
-  padding: 0 24px 24px;
+  padding: 0 20px 20px;
   color: var(--text-muted);
   font-size: 0.95rem;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
-/* --- 影片面板 (沈浸式) --- */
-.video-frame {
-  background: #000;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--surface-high);
-}
-
-.video-item {
-  background: var(--surface-low);
-  border: 1px solid transparent;
-  padding: 12px;
-  border-radius: var(--radius);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.video-item:hover { background: var(--surface-mid); border-color: var(--accent); }
-
-/* --- 特效展示 (Pro Layout) --- */
-.phone-bezel {
-  background: #0f172a;
-  border: 10px solid #1e293b;
-  border-radius: 48px;
-  box-shadow: 
-    0 50px 100px -20px rgba(0, 0, 0, 0.5),
-    inset 0 0 20px rgba(0,0,0,0.5);
-}
-
-.ui-circle.main {
-  background: linear-gradient(135deg, #f43f5e, #e11d48);
-  border: 4px solid rgba(255,255,255,0.9);
-  box-shadow: 0 10px 25px rgba(225, 29, 72, 0.4);
-}
-
-/* --- AI FAB 與聊天面板 --- */
-.ai-fab {
-  background: var(--accent);
-  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
-  transition: all 0.3s var(--spring);
-}
-
-.ai-fab:hover { transform: scale(1.1) rotate(5deg); }
-
-.ai-panel {
-  backdrop-filter: var(--glass);
-  background: rgba(15, 23, 42, 0.9) !important;
-  border: 1px solid var(--surface-high);
-}
-
-.msg.user .bubble {
-  background: var(--accent);
-  color: var(--bg);
-  font-weight: 600;
-  border-bottom-right-radius: 4px;
-}
-
-.msg.assistant .bubble {
-  background: var(--surface-mid);
-  border-bottom-left-radius: 4px;
-  border: 1px solid var(--surface-high);
-}
-
-/* --- 分頁與按鈕 --- */
+/* --- 按鈕系統 --- */
 .btn {
-  transition: all 0.2s var(--spring);
+  padding: 10px 20px;
+  border-radius: var(--radius);
   font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--surface-high);
+  background: var(--surface-low);
+  color: #fff;
+  transition: all 0.2s var(--spring);
 }
-
-.btn:active { transform: scale(0.95); }
 
 .btn.primary {
   background: var(--accent);
@@ -248,30 +188,50 @@ body {
   border: none;
 }
 
-/* --- 捲軸美化 --- */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface-high); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.btn.ghost { background: transparent; border-color: var(--surface-high); }
 
-/* --- 手機版優化 --- */
+.btn:active { transform: scale(0.96); }
+
+/* --- 影片中心 --- */
+.video-frame {
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--surface-high);
+}
+
+/* --- 特效 Pro 展示 --- */
+.effect-pro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.phone-bezel {
+  background: #000;
+  border: 8px solid #1e293b;
+  border-radius: 40px;
+  aspect-ratio: 9/16;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+/* --- AI 聊天面板 --- */
+.ai-panel {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: var(--glass);
+  border-radius: 20px;
+  border: 1px solid var(--surface-high);
+}
+
+/* --- 響應式優化 --- */
 @media (max-width: 768px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
   .hero { padding: 40px 20px; }
-  .tab { padding: 8px 16px; font-size: 0.9rem; }
+  .effect-pro { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
 }
 
-/* --- 特殊動畫：進場 --- */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.item, .stat, .video-frame {
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-/* 延遲動畫效果 */
-.item:nth-child(1) { animation-delay: 0.1s; }
-.item:nth-child(2) { animation-delay: 0.2s; }
-.item:nth-child(3) { animation-delay: 0.3s; }
+.hidden { display: none !important; }
