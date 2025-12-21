@@ -6,7 +6,7 @@
   <title>鹿🦌的QA網站</title>
   <meta name="theme-color" content="#020617" />
   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2025Elite" />
 </head>
 <body>
   <div id="page-loading" aria-live="polite" aria-busy="true">
@@ -17,21 +17,11 @@
     </div>
   </div>
 
-  <div id="changelog" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2>🦌 網站更新</h2>
-        <button id="cg-close" class="btn ghost">關閉視窗</button>
-      </div>
-      <div class="modal-body" id="cg-body"></div>
-    </div>
-  </div>
-
   <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <div class="modal-header">
         <h2>網站公告</h2>
-        <button id="ann-close" class="btn ghost">關閉公告</button>
+        <button id="ann-close" class="btn ghost">關閉</button>
       </div>
       <div class="modal-body" id="ann-body"></div>
     </div>
@@ -49,19 +39,19 @@
     </div>
 
     <div class="top-actions">
-      <button id="site-bell" class="btn ghost icon" title="公告">🔔 公告</button>
-      <button id="site-share" class="btn primary icon">分享</button>
-      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com">📧 聯絡工程師</a>
+      <button id="site-bell" class="btn ghost">🔔 公告</button>
+      <button id="site-share" class="btn primary">分享網站</button>
+      <a id="contact-eng" class="btn ghost" href="mailto:wanglien214@gmail.com">📧 聯絡工程師</a>
     </div>
 
     <nav class="tabs" role="tablist">
       <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">知識問答</button>
       <button id="tab-video" class="tab" role="tab" aria-selected="false" aria-controls="video-panel">影片中心</button>
-      <button id="tab-effect" class="tab" role="tab" aria-selected="false" aria-controls="effect-panel">特效體驗</button>
+      <button id="tab-effect" class="tab" role="tab" aria-selected="false" aria-controls="effect-panel">特效展示</button>
     </nav>
 
     <div id="qa-toolbar" class="search-wrap">
-      <input id="search" class="input" type="search" placeholder="搜尋關鍵字..." aria-label="搜尋 QA" />
+      <input id="search" class="input" type="search" placeholder="搜尋關鍵字..." />
       <button id="clear" class="btn ghost">清除</button>
     </div>
 
@@ -74,22 +64,23 @@
   </header>
 
   <main class="container">
-    <section id="qa-panel" class="tabpanel" role="tabpanel">
+    <section id="qa-panel" class="tabpanel">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager">
         <button id="prev" class="btn">上一頁</button>
-        <input id="page" class="page-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1">
+        <input id="page" class="page-input" type="text" inputmode="numeric" value="1">
         <span class="slash">/</span>
         <span id="pages" class="pages-badge">1</span>
         <button id="next" class="btn">下一頁</button>
       </nav>
     </section>
 
-    <section id="video-panel" class="tabpanel hidden" role="tabpanel">
+    <section id="video-panel" class="tabpanel hidden">
       <div class="video-layout">
         <div class="video-left">
           <div class="video-controls top">
             <button id="v-random" class="btn primary">隨機影片</button>
+            <button id="v-dir" class="btn ghost">影片目錄</button>
           </div>
           <div class="video-header">
             <span id="v-title" class="video-title">請選擇影片</span>
@@ -101,7 +92,7 @@
       </div>
     </section>
 
-    <section id="effect-panel" class="tabpanel hidden" role="tabpanel">
+    <section id="effect-panel" class="tabpanel hidden">
       <div class="effect-pro">
         <div class="effect-phone">
           <div class="phone-bezel">
@@ -138,25 +129,20 @@
     </section>
   </main>
 
-  <div id="info-modal" class="modal hidden" role="dialog">
-    <div class="modal-card small">
-      <div class="modal-header">
-        <h3>影片詳細資訊</h3>
-        <button id="modal-close" class="btn ghost">關閉</button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
+  <div id="v-catalog" class="modal hidden">
+    <div id="v-cat-head">
+      <div id="v-cat-title">影片清單</div>
+      <button id="v-cat-close" class="btn ghost">關閉</button>
     </div>
+    <div id="v-cat-body"></div>
   </div>
 
-  <button id="ai-fab" class="ai-fab" aria-label="AI">
-    <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"/></svg>
+  <button id="ai-fab" class="ai-fab">
+    <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 19h20L12 2z"/></svg>
   </button>
 
-  <aside id="ai-panel" class="ai-panel hidden" role="dialog">
-    <header class="ai-header">
-      <h2>AI 助手</h2>
-      <button id="ai-close" class="btn ghost">❌</button>
-    </header>
+  <aside id="ai-panel" class="ai-panel hidden">
+    <header class="ai-header"><h2>AI 助手</h2><button id="ai-close" class="btn ghost">❌</button></header>
     <div id="ai-messages" class="ai-messages"></div>
     <form id="ai-form" class="ai-input">
       <input id="ai-text" class="input" placeholder="詢問任何問題..." />
@@ -169,48 +155,26 @@
   <script src="qa-accordion-fix.js"></script>
   <script src="deer-video-min.js"></script>
   <script>
-    const $ = (s, r = document) => r.querySelector(s);
-    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-    const on = (e, v, f) => e && e.addEventListener(v, f);
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
 
-    (function boot() {
-      const loader = $('#page-loading');
+    (function initLoader() {
       window.addEventListener('load', () => {
-        setTimeout(() => {
-          loader.classList.add('hide');
-          document.body.style.overflow = '';
-        }, 1500);
+        setTimeout(() => $('#page-loading').classList.add('hide'), 1000);
       });
     })();
 
-    const Loading = {
-      show: (k, t) => {
-        const ov = document.createElement('div');
-        ov.id = `ov-${k}`;
-        ov.className = 'page-overlay';
-        ov.innerHTML = `<div class="card"><div class="spinner"><img src="轉圈圈.png" class="loading-img"></div><div class="title">${t}</div></div>`;
-        document.body.appendChild(ov);
-      },
-      hide: (k) => {
-        const ov = $(`#ov-${k}`);
-        if (ov) {
-          ov.classList.add('hide');
-          setTimeout(() => ov.remove(), 400);
-        }
-      }
-    };
-
-    (function tabs() {
-      const btns = $$('.tabs .tab');
-      btns.forEach(b => {
-        on(b, 'click', () => {
-          btns.forEach(x => {
+    (function initTabs() {
+      const tabs = $$('.tab');
+      tabs.forEach(t => {
+        t.onclick = () => {
+          tabs.forEach(x => {
             x.classList.remove('active');
             $(`#${x.getAttribute('aria-controls')}`).classList.add('hidden');
           });
-          b.classList.add('active');
-          $(`#${b.getAttribute('aria-controls')}`).classList.remove('hidden');
-        });
+          t.classList.add('active');
+          $(`#${t.getAttribute('aria-controls')}`).classList.remove('hidden');
+        };
       });
     })();
 
@@ -226,25 +190,21 @@
       $('#effect-qr').src = EFFECT_INFO.qr;
       $('#effect-demo').src = EFFECT_INFO.demo;
       $('#effect-url-copy').textContent = EFFECT_INFO.url;
-      on($('#effect-play'), 'click', () => location.href = EFFECT_INFO.url);
-      on($('#copy-effect-url'), 'click', () => {
+      $('#effect-play').onclick = () => location.href = EFFECT_INFO.url;
+      $('#copy-effect-url').onclick = () => {
         navigator.clipboard.writeText(EFFECT_INFO.url);
         $('#copy-effect-url').textContent = '已複製';
         setTimeout(() => $('#copy-effect-url').textContent = '複製連結', 2000);
-      });
+      };
     })();
 
-    on($('#ai-fab'), 'click', () => $('#ai-panel').classList.remove('hidden'));
-    on($('#ai-close'), 'click', () => $('#ai-panel').classList.add('hidden'));
-
-    on($('#site-share'), 'click', async () => {
-      try {
-        await navigator.share({ title: '鹿🦌的QA網站', url: location.href });
-      } catch {
-        navigator.clipboard.writeText(location.href);
-        alert('網址已複製到剪貼簿');
-      }
-    });
+    $('#ai-fab').onclick = () => $('#ai-panel').classList.remove('hidden');
+    $('#ai-close').onclick = () => $('#ai-panel').classList.add('hidden');
+    $('#v-dir').onclick = () => {
+      $('#v-cat-body').appendChild($('#v-list'));
+      $('#v-catalog').classList.remove('hidden');
+    };
+    $('#v-cat-close').onclick = () => $('#v-catalog').classList.add('hidden');
   </script>
 </body>
 </html>
