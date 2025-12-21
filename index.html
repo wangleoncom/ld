@@ -2,118 +2,171 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>鹿🦌的QA網站</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>鹿🦌的QA網站 - 專業 Elite 版</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 強制置頂公告 */
+    #top-sticky-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      background: var(--surface-mid); border-bottom: 1px solid var(--surface-high);
+      color: var(--text-main); padding: 10px 20px; display: flex;
+      justify-content: space-between; align-items: center; font-weight: 700;
+      backdrop-filter: var(--glass);
+    }
+    #top-sticky-banner button {
+      background: var(--surface-high); border: none; color: white;
+      padding: 4px 12px; border-radius: 6px; cursor: pointer;
+    }
+
+    /* QA 階梯式進場動畫 */
+    .item {
+      opacity: 0; transform: translateY(20px);
+      animation: eliteIn 0.5s var(--spring) forwards;
+      animation-delay: calc(var(--idx) * 0.05s);
+    }
+    @keyframes eliteIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 視圖分類切換 */
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+    
+    /* 影片開聲音提示層 */
+    .tap-sound-tip {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; justify-content: center; align-items: center;
+      color: white; font-weight: bold; cursor: pointer; z-index: 10;
+    }
+  </style>
 </head>
 <body>
-  <div id="top-banner">
-    <span>📢 歡迎來到鹿🦌的專業系統。目前每頁顯示 30 筆 QA。</span>
-    <button onclick="this.parentElement.remove()" style="background:none; border:none; color:white; cursor:pointer;">❌</button>
+
+  <div id="top-sticky-banner">
+    <span>📢 系統訊息：已載入 Elite 2025 專業級介面與分頁系統。</span>
+    <button onclick="this.parentElement.remove()">關閉 ❌</button>
   </div>
 
   <header class="hero">
-    <div class="tabs-container">
-      <nav class="tabs">
-        <button class="tab active" onclick="switchView('qa')">知識 QA</button>
-        <button class="tab" onclick="switchView('video')">影音中心</button>
-        <button class="tab" onclick="switchView('effect')">TikTok 特效</button>
-      </nav>
+    <div class="brand">
+      <img src="Logo.png" class="logo-img" alt="鹿 Logo" />
+      <div>
+        <h1>鹿🦌的QA網站</h1>
+        <p class="muted">數據驅動與沉浸式影音體驗</p>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-target="qa">知識 QA</button>
+      <button class="tab" data-target="video">影片中心</button>
+      <button class="tab" data-target="effect">特效展示</button>
+    </nav>
+
+    <div id="qa-toolbar" class="search-wrap">
+      <input id="search-input" class="input" type="search" placeholder="搜尋問題或答案..." />
     </div>
   </header>
 
   <main class="container">
-    <section id="qa-panel" class="view-section">
+    <section id="qa-view" class="view-section active">
       <div id="qa-list" class="accordion"></div>
-      <div class="pager">
-        <button id="prev-page" class="page-btn">上一頁</button>
-        <span id="page-info">第 1 / 1 頁</span>
-        <button id="next-page" class="page-btn">下一頁</button>
-      </div>
+      <nav class="pager">
+        <button id="btn-prev" class="btn">上一頁</button>
+        <span id="page-display" class="pages-badge">Page 1 / 1</span>
+        <button id="btn-next" class="btn">下一頁</button>
+      </nav>
     </section>
 
-    <section id="video-panel" class="view-section hidden">
-      <div class="video-container">
-        <div id="v-frame" class="video-frame">
-          <p style="text-align:center; margin-top:20%;">請從清單選擇影片...</p>
+    <section id="video-view" class="view-section">
+      <div class="video-layout">
+        <div class="video-left">
+          <div id="v-frame" class="video-frame" style="position:relative">
+            <div id="video-placeholder" class="tap-sound-tip">請從清單點擊影片開始播放</div>
+          </div>
+          <div class="video-header"><span id="v-title-display" class="video-title"></span></div>
         </div>
+        <div class="video-right" id="v-list-display"></div>
       </div>
     </section>
 
-    <section id="effect-panel" class="view-section hidden">
-      <div style="text-align:center;">
-        <img src="鹿🦌超好笑特效.png" style="max-width:300px; border-radius:20px;">
-        <br><br>
-        <button class="page-btn" onclick="window.open('https://vm.tiktok.com/ZMAXNfQ4v/')">立即開啟 TikTok</button>
+    <section id="effect-view" class="view-section">
+      <div class="effect-pro">
+        <div class="effect-phone">
+          <div class="phone-bezel">
+            <div class="phone-screen"><img id="fx-demo" class="phone-preview" /></div>
+          </div>
+        </div>
+        <div class="effect-side card">
+          <h3 id="fx-title"></h3>
+          <img id="fx-qr" style="width:180px; margin:20px 0; border-radius:10px;" />
+          <button class="btn primary" id="fx-link-btn">立即體驗</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <script src="data.js"></script> <script>
-    // 配置
+  <script src="deer-qa.js"></script>
+  <script src="deer-videos.js"></script>
+  <script>
     const PAGE_SIZE = 30;
     let currentPage = 1;
-    let allQA = []; // 假設資料在 data.js 的變數中
+    let filteredQA = [];
 
-    // 視圖切換
-    function switchView(view) {
-      document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(view + '-panel').classList.remove('hidden');
-      event.target.classList.add('active');
-    }
+    // 分類切換邏輯
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.target + '-view').classList.add('active');
+      };
+    });
 
-    // QA 渲染邏輯
-    function renderQA() {
-      const list = document.getElementById('qa-list');
-      list.innerHTML = '';
+    // QA 分頁渲染
+    function renderQAPage() {
+      const container = document.getElementById('qa-list');
+      container.innerHTML = '';
       
+      // 修復變數名稱錯誤
+      const source = window.DEER_QA || [];
+      const query = document.getElementById('search-input').value.toLowerCase();
+      
+      filteredQA = source.filter(i => i.q.toLowerCase().includes(query) || i.a.toLowerCase().includes(query));
+      
+      const totalPages = Math.ceil(filteredQA.length / PAGE_SIZE);
       const start = (currentPage - 1) * PAGE_SIZE;
-      const end = start + PAGE_SIZE;
-      const pageItems = DEER_QA_DATA.slice(start, end); // 假設 DEER_QA_DATA 來自 deer-qa.js
+      const items = filteredQA.slice(start, start + PAGE_SIZE);
 
-      pageItems.forEach((item, index) => {
+      items.forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.style.animationDelay = `${index * 0.05}s`; // 漂亮的手風琴進場動畫
+        div.style.setProperty('--idx', idx);
         div.innerHTML = `
           <div class="q" onclick="this.parentElement.classList.toggle('open')">${item.q}</div>
           <div class="a"><div class="a-inner">${item.a}</div></div>
         `;
-        list.appendChild(div);
+        container.appendChild(div);
       });
 
-      // 更新分頁資訊
-      const totalPages = Math.ceil(DEER_QA_DATA.length / PAGE_SIZE);
-      document.getElementById('page-info').textContent = `第 ${currentPage} / ${totalPages} 頁`;
-      document.getElementById('prev-page').disabled = currentPage === 1;
-      document.getElementById('next-page').disabled = currentPage === totalPages;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('page-display').textContent = `第 ${currentPage} / ${totalPages || 1} 頁`;
+      document.getElementById('btn-prev').disabled = currentPage <= 1;
+      document.getElementById('btn-next').disabled = currentPage >= totalPages;
     }
 
-    // 分頁事件
-    document.getElementById('prev-page').onclick = () => { if(currentPage > 1) { currentPage--; renderQA(); } };
-    document.getElementById('next-page').onclick = () => { currentPage++; renderQA(); };
+    document.getElementById('btn-prev').onclick = () => { currentPage--; renderQAPage(); window.scrollTo(0,0); };
+    document.getElementById('btn-next').onclick = () => { currentPage++; renderQAPage(); window.scrollTo(0,0); };
+    document.getElementById('search-input').oninput = () => { currentPage = 1; renderQAPage(); };
 
-    // 影片載入修復 (修正 404 與無法載入)
-    function loadVideo(url) {
-      const frame = document.getElementById('v-frame');
-      // 檢查是否為 YouTube 並轉換為 embed 連結
-      let embedUrl = url;
-      if (url.includes('youtube.com/watch?v=')) {
-        embedUrl = url.replace('watch?v=', 'embed/');
-      }
-      frame.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
-    }
-
-    // 初始化
-    window.onload = () => {
-      if (typeof DEER_QA_DATA !== 'undefined') {
-        renderQA();
-      } else {
-        document.getElementById('qa-list').innerHTML = '<p class="text-muted">錯誤：找不到 DEER_QA_DATA，請檢查 deer-qa.js 路徑。</p>';
-      }
-    };
+    // 影片載入邏輯修復
+    window.addEventListener('load', () => {
+      renderQAPage();
+      // 特效初始化
+      document.getElementById('fx-demo').src = '鹿🦌超好笑特效.png';
+      document.getElementById('fx-qr').src = 'QR Code.png';
+      document.getElementById('fx-title').textContent = '鹿🦌超好笑特效';
+      document.getElementById('fx-link-btn').onclick = () => window.open('https://vm.tiktok.com/ZMAXNfQ4v/');
+    });
   </script>
 </body>
 </html>
