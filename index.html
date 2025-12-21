@@ -2,202 +2,118 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>鹿🦌的QA網站 - 專業版</title>
-  <style>
-    /* 核心變數設定 */
-    :root {
-      --bg: #020617;
-      --surface-low: #0f172a;
-      --surface-mid: #1e293b;
-      --surface-high: #334155;
-      --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.1);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --radius: 12px;
-      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    /* 全域樣式 */
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0;
-      background-color: var(--bg);
-      color: var(--text-main);
-      font-family: 'Inter', system-ui, sans-serif;
-      line-height: 1.5;
-      overflow-x: hidden;
-    }
-
-    /* 強制置頂公告欄 (最上層) */
-    #top-sticky-banner {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 9999;
-      background: var(--accent);
-      color: var(--bg);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    #top-sticky-banner button {
-      background: rgba(0,0,0,0.2);
-      border: none;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    /* 頁首與分類導航 */
-    header.hero {
-      max-width: 1100px;
-      margin: 60px auto 20px; /* 預留空間給置頂公告 */
-      padding: 24px;
-    }
-    .tabs {
-      display: flex;
-      gap: 12px;
-      background: var(--surface-low);
-      padding: 6px;
-      border-radius: 50px;
-      width: fit-content;
-      margin: 20px 0;
-      border: 1px solid var(--surface-high);
-    }
-    .tab {
-      padding: 10px 24px;
-      border-radius: 40px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s var(--spring);
-    }
-    .tab.active {
-      background: var(--surface-high);
-      color: var(--accent);
-    }
-
-    /* 內容區塊分類顯示邏輯 */
-    .tab-content { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
-    .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* QA、影片、特效專用樣式 */
-    .card {
-      background: var(--surface-low);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    .btn {
-      padding: 10px 20px;
-      border-radius: var(--radius);
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-    .btn-primary { background: var(--accent); color: var(--bg); }
-    
-    /* 特效預覽手機框 */
-    .phone-bezel {
-      max-width: 300px;
-      aspect-ratio: 9/16;
-      border: 8px solid var(--surface-high);
-      border-radius: 36px;
-      margin: 0 auto;
-      overflow: hidden;
-    }
-    .phone-preview { width: 100%; height: 100%; object-fit: cover; }
-
-    .hidden { display: none; }
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>鹿🦌的QA網站</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <div id="top-sticky-banner">
-    <span>📢 歡迎來到鹿🦌的專業 QA 系統！V4.2 正式上線。</span>
-    <button onclick="document.getElementById('top-sticky-banner').style.display='none'">關閉 ❌</button>
+  <div id="top-banner">
+    <span>📢 歡迎來到鹿🦌的專業系統。目前每頁顯示 30 筆 QA。</span>
+    <button onclick="this.parentElement.remove()" style="background:none; border:none; color:white; cursor:pointer;">❌</button>
   </div>
 
   <header class="hero">
-    <div class="brand">
-      <h1>鹿🦌的QA網站</h1>
-      <p style="color: var(--text-muted)">請選擇下方分類進入不同功能模組</p>
+    <div class="tabs-container">
+      <nav class="tabs">
+        <button class="tab active" onclick="switchView('qa')">知識 QA</button>
+        <button class="tab" onclick="switchView('video')">影音中心</button>
+        <button class="tab" onclick="switchView('effect')">TikTok 特效</button>
+      </nav>
     </div>
-
-    <nav class="tabs">
-      <button class="tab active" onclick="switchTab('qa', this)">知識 QA</button>
-      <button class="tab" onclick="switchTab('video', this)">影音中心</button>
-      <button class="tab" onclick="switchTab('effect', this)">TikTok 特效</button>
-    </nav>
   </header>
 
-  <main>
-    <section id="qa-panel" class="tab-content active">
-      <div class="card">
-        <h3>🔍 搜尋資料庫</h3>
-        <input type="text" class="card" style="width: 100%; background: var(--bg); color: white;" placeholder="輸入關鍵字...">
-      </div>
-      <div id="qa-list" class="accordion">
-        <p class="text-muted">正在載入 QA 資料庫...</p>
-      </div>
-    </section>
-
-    <section id="video-panel" class="tab-content">
-      <div class="card">
-        <h3>🎬 影片中心</h3>
-        <div id="v-frame" style="background: black; width: 100%; aspect-ratio: 16/9; border-radius: 12px;">
-          </div>
+  <main class="container">
+    <section id="qa-panel" class="view-section">
+      <div id="qa-list" class="accordion"></div>
+      <div class="pager">
+        <button id="prev-page" class="page-btn">上一頁</button>
+        <span id="page-info">第 1 / 1 頁</span>
+        <button id="next-page" class="page-btn">下一頁</button>
       </div>
     </section>
 
-    <section id="effect-panel" class="tab-content">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <div class="phone-bezel">
-          <img src="鹿🦌超好笑特效.png" class="phone-preview" alt="特效預覽">
+    <section id="video-panel" class="view-section hidden">
+      <div class="video-container">
+        <div id="v-frame" class="video-frame">
+          <p style="text-align:center; margin-top:20%;">請從清單選擇影片...</p>
         </div>
-        <div class="card">
-          <h3>✨ TikTok 特效</h3>
-          <p class="text-muted">掃描 QR Code 或點擊下方按鈕立即體驗。</p>
-          <img src="QR Code.png" style="width: 150px; margin: 10px 0;">
-          <br>
-          <button class="btn btn-primary" onclick="window.open('https://vm.tiktok.com/ZMAXNfQ4v/')">立即體驗</button>
-        </div>
+      </div>
+    </section>
+
+    <section id="effect-panel" class="view-section hidden">
+      <div style="text-align:center;">
+        <img src="鹿🦌超好笑特效.png" style="max-width:300px; border-radius:20px;">
+        <br><br>
+        <button class="page-btn" onclick="window.open('https://vm.tiktok.com/ZMAXNfQ4v/')">立即開啟 TikTok</button>
       </div>
     </section>
   </main>
 
-  <script src="deer-qa.js"></script>
-  <script src="app.js"></script>
-  <script src="qa-accordion-fix.js"></script>
-  <script src="deer-video-min.js"></script>
+  <script src="data.js"></script> <script>
+    // 配置
+    const PAGE_SIZE = 30;
+    let currentPage = 1;
+    let allQA = []; // 假設資料在 data.js 的變數中
 
-  <script>
-    // 分類切換邏輯
-    function switchTab(targetId, btnEl) {
-      // 隱藏所有區塊
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-      
-      // 顯示目標區塊
-      document.getElementById(targetId + '-panel').classList.add('active');
-      btnEl.classList.add('active');
+    // 視圖切換
+    function switchView(view) {
+      document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(view + '-panel').classList.remove('hidden');
+      event.target.classList.add('active');
     }
+
+    // QA 渲染邏輯
+    function renderQA() {
+      const list = document.getElementById('qa-list');
+      list.innerHTML = '';
+      
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const end = start + PAGE_SIZE;
+      const pageItems = DEER_QA_DATA.slice(start, end); // 假設 DEER_QA_DATA 來自 deer-qa.js
+
+      pageItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.style.animationDelay = `${index * 0.05}s`; // 漂亮的手風琴進場動畫
+        div.innerHTML = `
+          <div class="q" onclick="this.parentElement.classList.toggle('open')">${item.q}</div>
+          <div class="a"><div class="a-inner">${item.a}</div></div>
+        `;
+        list.appendChild(div);
+      });
+
+      // 更新分頁資訊
+      const totalPages = Math.ceil(DEER_QA_DATA.length / PAGE_SIZE);
+      document.getElementById('page-info').textContent = `第 ${currentPage} / ${totalPages} 頁`;
+      document.getElementById('prev-page').disabled = currentPage === 1;
+      document.getElementById('next-page').disabled = currentPage === totalPages;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 分頁事件
+    document.getElementById('prev-page').onclick = () => { if(currentPage > 1) { currentPage--; renderQA(); } };
+    document.getElementById('next-page').onclick = () => { currentPage++; renderQA(); };
+
+    // 影片載入修復 (修正 404 與無法載入)
+    function loadVideo(url) {
+      const frame = document.getElementById('v-frame');
+      // 檢查是否為 YouTube 並轉換為 embed 連結
+      let embedUrl = url;
+      if (url.includes('youtube.com/watch?v=')) {
+        embedUrl = url.replace('watch?v=', 'embed/');
+      }
+      frame.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+    }
+
+    // 初始化
+    window.onload = () => {
+      if (typeof DEER_QA_DATA !== 'undefined') {
+        renderQA();
+      } else {
+        document.getElementById('qa-list').innerHTML = '<p class="text-muted">錯誤：找不到 DEER_QA_DATA，請檢查 deer-qa.js 路徑。</p>';
+      }
+    };
   </script>
 </body>
 </html>
