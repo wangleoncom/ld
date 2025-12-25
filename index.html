@@ -9,6 +9,10 @@
   <link rel="stylesheet" href="styles.css?v=20251009-super" />
 </head>
 <body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-orb orb-c"></div>
+  <div class="bg-grid"></div>
   <!-- 全頁載入遮罩 -->
   <div id="page-loading" aria-live="polite" aria-busy="true">
     <div class="card">
@@ -43,18 +47,25 @@
   <div id="errbar" class="errbar hidden" role="status" aria-live="assertive"></div>
 
   <header class="hero">
-    <div class="brand">
-      <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
-      <div>
-        <h1>鹿🦌的QA網站</h1>
-        <p class="muted">查詢資料庫與觀看影片與特效。若有錯誤，請回報工程師。</p>
+    <div class="hero-head">
+      <div class="brand">
+        <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
+        <div>
+          <div class="pill-row">
+            <span class="pill">工程師版體驗</span>
+            <span class="pill soft">Apple 風格動畫</span>
+            <span class="pill muted">行動優先</span>
+          </div>
+          <h1>鹿🦌的QA網站</h1>
+          <p class="muted">查詢資料庫、觀看影片與特效。全新質感介面，行動與桌面同步流暢。</p>
+        </div>
       </div>
-    </div>
 
-    <div class="top-actions">
-      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
-      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
-      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
+      <div class="top-actions">
+        <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
+        <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
+        <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
+      </div>
     </div>
 
     <nav class="tabs" role="tablist" aria-label="主要功能">
@@ -64,21 +75,24 @@
     </nav>
 
     <div id="qa-toolbar" class="search-wrap">
-      <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
-      <button id="clear" class="btn ghost">清除</button>
+      <div class="search-label">以關鍵字秒找答案</div>
+      <div class="search-bar">
+        <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
+        <button id="clear" class="btn ghost">清除</button>
+      </div>
     </div>
 
     <div class="stats" id="qa-stats">
-      <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
-      <div class="stat"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
-      <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
-      <div class="stat"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
+      <div class="stat fade-in"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
+      <div class="stat fade-in"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
+      <div class="stat fade-in"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
+      <div class="stat fade-in"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
     </div>
   </header>
 
   <main class="container">
     <!-- QA -->
-    <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
+    <section id="qa-panel" class="tabpanel panel-card" role="tabpanel" aria-labelledby="tab-qa">
       <section id="qa-list" class="accordion"></section>
       <nav class="pager" aria-label="分頁導覽">
         <button id="prev" class="btn">上一頁</button>
@@ -91,7 +105,7 @@
     </section>
 
     <!-- 影片 -->
-    <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
+    <section id="video-panel" class="tabpanel panel-card hidden" role="tabpanel" aria-labelledby="tab-video">
       <div class="video-layout">
         <div class="video-left">
           <div class="video-controls top">
@@ -109,7 +123,7 @@
     </section>
 
     <!-- 特效 -->
-    <section id="effect-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-effect">
+    <section id="effect-panel" class="tabpanel panel-card hidden" role="tabpanel" aria-labelledby="tab-effect">
   <div class="effect-pro">
     <!-- 左：手機預覽（9:16） -->
     <div class="effect-phone">
@@ -190,6 +204,7 @@
 
   <!-- 超級版核心初始化 -->
   <script>
+(()=>{const noop=()=>{};['log','info','warn','error','debug'].forEach(k=>{try{console[k]=noop;}catch{}});})();
 /* ===== 便利工具 ===== */
 const LOADER_IMG={global:'轉圈圈.png',page:'轉圈圈.png','tab-qa':'轉圈圈.png','tab-video':'轉圈圈.png','tab-effect':'轉圈圈.png',video:'轉圈圈.png','ai-open':'轉圈圈2.png','ai-close':'轉圈圈2.png'};
 const $ = (sel,root=document)=>root.querySelector(sel);
