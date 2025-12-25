@@ -1,254 +1,615 @@
- <!doctype html>
- <html lang="zh-Hant">
- <head>
-   <meta charset="utf-8" />
-   <meta name="viewport" content="width=device-width,initial-scale=1" />
-   <title>鹿🦌的QA網站</title>
-   <meta name="theme-color" content="#0f1220" />
-   <link rel="icon" type="image/png" href="網站頂端icon.JPG">
-   <link rel="stylesheet" href="styles.css?v=20251009-super" />
- </head>
- <body>
-+  <div class="bg-orb orb-a"></div>
-+  <div class="bg-orb orb-b"></div>
-+  <div class="bg-orb orb-c"></div>
-+  <div class="bg-grid"></div>
-   <!-- 全頁載入遮罩 -->
-   <div id="page-loading" aria-live="polite" aria-busy="true">
-     <div class="card">
-       <div class="spinner"><img src="轉圈圈.png" alt="載入中" class="loading-img"></div>
-       <div class="title">網頁載入中，請稍候…</div>
-       <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
-     </div>
-   </div>
- 
-   <!-- 簡易公告與版本誌 -->
-   <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
-     <div class="modal-card">
-       <div class="modal-header">
-         <h2 id="cg-title">🦌 網站更新</h2>
-         <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
-       </div>
-       <div class="modal-body" id="cg-body"></div>
-     </div>
-   </div>
- 
-   <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
-     <div class="modal-card">
-       <div class="modal-header">
-         <h2 id="ann-title">網站公告</h2>
-         <button id="ann-close" class="btn ghost">❌關閉公告</button>
-       </div>
-       <div class="modal-body" id="ann-body"></div>
-     </div>
-   </div>
- 
-   <!-- 錯誤訊息橫幅（資源404/JS錯誤） -->
-   <div id="errbar" class="errbar hidden" role="status" aria-live="assertive"></div>
- 
-   <header class="hero">
--    <div class="brand">
--      <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
--      <div>
--        <h1>鹿🦌的QA網站</h1>
--        <p class="muted">查詢資料庫與觀看影片與特效。若有錯誤，請回報工程師。</p>
-+    <div class="hero-head">
-+      <div class="brand">
-+        <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
-+        <div>
-+          <div class="pill-row">
-+            <span class="pill">工程師版體驗</span>
-+            <span class="pill soft">Apple 風格動畫</span>
-+            <span class="pill muted">行動優先</span>
-+          </div>
-+          <h1>鹿🦌的QA網站</h1>
-+          <p class="muted">查詢資料庫、觀看影片與特效。全新質感介面，行動與桌面同步流暢。</p>
-+        </div>
-       </div>
--    </div>
- 
--    <div class="top-actions">
--      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
--      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
--      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
-+      <div class="top-actions">
-+        <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
-+        <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
-+        <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
-+      </div>
-     </div>
- 
-     <nav class="tabs" role="tablist" aria-label="主要功能">
-       <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">QA</button>
-       <button id="tab-video" class="tab" role="tab" aria-selected="false" aria-controls="video-panel">影片</button>
-       <button id="tab-effect" class="tab" role="tab" aria-selected="false" aria-controls="effect-panel">特效</button>
-     </nav>
- 
-     <div id="qa-toolbar" class="search-wrap">
--      <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
--      <button id="clear" class="btn ghost">清除</button>
-+      <div class="search-label">以關鍵字秒找答案</div>
-+      <div class="search-bar">
-+        <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
-+        <button id="clear" class="btn ghost">清除</button>
-+      </div>
-     </div>
- 
-     <div class="stats" id="qa-stats">
--      <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
--      <div class="stat"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
--      <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
--      <div class="stat"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
-+      <div class="stat fade-in"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
-+      <div class="stat fade-in"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
-+      <div class="stat fade-in"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
-+      <div class="stat fade-in"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
-     </div>
-   </header>
- 
-   <main class="container">
-     <!-- QA -->
--    <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
-+    <section id="qa-panel" class="tabpanel panel-card" role="tabpanel" aria-labelledby="tab-qa">
-       <section id="qa-list" class="accordion"></section>
-       <nav class="pager" aria-label="分頁導覽">
-         <button id="prev" class="btn">上一頁</button>
-         <input id="page" class="page-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" aria-label="跳至頁碼">
-         <span class="slash">/</span>
-         <span id="pages" class="pages-badge">1</span>
-         <button id="next" class="btn">下一頁</button>
-       </nav>
-       <footer class="footer" aria-hidden="true" style="visibility:hidden;height:0;padding:0;margin:0"></footer>
-     </section>
- 
-     <!-- 影片 -->
--    <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
-+    <section id="video-panel" class="tabpanel panel-card hidden" role="tabpanel" aria-labelledby="tab-video">
-       <div class="video-layout">
-         <div class="video-left">
-           <div class="video-controls top">
-             <button id="v-random" class="btn">隨機影片</button>
-             <!-- 目錄按鈕由 JS 注入 -->
-           </div>
-           <div class="video-header">
-             <span id="v-title" class="video-title">未選擇影片</span>
-             <button id="v-info-btn" class="info-btn" title="影片資訊">ℹ️</button>
-           </div>
-           <div id="v-frame" class="video-frame"></div>
-         </div>
-         <div class="video-right" id="v-list"></div>
-       </div>
-     </section>
- 
-     <!-- 特效 -->
--    <section id="effect-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-effect">
-+    <section id="effect-panel" class="tabpanel panel-card hidden" role="tabpanel" aria-labelledby="tab-effect">
-   <div class="effect-pro">
-     <!-- 左：手機預覽（9:16） -->
-     <div class="effect-phone">
-       <div class="phone-bezel">
-         <div class="phone-notch"></div>
-         <div class="phone-screen">
-           <!-- Demo 圖：用 TikTok 預設示範照，等比置中填滿 -->
-           <img id="effect-demo" alt="特效示範預覽" class="phone-preview" />
-         </div>
-       </div>
-       <p class="muted effect-caption">特效圖片已經經過鹿🦌同意了喔～</p>
-     </div>
- 
-     <!-- 右：資訊區 -->
-     <aside class="effect-side card">
-       <header class="side-head">
-         <h3 id="effect-title" class="side-title">TikTok 特效</h3>
-         <div class="side-actions">
-           <button id="effect-play" class="btn primary">立即體驗</button>
-           <a id="effect-open-new" class="btn ghost" target="_blank" rel="noopener">新分頁開啟</a>
-         </div>
-       </header>
- 
-       <div class="side-body">
-         <ul class="bullets">
-@@ -168,50 +182,51 @@
-   <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿">
-     <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
-   </button>
- 
-   <aside id="ai-panel" class="ai-panel hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
-     <header class="ai-header"><h2 id="ai-title">AI麋鹿</h2><button id="ai-close" class="btn ghost" aria-label="關閉">❌關閉聊天室</button></header>
-     <div id="ai-messages" class="ai-messages"></div>
-     <form id="ai-form" class="ai-input" autocomplete="off">
-       <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="AI輸入">
-       <div style="display:flex;gap:8px">
-         <button id="ai-mic" class="btn ghost" type="button" title="語音輸入">🎙️</button>
-         <button id="ai-tts" class="btn ghost" type="button" title="語音朗讀">🔊</button>
-         <button class="btn primary" type="submit">送出</button>
-       </div>
-     </form>
-   </aside>
- 
-   <!-- 既有腳本 -->
-   <script src="deer-qa.js"></script>
-   <script src="app.js"></script>
-   <script src="qa-accordion-fix.js?v=super"></script>
-   <script src="deer-video-min.js"></script>
- 
-   <!-- 超級版核心初始化 -->
-   <script>
-+(()=>{const noop=()=>{};['log','info','warn','error','debug'].forEach(k=>{try{console[k]=noop;}catch{}});})();
- /* ===== 便利工具 ===== */
- const LOADER_IMG={global:'轉圈圈.png',page:'轉圈圈.png','tab-qa':'轉圈圈.png','tab-video':'轉圈圈.png','tab-effect':'轉圈圈.png',video:'轉圈圈.png','ai-open':'轉圈圈2.png','ai-close':'轉圈圈2.png'};
- const $ = (sel,root=document)=>root.querySelector(sel);
- const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
- const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt);
- window.escapeHTML||=(s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- /* ===== 全頁 Loader ===== */
- (function bootLoader(){
-   const root=document.querySelector('#page-loading'); if(!root) return;
-   const img=root.querySelector('.loading-img'); if(img) img.src=(window.LOADER_IMG?.global)||'轉圈圈.png';
-   document.body.style.overflow='hidden';
- 
-   const first = !sessionStorage.getItem('siteLoadedOnce');
-   sessionStorage.setItem('siteLoadedOnce','1');
- 
-   const start = Date.now();
-   // 第一次 4–10 秒；其後 3–6 秒；整體仍保 3–10 秒區間
-   const target = first
-     ? Math.floor(4000 + Math.random()*6000)
-     : Math.floor(3000 + Math.random()*3000);
- 
-   function kill(){
-     const elapsed = Date.now() - start;
-     const wait = Math.max(0, target - elapsed);
-     setTimeout(()=>{
-@@ -590,26 +605,26 @@ function showErr(msg){
-   clearTimeout(showErr.t); showErr.t=setTimeout(()=>bar.classList.add('hidden'), 6000);
- }
- window.addEventListener('error', (e)=>{
-   if (e && e.message) showErr(`錯誤：${e.message}`);
- }, true);
- window.addEventListener('unhandledrejection', (e)=>{
-   const m = (e && e.reason && (e.reason.message||e.reason.statusText)) || '未知';
-   showErr(`非預期錯誤：${m}`);
- });
-   (function enhanceEffectPanel(){
-     const openNew = document.getElementById('effect-open-new');
-     const urlBox  = document.getElementById('effect-url-copy');
-     const copyBtn = document.getElementById('copy-effect-url');
-     if(openNew && urlBox){ urlBox.textContent = EFFECT_INFO.url || ''; openNew.href = EFFECT_INFO.url || '#'; }
-     copyBtn?.addEventListener('click', async ()=>{
-       try{ await navigator.clipboard.writeText(EFFECT_INFO.url||''); copyBtn.textContent='已複製'; setTimeout(()=>copyBtn.textContent='複製連結',1200);}catch{}
-     });
-   })();
-   (function buttonPopColor(){
-   function flash(el){ el.classList.add('pop'); clearTimeout(el._popT); el._popT=setTimeout(()=>el.classList.remove('pop'),900); }
-   document.addEventListener('click', e=>{ const b=e.target.closest('.btn'); if(b) flash(b); }, true);
-   document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.closest('.btn')) flash(e.target.closest('.btn')); }, true);
- })();
-   </script>
- </body>
--</html>
-\ No newline at end of file
-+</html>
- 
-EOF
-)
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>鹿🦌的QA網站</title>
+  <meta name="theme-color" content="#0f1220" />
+  <link rel="icon" type="image/png" href="網站頂端icon.JPG">
+  <link rel="stylesheet" href="styles.css?v=20251009-super" />
+</head>
+<body>
+  <!-- 全頁載入遮罩 -->
+  <div id="page-loading" aria-live="polite" aria-busy="true">
+    <div class="card">
+      <div class="spinner"><img src="轉圈圈.png" alt="載入中" class="loading-img"></div>
+      <div class="title">網頁載入中，請稍候…</div>
+      <div class="muted" style="font-size:.9rem">正在準備資料與介面</div>
+    </div>
+  </div>
+
+  <!-- 簡易公告與版本誌 -->
+  <div id="changelog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cg-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="cg-title">🦌 網站更新</h2>
+        <button id="cg-close" class="btn ghost">我知道了，關閉視窗❌</button>
+      </div>
+      <div class="modal-body" id="cg-body"></div>
+    </div>
+  </div>
+
+  <div id="ann-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="ann-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="ann-title">網站公告</h2>
+        <button id="ann-close" class="btn ghost">❌關閉公告</button>
+      </div>
+      <div class="modal-body" id="ann-body"></div>
+    </div>
+  </div>
+
+  <!-- 錯誤訊息橫幅（資源404/JS錯誤） -->
+  <div id="errbar" class="errbar hidden" role="status" aria-live="assertive"></div>
+
+  <header class="hero">
+    <div class="brand">
+      <img id="logo-img" src="Logo.png" class="logo-img" alt="鹿 Logo" />
+      <div>
+        <h1>鹿🦌的QA網站</h1>
+        <p class="muted">查詢資料庫與觀看影片與特效。若有錯誤，請回報工程師。</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="site-bell" class="btn ghost icon" title="公告" aria-label="公告">🔔 <span class="muted" style="font-size:.9rem">公告</span></button>
+      <button id="site-share" class="btn icon share-top" title="分享網站" aria-label="分享網站">分享</button>
+      <a id="contact-eng" class="btn ghost icon" href="mailto:wanglien214@gmail.com" title="聯絡工程師" aria-label="聯絡工程師">📧 <span class="muted" style="font-size:.9rem">聯絡工程師</span></a>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="主要功能">
+      <button id="tab-qa" class="tab active" role="tab" aria-selected="true" aria-controls="qa-panel">QA</button>
+      <button id="tab-video" class="tab" role="tab" aria-selected="false" aria-controls="video-panel">影片</button>
+      <button id="tab-effect" class="tab" role="tab" aria-selected="false" aria-controls="effect-panel">特效</button>
+    </nav>
+
+    <div id="qa-toolbar" class="search-wrap">
+      <input id="search" class="input" type="search" placeholder="輸入關鍵字（傳統比對）" aria-label="搜尋 QA" />
+      <button id="clear" class="btn ghost">清除</button>
+    </div>
+
+    <div class="stats" id="qa-stats">
+      <div class="stat"><span id="stat-total" class="value">0</span><span class="label">總筆數</span></div>
+      <div class="stat"><span id="stat-page" class="value">1</span><span class="label">目前頁</span></div>
+      <div class="stat"><span id="stat-pages" class="value">1</span><span class="label">總頁數</span></div>
+      <div class="stat"><span id="stat-filtered" class="value">0</span><span class="label">目前篩選</span></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- QA -->
+    <section id="qa-panel" class="tabpanel" role="tabpanel" aria-labelledby="tab-qa">
+      <section id="qa-list" class="accordion"></section>
+      <nav class="pager" aria-label="分頁導覽">
+        <button id="prev" class="btn">上一頁</button>
+        <input id="page" class="page-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" aria-label="跳至頁碼">
+        <span class="slash">/</span>
+        <span id="pages" class="pages-badge">1</span>
+        <button id="next" class="btn">下一頁</button>
+      </nav>
+      <footer class="footer" aria-hidden="true" style="visibility:hidden;height:0;padding:0;margin:0"></footer>
+    </section>
+
+    <!-- 影片 -->
+    <section id="video-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-video">
+      <div class="video-layout">
+        <div class="video-left">
+          <div class="video-controls top">
+            <button id="v-random" class="btn">隨機影片</button>
+            <!-- 目錄按鈕由 JS 注入 -->
+          </div>
+          <div class="video-header">
+            <span id="v-title" class="video-title">未選擇影片</span>
+            <button id="v-info-btn" class="info-btn" title="影片資訊">ℹ️</button>
+          </div>
+          <div id="v-frame" class="video-frame"></div>
+        </div>
+        <div class="video-right" id="v-list"></div>
+      </div>
+    </section>
+
+    <!-- 特效 -->
+    <section id="effect-panel" class="tabpanel hidden" role="tabpanel" aria-labelledby="tab-effect">
+  <div class="effect-pro">
+    <!-- 左：手機預覽（9:16） -->
+    <div class="effect-phone">
+      <div class="phone-bezel">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <!-- Demo 圖：用 TikTok 預設示範照，等比置中填滿 -->
+          <img id="effect-demo" alt="特效示範預覽" class="phone-preview" />
+        </div>
+      </div>
+      <p class="muted effect-caption">特效圖片已經經過鹿🦌同意了喔～</p>
+    </div>
+
+    <!-- 右：資訊區 -->
+    <aside class="effect-side card">
+      <header class="side-head">
+        <h3 id="effect-title" class="side-title">TikTok 特效</h3>
+        <div class="side-actions">
+          <button id="effect-play" class="btn primary">立即體驗</button>
+          <a id="effect-open-new" class="btn ghost" target="_blank" rel="noopener">新分頁開啟</a>
+        </div>
+      </header>
+
+      <div class="side-body">
+        <ul class="bullets">
+          <li>掃描 QR 或按「立即體驗」開啟 TikTok 特效</li>
+          <li>建議使用手機直式錄製，取得最佳視覺比例</li>
+        </ul>
+
+        <div class="qr-wrap">
+          <img id="effect-qr" alt="掃描開啟特效" class="qr-img" />
+          <div class="qr-meta">
+            <div class="label">預覽連結（TikTok）</div>
+            <code class="qr-url" id="effect-url-copy"></code>
+            <button class="btn ghost" id="copy-effect-url">複製連結</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+  </main>
+
+  <!-- 影片資訊 -->
+  <div id="info-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card small">
+      <div class="modal-header">
+        <h3>影片資訊</h3>
+        <button id="modal-close" class="btn ghost">❌關閉影片資訊</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- AI FAB -->
+  <button id="ai-fab" class="ai-fab" aria-label="開啟 AI 麋鹿">
+    <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16v10H7l-3 3V4z"/><circle cx="9" cy="9" r="1.5" fill="#0f1220"/><circle cx="14" cy="9" r="1.5" fill="#0f1220"/></svg>
+  </button>
+
+  <aside id="ai-panel" class="ai-panel hidden" role="dialog" aria-modal="true" aria-labelledby="ai-title">
+    <header class="ai-header"><h2 id="ai-title">AI麋鹿</h2><button id="ai-close" class="btn ghost" aria-label="關閉">❌關閉聊天室</button></header>
+    <div id="ai-messages" class="ai-messages"></div>
+    <form id="ai-form" class="ai-input" autocomplete="off">
+      <input id="ai-text" class="input ai-inputbox" placeholder="輸入並按 Enter 送出" aria-label="AI輸入">
+      <div style="display:flex;gap:8px">
+        <button id="ai-mic" class="btn ghost" type="button" title="語音輸入">🎙️</button>
+        <button id="ai-tts" class="btn ghost" type="button" title="語音朗讀">🔊</button>
+        <button class="btn primary" type="submit">送出</button>
+      </div>
+    </form>
+  </aside>
+
+  <!-- 既有腳本 -->
+  <script src="deer-qa.js"></script>
+  <script src="app.js"></script>
+  <script src="qa-accordion-fix.js?v=super"></script>
+  <script src="deer-video-min.js"></script>
+
+  <!-- 超級版核心初始化 -->
+  <script>
+/* ===== 便利工具 ===== */
+const LOADER_IMG={global:'轉圈圈.png',page:'轉圈圈.png','tab-qa':'轉圈圈.png','tab-video':'轉圈圈.png','tab-effect':'轉圈圈.png',video:'轉圈圈.png','ai-open':'轉圈圈2.png','ai-close':'轉圈圈2.png'};
+const $ = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt);
+window.escapeHTML||=(s)=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+/* ===== 全頁 Loader ===== */
+(function bootLoader(){
+  const root=document.querySelector('#page-loading'); if(!root) return;
+  const img=root.querySelector('.loading-img'); if(img) img.src=(window.LOADER_IMG?.global)||'轉圈圈.png';
+  document.body.style.overflow='hidden';
+
+  const first = !sessionStorage.getItem('siteLoadedOnce');
+  sessionStorage.setItem('siteLoadedOnce','1');
+
+  const start = Date.now();
+  // 第一次 4–10 秒；其後 3–6 秒；整體仍保 3–10 秒區間
+  const target = first
+    ? Math.floor(4000 + Math.random()*6000)
+    : Math.floor(3000 + Math.random()*3000);
+
+  function kill(){
+    const elapsed = Date.now() - start;
+    const wait = Math.max(0, target - elapsed);
+    setTimeout(()=>{
+      root.classList.add('hide');
+      root.addEventListener('transitionend', ()=>{
+        root.remove(); document.body.style.overflow='';
+      }, {once:true});
+    }, wait);
+  }
+  window.addEventListener('load', kill, {once:true});
+  // 保險：最慢 target+1.5s 也會關
+  setTimeout(kill, target + 1500);
+})();
+const Loading=(()=>{const MIN=800,map=new Map();
+  function lock(on){document.body.style.overflow=on?'hidden':'';}
+  function ensure(id,text='載入中，請稍候…',key='global'){let el=document.getElementById(id);const src=LOADER_IMG[key]||LOADER_IMG.global||'轉圈圈.png';
+    if(!el){el=document.createElement('div');el.id=id;el.className='page-overlay';el.setAttribute('aria-live','polite');el.setAttribute('aria-busy','true');
+      el.innerHTML=`<div class="card"><div class="spinner"><img src="${src}" alt="" class="loading-img"></div><div class="title">${text}</div><div class="muted" style="font-size:.9rem">正在準備資料與介面</div></div>`;
+      document.body.appendChild(el);} else {el.querySelector('.loading-img').src=src; const ttl=el.querySelector('.title'); if(ttl) ttl.textContent=text;}
+    return el;}
+  function show(key='global',text){const id=`ov-${key}`;ensure(id,text||'載入中，請稍候…',key).classList.remove('hide'); map.set(id,Date.now()); lock(true); return id;}
+  function hide(key='global'){const id=`ov-${key}`;const el=document.getElementById(id); if(!el) return; const st=map.get(id)||Date.now(); const wait=Math.max(0,MIN-(Date.now()-st));
+    setTimeout(()=>{el.classList.add('hide');el.addEventListener('transitionend',()=>{el.remove(); if(!document.querySelector('.page-overlay')&&!document.getElementById('page-loading')) lock(false);},{once:true}); map.delete(id);},wait);}
+  function videoShow(){const host=$('#v-frame'); if(!host) return Date.now(); let m=host.querySelector('.mini-overlay'); const src=LOADER_IMG.video||LOADER_IMG.global||'轉圈圈.png';
+    if(!m){m=document.createElement('div');m.className='mini-overlay';m.innerHTML=`<div class="spinner"><img src="${src}" alt="" class="loading-img"></div>`; host.appendChild(m);} else {m.querySelector('.loading-img').src=src;}
+    return Date.now();}
+  function videoHide(mark){const host=$('#v-frame'); if(!host) return; const m=host.querySelector('.mini-overlay'); if(!m) return; const left=Math.max(0,600-(Date.now()-(mark||Date.now()))); setTimeout(()=>m.remove(),left);}
+  return {show,hide,videoShow,videoHide};
+})();
+
+/* ===== 公告 ===== */
+const ANNOUNCEMENTS=[{id:'welcome-410',title:'V4.2 上線',body:'上架 TikTok 特效了。',start:'2025-10-10'}];
+(function(){
+  const bell = $('#site-bell');
+  if(!bell) return;
+  on(bell,'click',()=>{
+    const now = Date.now();
+    const active = ANNOUNCEMENTS.filter(a=>{
+      const st = a.start ? new Date(a.start).getTime() : -Infinity;
+      const ed = a.end   ? new Date(a.end).getTime()   :  Infinity;
+      return now >= st && now <= ed;
+    });
+    const html = active.length
+      ? `<div class="ann-list">${active.map(a=>`<article class="ann-item" style="margin:10px 0"><h4 style="margin:.2rem 0">${a.title}</h4><div class="muted" style="font-size:.9rem">${(a.start||'').slice(0,10)}${a.end?` — ${a.end.slice(0,10)}`:''}</div><p style="margin:.4rem 0 0">${a.body}</p></article>`).join('')}</div>`
+      : `<p class="muted">目前沒有公告。</p>`;
+    const m = $('#ann-modal');
+    m.classList.remove('hidden');
+    $('#ann-body').innerHTML = html;
+    on($('#ann-close'),'click',()=>m.classList.add('hidden'),{once:true});
+  });
+})();
+
+/* ===== 分享 ===== */
+(function shareFix(){
+  const btn=$('#site-share'); if(!btn) return;
+  on(btn,'click',async()=>{
+    const data={title:document.title,text:'鹿🦌的QA網站',url:location.href};
+    try{ if(navigator.share){await navigator.share(data);} else {await navigator.clipboard.writeText(location.href); const old=btn.textContent; btn.textContent='已複製'; setTimeout(()=>btn.textContent=old,1200);} }
+    catch{ const old=btn.textContent; btn.textContent='取消'; setTimeout(()=>btn.textContent=old,1000); }
+  });
+})();
+
+/* ===== QA 複製（強化版） ===== */
+(function setupQACopy(){
+  const list=document.getElementById('qa-list'); if(!list) return;
+
+  function ensureCopyButtons(root=list){
+    root.querySelectorAll('.item').forEach(item=>{
+      if(item.querySelector('.tool.copy-qa')) return;
+      const header=item.querySelector('.q'); if(!header) return;
+      const tools=header.querySelector('.tools')||(()=>{const t=document.createElement('div');t.className='tools';t.style.marginLeft='auto';t.style.display='flex';t.style.gap='8px';header.appendChild(t);return t;})();
+      const btn=document.createElement('span');
+      btn.className='tool copy-qa'; btn.setAttribute('role','button'); btn.setAttribute('tabindex','0');
+      btn.title='複製這則 QA'; btn.textContent='📋 複製';
+      tools.appendChild(btn);
+    });
+  }
+
+  function toastAt(text){
+    const tip=document.createElement('div');
+    tip.className='toast';
+    tip.textContent=text;
+    tip.style.left='50%'; tip.style.bottom='18px'; tip.style.top='auto';
+    tip.style.transform='translate(-50%,0)';
+    document.body.appendChild(tip);
+    setTimeout(()=>tip.remove(),1650);
+  }
+
+  async function doCopy(fromEl,btn){
+    const item=fromEl.closest('.item');
+    const txt=item?.querySelector('.a-inner')?.innerText?.trim();
+    let ok=false;
+    try{ if(txt){ await navigator.clipboard.writeText(txt); ok=true; } }catch(e){ ok=false; }
+    if(btn){ btn.classList.add('copied'); setTimeout(()=>btn.classList.remove('copied'),420); }
+    toastAt(ok?'已複製 QA':'複製失敗（瀏覽器限制）');
+  }
+
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('.tool.copy-qa,[data-copy]'); if(!btn) return;
+    e.preventDefault(); doCopy(btn,btn);
+  },true);
+  document.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&e.target.closest('.tool.copy-qa')){ e.preventDefault(); doCopy(e.target,e.target); }
+  },true);
+
+  ensureCopyButtons();
+  new MutationObserver(m=>m.forEach(x=>x.addedNodes.forEach(n=>{ if(n.nodeType===1) ensureCopyButtons(n); })))
+    .observe(list,{childList:true,subtree:true});
+})();
+
+
+/* ===== QA 分頁遮罩 + 捲頂 ===== */
+(function qaPagingOverlay(){
+  const ids=['prev','next','page'], list=$('#qa-list'); if(!list) return;
+  function armHide(){const mo=new MutationObserver(()=>{clearTimeout(armHide.t); armHide.t=setTimeout(()=>Loading.hide('page'),220);}); mo.observe(list,{childList:true,subtree:true}); setTimeout(()=>{mo.disconnect(); Loading.hide('page');},6000);}
+  ids.forEach(id=>{const el=document.getElementById(id); if(!el) return; const evt=(id==='page')?'change':'click'; on(el,evt,()=>{Loading.show('page','切換頁面中，請稍候…'); armHide(); window.scrollTo({top:0,behavior:'smooth'});});});
+})();
+
+/* ===== AI 面板遮罩 ===== */
+(function aiPanelOverlay(){
+  const fab   = document.getElementById('ai-fab');
+  const close = document.getElementById('ai-close');
+  const panel = document.getElementById('ai-panel');
+  if(!fab||!close||!panel) return;
+
+  fab.addEventListener('click', ()=>{
+    Loading.show('ai-open','開啟 AI 中，請稍候…'); // 會用 LOADER_IMG['ai-open'] = 轉圈圈2.png
+    panel.classList.remove('hidden');
+    panel.classList.add('show');
+    setTimeout(()=>Loading.hide('ai-open'), 320); // 與 CSS 過場時間對齊
+  });
+
+  close.addEventListener('click', ()=>{
+    Loading.show('ai-close','關閉 AI 中…'); // 會用 LOADER_IMG['ai-close'] = 轉圈圈2.png
+    panel.classList.remove('show');
+    panel.classList.add('hidden');
+    setTimeout(()=>Loading.hide('ai-close'), 300);
+  });
+})();
+
+/* ===== 反一般複製（QA白名單） ===== */
+(function antiCopy(){
+  on(document,'contextmenu', e=>e.preventDefault(), true);
+  on(document,'copy', e=>{ if(!e.target.closest('#qa-list')) e.preventDefault(); }, true);
+  on(document,'cut',  e=>e.preventDefault(), true);
+  on(document,'dragstart', e=>e.preventDefault(), true);
+  $('#logo-img')?.setAttribute('draggable','false');
+})();
+
+/* ===== Tabs 切換（QA / 影片 / 特效） ===== */
+(function tabsOverlay(){
+  const tabs = $$('.tabs .tab');
+  const tpMap = Object.fromEntries(tabs.map(btn=>[btn.id, btn.getAttribute('aria-controls')]));
+  const panels = new Set(Object.values(tpMap));
+  function show(activeId){
+    tabs.forEach(btn=>{
+      const on = btn.id===activeId;
+      btn.classList.toggle('active',on);
+      btn.setAttribute('aria-selected', String(on));
+    });
+    panels.forEach(pid=>{
+      const panel=document.getElementById(pid);
+      panel?.classList.toggle('hidden', tpMap[activeId]!==pid);
+    });
+  }
+  tabs.forEach(btn=>{
+    on(btn,'click', ()=>{
+      const key = btn.id;
+      Loading.show(key,'載入中，請稍候…');
+      show(key);
+      setTimeout(()=>Loading.hide(key), 360);
+    });
+  });
+})();
+
+/* ===== 手機影片抽屜（單版） ===== */
+
+/* ---- 共用：建立可自動播放的 iframe ---- */
+function withParams(u, obj){ try{const url=new URL(u, location.href); Object.entries(obj||{}).forEach(([k,v])=>url.searchParams.set(k,String(v))); return url.toString(); }catch{return u;} }
+function isYouTube(u){ return /youtube\.com|youtu\.be/.test(u||''); }
+function buildPlayerHTML(src){
+  // 僅開放需要的權限；不含 accelerometer，也不在 allow 內放 fullscreen（避免警告）
+  return `<iframe src="${src}"
+           allow="autoplay; encrypted-media; picture-in-picture"
+           allowfullscreen playsinline referrerpolicy="strict-origin-when-cross-origin"
+           loading="lazy"></iframe>`;
+}
+function tryUnmuteYouTube(ifr){
+  // 使用者剛點擊清單 => 屬於「使用者手勢」，可要求取消靜音與播放
+  let tries = 0;
+  const tick = setInterval(()=>{
+    tries++;
+    try{
+      if (!ifr.contentWindow) return;
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'unMute'}), '*');
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[100]}), '*');
+      ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo'}), '*');
+    }catch{}
+    if (tries>12) clearInterval(tick); // 最多嘗試 ~3.6s
+  }, 300);
+}
+
+function playVideoFromItem(item){
+  const frame = document.getElementById('v-frame');
+  const vTitle = document.getElementById('v-title');
+  if(!item || !frame) return;
+
+  // 關抽屜（目錄）
+  document.body.classList.remove('catalog-open');
+  document.body.classList.remove('vlist-open'); // ← 兼容舊版腳本
+
+  try{
+    const data = JSON.parse(item.dataset.video || '{}');
+    const raw  = data.url || '';
+    const yt   = isYouTube(raw);
+    const src  = yt
+      ? withParams(raw, {autoplay:1, mute:1, playsinline:1, enablejsapi:1})
+      : withParams(raw, {autoplay:1, playsinline:1});
+
+    frame.innerHTML = `<div class="video-embed">${buildPlayerHTML(src)}</div>`;
+    if(vTitle) vTitle.textContent = data.title || '影片';
+
+    const mark = Loading?.videoShow?.();
+    const ifr  = frame.querySelector('iframe');
+    ifr?.addEventListener('load', ()=>{
+      Loading?.videoHide?.(mark);
+      if (yt) tryUnmuteYouTube(ifr);
+    }, {once:true});
+
+    frame.scrollIntoView({behavior:'smooth', block:'start'});
+    setTimeout(()=>ifr?.focus?.(), 300);
+  }catch{}
+}
+
+/* ---- 左右欄清單：點一次渲染 + 小遮罩 + 自動播放/解靜音 ---- */
+(function videoClickOnce(){
+  const list=document.getElementById('v-list');
+  if(!list) return;
+  let lock=false;
+  list.addEventListener('click', e=>{
+    const item = e.target.closest('[data-video]'); if(!item) return;
+    if(lock) return; lock=true; setTimeout(()=>lock=false,480);
+    playVideoFromItem(item);
+  }, true);
+})();
+
+
+
+/* ===== 手機影片抽屜（目錄 UI） ===== */
+(function setupVideoCatalog(){
+  const header = document.querySelector('.video-controls.top');
+  const list   = document.getElementById('v-list');
+  const frame  = document.getElementById('v-frame');
+  const vTitle = document.getElementById('v-title');
+  if(!header || !list || !frame) return;
+
+  let dirBtn = document.getElementById('v-dir');
+  if(!dirBtn){
+    dirBtn = document.createElement('button');
+    dirBtn.id = 'v-dir';
+    dirBtn.className = 'btn ghost';
+    dirBtn.textContent = '目錄';
+    header.appendChild(dirBtn);
+  }
+  
+
+  let catalog = document.getElementById('v-catalog');
+  if(!catalog){
+    catalog = document.createElement('div');
+    catalog.id = 'v-catalog';
+    catalog.innerHTML = `
+      <div id="v-cat-head">
+        <div id="v-cat-title">影片目錄</div>
+        <button id="v-cat-close" aria-label="關閉">❌關閉影片目錄</button>
+      </div>
+      <div id="v-cat-body"></div>
+    `;
+    document.body.appendChild(catalog);
+  }
+/* ===== 兼容 deer-video-min.js：攔截全域 play()，關閉目錄 + 自動播放 + 嘗試解除靜音 ===== */
+(function hookExternalPlay(){
+  const closeAll = ()=>{ document.body.classList.remove('catalog-open'); document.body.classList.remove('vlist-open'); };
+
+  const oldPlay = window.play;
+  window.play = function(url, title){
+    // 交給原本的 play 建立 iframe
+    if (typeof oldPlay === 'function') oldPlay.apply(this, arguments);
+
+    // 關任何目錄 UI
+    closeAll();
+
+    // 補上自動播放 / JS API 參數
+    const ifr = document.querySelector('#v-frame iframe');
+    if (ifr) {
+      const want = (u)=>withParams(u, {
+        autoplay: 1, mute: 1, playsinline: 1, enablejsapi: 1, origin: location.origin
+      });
+      try { ifr.src = want(ifr.src || url || ''); } catch {}
+
+      // YouTube：嘗試解除靜音並播放
+      const yt = isYouTube(ifr.src || url);
+      if (yt) {
+        const onload = ()=>{ tryUnmuteYouTube(ifr); };
+        ifr.addEventListener('load', onload, { once:true });
+        setTimeout(()=>tryUnmuteYouTube(ifr), 500);
+      }
+    }
+
+    // 捲到播放器並聚焦
+    const frame = document.getElementById('v-frame');
+    frame?.scrollIntoView({ behavior:'smooth', block:'start' });
+    setTimeout(()=>ifr?.focus?.(), 300);
+  };
+})();
+  const body = catalog.querySelector('#v-cat-body');
+  if(body && list.parentElement !== body){ body.appendChild(list); }
+
+  const open  = ()=>document.body.classList.add('catalog-open');
+  const close = ()=>document.body.classList.remove('catalog-open');
+
+  dirBtn.onclick = open;
+  catalog.querySelector('#v-cat-close').onclick = close;
+
+  catalog.addEventListener('click', e=>{
+    const inBody = body.contains(e.target);
+    const inHead = catalog.querySelector('#v-cat-head').contains(e.target);
+    if(!inBody && !inHead) close();
+  });
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); }, true);
+
+  // 在目錄內點影片：自動關閉並播放
+  catalog.addEventListener('click', e=>{
+    const item = e.target.closest('[data-video]');
+    if(!item) return;
+    playVideoFromItem(item);
+  }, true);
+
+  // 鍵盤支援：Enter/Space 選取清單
+  catalog.addEventListener('keydown', e=>{
+    if((e.key==='Enter' || e.key===' ') && e.target.closest('[data-video]')){
+      e.preventDefault();
+      const item = e.target.closest('[data-video]');
+      playVideoFromItem(item);
+    }
+  }, true);
+})();
+
+/* ===== 特效資料 ===== */
+const EFFECT_INFO = Object.freeze({
+  title: '鹿🦌超好笑特效',
+  url: 'https://vm.tiktok.com/ZMAXNfQ4v/',
+  qr:  'QR Code.png',
+  demo:'鹿🦌超好笑特效.png'
+});
+(function setupEffectPanel(){
+  const play=$('#effect-play');
+  const openNew=$('#effect-open-new');
+  const qr=$('#effect-qr');
+  const ttl=$('#effect-title');
+  const demo=$('#effect-demo');
+  if(!play||!qr||!ttl||!demo||!openNew) return;
+  ttl.textContent = EFFECT_INFO.title || 'TikTok 特效';
+  qr.src   = EFFECT_INFO.qr   || '';
+  demo.src = EFFECT_INFO.demo || '';
+  play.addEventListener('click',()=>{ location.href = EFFECT_INFO.url; });
+  openNew.href = EFFECT_INFO.url;
+  // 圖片404 fallback
+  [qr,demo].forEach(img=>img.addEventListener('error',()=>{img.classList.add('img-error'); img.alt='圖片載入失敗（404）'; showErr(`圖片載入失敗：${img.getAttribute('src')} [404]`);}));
+})();
+
+/* ===== 錯誤橫幅與全域錯誤捕捉 ===== */
+function showErr(msg){
+  const bar = document.getElementById('errbar');
+  bar.textContent = msg;
+  bar.classList.remove('hidden');
+  clearTimeout(showErr.t); showErr.t=setTimeout(()=>bar.classList.add('hidden'), 6000);
+}
+window.addEventListener('error', (e)=>{
+  if (e && e.message) showErr(`錯誤：${e.message}`);
+}, true);
+window.addEventListener('unhandledrejection', (e)=>{
+  const m = (e && e.reason && (e.reason.message||e.reason.statusText)) || '未知';
+  showErr(`非預期錯誤：${m}`);
+});
+  (function enhanceEffectPanel(){
+    const openNew = document.getElementById('effect-open-new');
+    const urlBox  = document.getElementById('effect-url-copy');
+    const copyBtn = document.getElementById('copy-effect-url');
+    if(openNew && urlBox){ urlBox.textContent = EFFECT_INFO.url || ''; openNew.href = EFFECT_INFO.url || '#'; }
+    copyBtn?.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(EFFECT_INFO.url||''); copyBtn.textContent='已複製'; setTimeout(()=>copyBtn.textContent='複製連結',1200);}catch{}
+    });
+  })();
+  (function buttonPopColor(){
+  function flash(el){ el.classList.add('pop'); clearTimeout(el._popT); el._popT=setTimeout(()=>el.classList.remove('pop'),900); }
+  document.addEventListener('click', e=>{ const b=e.target.closest('.btn'); if(b) flash(b); }, true);
+  document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.closest('.btn')) flash(e.target.closest('.btn')); }, true);
+})();
+  </script>
+</body>
+</html>
