@@ -1,102 +1,180 @@
-/* ===== Deer QA WebApp v1.8.7 (final) =====
- * 功能：AI麋鹿 / 頁面搜尋 / 導覽 / 公告
- * 重點：回答信心「只在使用者點 AI 泡泡時」以單一最上層 Modal 顯示
- * 清理：移除重複 onSubmit 與信心條程式、統一事件來源
- */
+/* =====================================================
+   Deer QA WebApp – App Controller
+   Version: v1.8.7 (stabilized)
+   -----------------------------------------------------
+   本檔角色：
+   - 負責整站 UI 與互動流程（非資料、非演算法）
+   - 串接 QA / AI / Video / Modal / Tour / Voice
+   - 不實作搜尋演算法，只調用既有工具
+   ===================================================== */
 
-/* ---- 基本工具 ---- */
+/* =========================
+   基本工具（本檔專用）
+   ========================= */
 function norm(s){ return (s||'').toLowerCase().trim(); }
-function clamp(min,max,x){ if(x<min)return min; if(x>max)return max; return x; }
+function clamp(min,max,x){ return x<min?min:x>max?max:x; }
 function id(s){ return document.getElementById(s); }
 function qs(s){ return document.querySelector(s); }
 
-/* ---- 常數 ---- */
-const STATE={pageSize:30,page:1,filtered:[...window.DEER_QA],highlight:''};
-const ALIASES=['鹿比醬','鹿比酱','鹿🦌','鹿鹿','鹿','小鹿','麋鹿','deer','ld','ld.1003_','xxx103__'];
-const IMAGES={'網站圖':'Logo.png','AI圖':'AI.png'};
+/* =========================
+   全站狀態（僅 UI 層）
+   ========================= */
+const STATE = {
+  pageSize: 30,
+  page: 1,
+  filtered: [...(window.DEER_QA||[])],
+  highlight: ''
+};
 
-/* ---- 啟動 ---- */
-document.addEventListener('DOMContentLoaded',init);
+/* =========================
+   常數（UI 顯示用途）
+   ========================= */
+const ALIASES = [
+  '鹿比醬','鹿比酱','鹿🦌','鹿鹿','鹿','小鹿','麋鹿',
+  'deer','ld','ld.1003_','xxx103__'
+];
+
+const IMAGES = {
+  '網站圖': 'Logo.png',
+  'AI圖': 'AI.png'
+};
+
+/* =====================================================
+   啟動入口（唯一）
+   - 僅在 DOM 完成後執行
+   - 禁止在其他地方呼叫 init()
+   ===================================================== */
+document.addEventListener('DOMContentLoaded', init);
+
 function init(){
-  safeOn('search','input',e=>{STATE.highlight=e.target.value.trim();applyFilter(STATE.highlight);});
-  safeOn('clear','click',()=>{const s=id('search');if(s){s.value='';STATE.highlight='';applyFilter('');}});
-  safeOn('prev','click',()=>gotoPage(STATE.page-1));
-  safeOn('next','click',()=>gotoPage(STATE.page+1));
-  safeOn('page','change',e=>gotoPage(parseInt(e.target.value||'1',10)));
 
-  safeOn('cg-close','click',closeChangelog);
-  safeOn('ft-share','click',shareSite);
-  safeOn('ft-install','click',openInstallTip);
-  safeOn('ins-close','click',closeInstallTip);
-
-  safeOn('ai-fab','click',openAI);
-  safeOn('ai-close','click',closeAI);
-
-  // 建議快速鍵委派（避免重綁）
-  const aiMsgs=id('ai-messages');
-  if(aiMsgs)aiMsgs.addEventListener('click',e=>{
-    const sug=e.target.closest('.s-btn');
-    if(!sug) return;
-    e.preventDefault(); e.stopPropagation();
-    const box=id('ai-text'); if(!box) return;
-    box.value=sug.dataset.sug||'';
-    id('ai-form')?.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+  /* ---- 搜尋 / 分頁 ---- */
+  safeOn('search','input', e=>{
+    STATE.highlight = e.target.value.trim();
+    applyFilter(STATE.highlight);
   });
 
-  // 單一路徑送出（無 onAsk）
+  safeOn('clear','click', ()=>{
+    const s = id('search');
+    if(s){ s.value=''; STATE.highlight=''; applyFilter(''); }
+  });
+
+  safeOn('prev','click', ()=>gotoPage(STATE.page-1));
+  safeOn('next','click', ()=>gotoPage(STATE.page+1));
+  safeOn('page','change', e=>gotoPage(parseInt(e.target.value||'1',10)));
+
+  /* ---- Modal / 公告 ---- */
+  safeOn('cg-close','click', closeChangelog);
+
+  /* ---- AI 面板 ---- */
+  safeOn('ai-fab','click', openAI);
+  safeOn('ai-close','click', closeAI);
+
+  /* ---- AI 建議快速點擊（事件委派，避免重綁） ---- */
+  const aiMsgs = id('ai-messages');
+  if(aiMsgs){
+    aiMsgs.addEventListener('click', e=>{
+      const sug = e.target.closest('.s-btn');
+      if(!sug) return;
+      const box = id('ai-text');
+      if(!box) return;
+      box.value = sug.dataset.sug || '';
+      id('ai-form')?.dispatchEvent(
+        new Event('submit',{cancelable:true,bubbles:true})
+      );
+    });
+  }
+
+  /* ---- AI 表單（唯一送出路徑） ---- */
   wireAIForm();
 
+  /* ---- QA 初始化 ---- */
   initStats();
   render();
+
+  /* ---- 新手導覽 / 更新 ---- */
   firstTour();
   showChangelogIfNew("2.1");
 
-  // iOS 100vh 修正
-  const setVH=()=>document.documentElement.style.setProperty('--vh', window.innerHeight*0.01+'px');
-  setVH(); window.addEventListener('resize',setVH); window.addEventListener('orientationchange',setVH);
+  /* ---- iOS viewport 高度修正 ---- */
+  const setVH = ()=>{
+    document.documentElement.style
+      .setProperty('--vh', window.innerHeight*0.01+'px');
+  };
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
 }
 
-/* ---- 安全綁定 ---- */
-function safeOn(elId,evt,fn){const el=document.getElementById(elId); if(el) el.addEventListener(evt,fn);}
+/* =====================================================
+   安全事件綁定（避免 null crash）
+   ===================================================== */
+function safeOn(elId, evt, fn){
+  const el = id(elId);
+  if(el) el.addEventListener(evt, fn);
+}
 
-/* ---- 搜尋（傳統比對） ---- */
-function initStats(){const t=qs('#stat-total'); if(t) t.textContent=String(window.DEER_QA.length);}
+/* =====================================================
+   QA 搜尋與渲染（純 UI）
+   ===================================================== */
+function initStats(){
+  const t = qs('#stat-total');
+  if(t) t.textContent = String((window.DEER_QA||[]).length);
+}
+
 function applyFilter(keyword){
-  const k=norm(keyword);
-  STATE.filtered = k ? window.DEER_QA.filter(x=>norm(x.q).includes(k)||norm(x.a).includes(k)) : [...window.DEER_QA];
-  STATE.page=1; render();
+  const k = norm(keyword);
+  STATE.filtered = k
+    ? window.DEER_QA.filter(x =>
+        norm(x.q).includes(k) || norm(x.a).includes(k)
+      )
+    : [...window.DEER_QA];
+  STATE.page = 1;
+  render();
 }
+
 function render(){
-  const total=STATE.filtered.length;
-  const pages=Math.max(1,Math.ceil(total/STATE.pageSize));
-  STATE.page=Math.min(Math.max(1,STATE.page),pages);
+  const total = STATE.filtered.length;
+  const pages = Math.max(1, Math.ceil(total/STATE.pageSize));
+  STATE.page = clamp(1, pages, STATE.page);
 
   qs('#stat-filtered')&&(qs('#stat-filtered').textContent=total);
   qs('#stat-page')&&(qs('#stat-page').textContent=STATE.page);
   qs('#stat-pages')&&(qs('#stat-pages').textContent=pages);
+
   id('page')&&(id('page').value=STATE.page);
   id('pages')&&(id('pages').textContent=pages);
 
-  const start=(STATE.page-1)*STATE.pageSize;
-  const items=STATE.filtered.slice(start,start+STATE.pageSize);
+  const start = (STATE.page-1)*STATE.pageSize;
+  const items = STATE.filtered.slice(start, start+STATE.pageSize);
 
-  const $list=id('qa-list'); if(!$list) return;
-  $list.innerHTML=items.map(renderItem).join('');
+  const list = id('qa-list');
+  if(!list) return;
+  list.innerHTML = items.map(renderItem).join('');
 
-  $list.querySelectorAll('.q').forEach(btn=>{
-    btn.addEventListener('click',()=>toggleItem(btn.closest('.item')));
-    btn.addEventListener('keydown',e=>{
-      if(['Enter',' '].includes(e.key)){e.preventDefault();toggleItem(btn.closest('.item'));}
+  /* ---- Accordion 行為 ---- */
+  list.querySelectorAll('.q').forEach(btn=>{
+    btn.addEventListener('click', ()=>toggleItem(btn.closest('.item')));
+    btn.addEventListener('keydown', e=>{
+      if(e.key==='Enter' || e.key===' '){
+        e.preventDefault();
+        toggleItem(btn.closest('.item'));
+      }
     });
   });
-  $list.querySelectorAll('[data-copy]').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const qa=getItem(el);
+
+  /* ---- QA 複製 ---- */
+  list.querySelectorAll('[data-copy]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const qa = getItem(el);
+      if(!qa) return;
       navigator.clipboard.writeText(`Q: ${qa.q}\nA: ${qa.a}`);
       toast('已複製 Q&A');
     });
   });
 }
+
+
 function renderItem(it){
   const hi=STATE.highlight?highlight(idPrefix(it),STATE.highlight):idPrefix(it);
   const idAttr=`q-${it.id}`;
