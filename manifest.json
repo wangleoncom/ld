@@ -1,0 +1,20 @@
+{
+  "name": "鹿🦌的 QA 檔案室",
+  "short_name": "鹿 QA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fdf2f8",
+  "theme_color": "#fdf2f8",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
