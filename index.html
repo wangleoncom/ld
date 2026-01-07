@@ -10,7 +10,8 @@
         body {
             background-color: #050505;
             color: white;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            /* 優先使用微軟正黑體以確保中文顯示美觀 */
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
             height: 100vh;
             overflow: hidden;
             display: flex;
@@ -38,7 +39,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px; /* 稍微加寬以容納中文 */
             transition: transform 0.1s;
         }
 
@@ -131,15 +132,21 @@
 
         /* --- UI 元素 --- */
         .status-text {
-            font-family: 'Courier New', monospace; letter-spacing: 2px; text-transform: uppercase;
-            font-size: 0.85rem; color: #a5f3fc; margin-bottom: 0.5rem;
+            /* 狀態文字字體 */
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            color: #a5f3fc;
+            margin-bottom: 0.5rem;
             text-shadow: 0 0 10px rgba(165, 243, 252, 0.5);
         }
         .main-title {
-            font-weight: 900; font-size: 2rem;
+            font-weight: 900; font-size: 2.2rem;
             background: linear-gradient(to right, #f472b6, #c084fc, #818cf8);
             -webkit-background-clip: text; color: transparent;
             margin-bottom: 2rem; opacity: 0.9;
+            /* 修正中文標題的換行與間距 */
+            white-space: nowrap;
         }
         .progress-bar {
             width: 200px; height: 4px; background: rgba(255,255,255,0.1);
@@ -153,15 +160,15 @@
         }
         
         .hint-text {
-            font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 2rem;
-            animation: pulse 2s infinite;
+            font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 2rem;
+            animation: pulse 2s infinite; font-weight: bold;
         }
-        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+        @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
 
         .skip-btn {
             padding: 10px 24px; background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px;
-            color: rgba(255, 255, 255, 0.6); font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; font-weight: bold;
             backdrop-filter: blur(5px); transition: all 0.3s; cursor: pointer;
             letter-spacing: 1px; z-index: 50;
         }
@@ -183,22 +190,22 @@
                  onerror="this.style.display='none'; document.querySelector('.energy-ring').style.background='#333'">
         </div>
 
-        <div id="status" class="status-text">SYSTEM CHECK...</div>
+        <div id="status" class="status-text">系統檢測中...</div>
         
-        <h1 class="main-title glitch-text" data-text="DEER QA v2.0">DEER QA v2.0</h1>
+        <h1 class="main-title glitch-text" data-text="鹿🦌的QA網站 2.0">鹿🦌的QA網站 2.0</h1>
 
         <div class="progress-bar">
             <div id="progress" class="progress-fill"></div>
         </div>
         
-        <div class="hint-text">⚡ HOLD SCREEN TO BOOST ⚡</div>
+        <div class="hint-text">⚡ 按住螢幕加速充能 ⚡</div>
 
-        <div id="countdown" class="text-xs text-gray-500 font-mono mb-8 opacity-50">
-            T-MINUS <span id="timer-num">7.00</span>s
+        <div id="countdown" class="text-sm text-gray-500 font-bold mb-8 opacity-60">
+            距離發射 <span id="timer-num" class="font-mono text-base">7.00</span> 秒
         </div>
 
         <button onclick="warpNow()" class="skip-btn">
-            WARP NOW ➜
+            立即傳送 ➜
         </button>
     </div>
 
@@ -285,15 +292,15 @@
             if(warpSpeed) return; // 已經發射就不需要了
             isBoosting = true;
             document.querySelector('.hud-container').classList.add('boosting');
-            document.querySelector('.hint-text').innerText = ">>> OVERDRIVE ENGAGED <<<";
+            document.querySelector('.hint-text').innerText = ">>> 引擎全速運轉 <<<";
             document.querySelector('.hint-text').style.color = "cyan";
         }
 
         function stopBoost() {
             isBoosting = false;
             document.querySelector('.hud-container').classList.remove('boosting');
-            document.querySelector('.hint-text').innerText = "⚡ HOLD SCREEN TO BOOST ⚡";
-            document.querySelector('.hint-text').style.color = "rgba(255,255,255,0.3)";
+            document.querySelector('.hint-text').innerText = "⚡ 按住螢幕加速充能 ⚡";
+            document.querySelector('.hint-text').style.color = "rgba(255,255,255,0.4)";
         }
 
 
@@ -304,12 +311,13 @@
         const shipEl = document.getElementById('ship');
         const titleEl = document.querySelector('.main-title');
         
+        // 中文化狀態訊息
         const steps = [
-            { t: 6.5, msg: "INITIALIZING CORE..." },
-            { t: 5.0, msg: "SYNCING DATABASE..." },
-            { t: 3.5, msg: "CHARGING THRUSTERS..." },
-            { t: 2.0, msg: "NAVIGATION SET..." },
-            { t: 1.0, msg: "READY TO LAUNCH!" }
+            { t: 6.5, msg: "核心系統初始化..." },
+            { t: 5.0, msg: "資料庫同步中..." },
+            { t: 3.5, msg: "推進器充能中..." },
+            { t: 2.0, msg: "導航路徑已鎖定..." },
+            { t: 1.0, msg: "準備發射！" }
         ];
 
         let remaining = TOTAL_SECONDS;
@@ -339,7 +347,7 @@
             // 震動
             if (remaining < 2 && remaining > 0.5) {
                 if(!shipEl.classList.contains('shake-hard')) shipEl.classList.add('shake-hard');
-                statusEl.style.color = "#f472b6";
+                statusEl.style.color = "#f472b6"; // 警告紅
             }
 
             // 發射
