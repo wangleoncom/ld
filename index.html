@@ -3,270 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鹿 QA 系統升級中... 🚀</title>
-    
+    <title>鹿 QA 系統傳送門 🦌💨</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
-        /* 全局設定 */
         body {
             background-color: #0f172a;
             color: white;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             height: 100vh;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 1000px;
         }
 
-        /* 1. 動態星空背景 */
+        /* 背景流星雨 */
         .star {
             position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.8;
-            animation: twinkle var(--duration) ease-in-out infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* 光速線條 (發射時觸發) */
-        .warp-line {
-            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
             width: 2px;
-            height: 100vh;
-            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5), transparent);
-            opacity: 0;
-            transform: translateY(-100%);
+            height: 2px;
+            border-radius: 50%;
+            animation: star-fall linear infinite;
         }
-        
-        .warp-active .warp-line {
-            opacity: 0.8;
-            animation: warpSpeed 0.5s linear infinite;
+        @keyframes star-fall {
+            0% { transform: translateY(-10vh) scale(1); opacity: 0.8; }
+            100% { transform: translateY(110vh) scale(1.5); opacity: 0; }
         }
 
-        @keyframes warpSpeed {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
+        /* 核心卡片 */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.2);
         }
 
-        /* 2. 玻璃擬態卡片 */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* 3. 火箭動畫相關 */
-        .rocket-container {
+        /* 飛行主角容器 */
+        .fly-container {
             position: relative;
-            font-size: 5rem; /* 火箭大小 */
-            transition: transform 0.3s ease;
-            z-index: 50;
+            width: 120px;
+            height: 120px;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* 閒置時漂浮 */
-        .floating {
-            animation: float 3s ease-in-out infinite;
+        /* 頭像樣式 */
+        .avatar-glow {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.6);
+            position: relative;
+            z-index: 10;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(2deg); }
-        }
-
-        /* 發射前震動 */
-        .shaking {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
-        /* 正式發射 */
-        .launching {
-            animation: flyUp 1.2s cubic-bezier(0.5, 0, 0.5, 1) forwards;
-        }
-
-        @keyframes flyUp {
-            0% { transform: translateY(0) scale(1); filter: brightness(1); }
-            20% { transform: translateY(20px) scale(0.9); } /* 向下蓄力 */
-            100% { transform: translateY(-150vh) scale(1.5); filter: brightness(2); } /* 向上衝刺 */
-        }
-
-        /* 引擎火焰 */
-        .flame {
+        /* 尾焰效果 */
+        .thruster {
             position: absolute;
-            bottom: -20px;
+            bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 20px;
-            height: 30px;
-            background: linear-gradient(to bottom, #fbbf24, #ef4444);
-            border-radius: 50% 50% 20% 20%;
-            filter: blur(5px);
-            opacity: 0;
-            z-index: -1;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(to bottom, #fcd34d, #ef4444, transparent);
+            filter: blur(8px);
+            border-radius: 50%;
+            animation: thrust 0.1s infinite alternate;
+            z-index: 5;
+        }
+        @keyframes thrust {
+            0% { height: 40px; opacity: 0.8; }
+            100% { height: 70px; opacity: 1; }
         }
 
-        .flame-active {
-            opacity: 1;
-            animation: burn 0.1s infinite alternate;
+        /* 懸浮動畫 */
+        .floating { animation: float 2s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
-        @keyframes burn {
-            0% { height: 30px; transform: translateX(-50%) scale(1); }
-            100% { height: 60px; transform: translateX(-50%) scale(1.2); }
+        /* 發射動畫 */
+        .launch-mode {
+            animation: launch 1s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+        }
+        @keyframes launch {
+            0% { transform: scale(1) translateY(0); }
+            40% { transform: scale(0.8) translateY(20px); } /* 蓄力 */
+            100% { transform: scale(0.5) translateY(-150vh); } /* 飛走 */
         }
 
-        /* 文字消失動畫 */
-        .content-fade-out {
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 0.5s ease;
+        /* 趣味文字切換 */
+        .status-text {
+            min-height: 24px;
+            transition: opacity 0.3s;
         }
-        
-        /* 倒數計時數字動畫 */
-        .count-animate {
-            animation: countPulse 0.8s ease-out;
-        }
-        
-        @keyframes countPulse {
-            0% { transform: scale(2); opacity: 0; }
-            50% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
     </style>
 </head>
 <body>
 
-    <div id="stars-container" class="absolute inset-0 z-0"></div>
-    <div id="warp-container" class="absolute inset-0 z-0 pointer-events-none"></div>
+    <div id="stars" class="absolute inset-0 z-0"></div>
 
-    <div id="main-card" class="glass-card relative z-10 p-10 rounded-[3rem] text-center max-w-md w-full mx-4 border-t border-white/30">
+    <div id="card" class="glass-panel relative z-10 p-10 rounded-3xl text-center max-w-sm w-full mx-4 flex flex-col items-center">
         
-        <div class="flex justify-center mb-8 relative">
-            <div id="rocket" class="rocket-container floating">
-                🚀
-                <div id="engine-flame" class="flame"></div>
-            </div>
-        </div>
-
-        <div id="text-content" class="transition-all duration-500">
-            <h1 class="text-3xl font-black mb-2 bg-clip-text text-transparent bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300 drop-shadow-lg">
-                鹿 QA 網站升級
-            </h1>
+        <div id="deer-ship" class="fly-container floating mb-8">
+            <img src="./images/basic/icon.png" 
+                 onerror="this.src='https://api.dicebear.com/9.x/avataaars/svg?seed=Deer'" 
+                 class="avatar-glow">
             
-            <p class="text-blue-200 mb-6 font-medium">
-                準備前往 2026 全新系統
-            </p>
-
-            <div class="mb-8">
-                <span class="text-sm text-gray-400 uppercase tracking-widest block mb-2">Launch in</span>
-                <div id="countdown" class="text-6xl font-black text-white drop-shadow-[0_0_15px_rgba(236,72,153,0.6)]">
-                    3
-                </div>
-            </div>
-
-            <a href="https://wangleoncom.github.io/ldweb" 
-               class="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-indigo-600 font-lg rounded-full hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] focus:outline-none ring-offset-2 focus:ring-2 ring-indigo-400">
-                <span class="mr-2">立即前往</span>
-                <span class="group-hover:translate-x-1 transition-transform">➜</span>
-            </a>
+            <div class="thruster"></div>
         </div>
+
+        <h1 class="text-2xl font-bold text-white mb-2">準備前往新世界</h1>
+        
+        <div id="status-msg" class="status-text text-pink-300 text-sm font-mono mb-6">
+            正在啟動鹿角引擎...
+        </div>
+
+        <div id="countdown" class="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 mb-8 drop-shadow-lg">
+            3
+        </div>
+
+        <button onclick="skipWait()" class="px-6 py-2 rounded-full border border-white/20 text-white/50 text-xs hover:bg-white/10 transition">
+            直接跳轉 ➜
+        </button>
     </div>
 
     <script>
-        // 設定目標網址
         const TARGET_URL = "https://wangleoncom.github.io/ldweb";
-
-        // 1. 初始化星空背景
-        const starsContainer = document.getElementById('stars-container');
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = Math.random() * 3 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-            starsContainer.appendChild(star);
+        
+        // 1. 產生背景流星
+        const starContainer = document.getElementById('stars');
+        for(let i=0; i<50; i++) {
+            let s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.animationDuration = (Math.random() * 2 + 0.5) + 's'; // 隨機速度
+            s.style.animationDelay = Math.random() * 2 + 's';
+            starContainer.appendChild(s);
         }
 
-        // 2. 初始化光速線條 (準備動畫用)
-        const warpContainer = document.getElementById('warp-container');
-        for(let i=0; i<20; i++){
-            const line = document.createElement('div');
-            line.className = 'warp-line';
-            line.style.left = Math.random() * 100 + '%';
-            line.style.animationDelay = Math.random() * 0.5 + 's';
-            warpContainer.appendChild(line);
-        }
+        // 2. 趣味文字清單
+        const messages = [
+            "正在填充可愛能量...",
+            "校正 QA 資料庫...",
+            "正在招喚 AI 麋鹿...",
+            "引擎全速運轉中！"
+        ];
 
-        // 3. 倒數與發射邏輯
+        // 3. 倒數邏輯
         let timeLeft = 3;
-        const countdownEl = document.getElementById('countdown');
-        const rocketEl = document.getElementById('rocket');
-        const flameEl = document.getElementById('engine-flame');
-        const textContent = document.getElementById('text-content');
-        const mainCard = document.getElementById('main-card');
+        const countEl = document.getElementById('countdown');
+        const statusEl = document.getElementById('status-msg');
+        const ship = document.getElementById('deer-ship');
+        const card = document.getElementById('card');
 
         const timer = setInterval(() => {
             timeLeft--;
+            countEl.innerText = timeLeft;
             
-            // 更新數字並加入脈衝動畫
-            countdownEl.innerText = timeLeft;
-            countdownEl.classList.remove('count-animate');
-            void countdownEl.offsetWidth; // 觸發 reflow
-            countdownEl.classList.add('count-animate');
-
-            // 剩下 1 秒時：引擎預熱、震動開始
-            if (timeLeft === 1) {
-                rocketEl.classList.remove('floating');
-                rocketEl.classList.add('shaking');
-                flameEl.classList.add('flame-active'); // 開火
-                // 讓文字變紅一點表示緊湊
-                countdownEl.classList.add('text-red-400');
+            // 更新狀態文字
+            if(timeLeft > 0) {
+                statusEl.style.opacity = 0;
+                setTimeout(() => {
+                    statusEl.innerText = messages[3 - timeLeft];
+                    statusEl.style.opacity = 1;
+                }, 200);
             }
 
-            // 時間到：發射！
+            // 發射！
             if (timeLeft <= 0) {
                 clearInterval(timer);
-                countdownEl.innerText = "GO!";
+                countEl.innerText = "";
+                statusEl.innerText = "🚀 咻————！";
                 
-                // 1. 火箭向上衝
-                rocketEl.classList.remove('shaking');
-                rocketEl.classList.add('launching');
+                // 停止漂浮，開始發射
+                ship.classList.remove('floating');
+                ship.classList.add('launch-mode');
                 
-                // 2. 文字淡出
-                textContent.classList.add('content-fade-out');
-                
-                // 3. 背景進入光速模式
-                warpContainer.classList.add('warp-active');
-                
-                // 4. 卡片稍微縮小後消失
-                mainCard.style.transform = "scale(0.8) translateY(100px)";
-                mainCard.style.opacity = "0";
+                // 卡片往下掉 (視覺反差)
+                card.style.transform = "translateY(100px)";
+                card.style.opacity = "0";
+                card.style.transition = "all 0.8s ease";
 
-                // 5. 等待火箭飛出去後跳轉 (約 1.2 秒)
+                // 1秒後跳轉
                 setTimeout(() => {
                     window.location.href = TARGET_URL;
-                }, 1200);
+                }, 800);
             }
         }, 1000);
+
+        function skipWait() {
+            window.location.href = TARGET_URL;
+        }
     </script>
 </body>
 </html>
