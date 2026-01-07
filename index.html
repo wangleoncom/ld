@@ -3,23 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鹿 QA | 身分驗證中</title>
+    <title>鹿 QA | 系統身分驗證</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 基礎設定 --- */
+        /* --- 核心環境設定 --- */
         body {
             margin: 0;
             overflow: hidden;
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #020617; /* 深藍黑 */
+            background-color: #000510; /* 極深藍黑 */
             color: white;
-            user-select: none; /* 防止長按時選取到文字 */
+            user-select: none;
             -webkit-user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
+        /* --- 背景 Canvas 粒子 --- */
         #canvas-bg {
             position: absolute;
             top: 0;
@@ -29,175 +34,246 @@
             z-index: 0;
         }
 
-        /* --- 玻璃擬態卡片 --- */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(34, 211, 238, 0.2);
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+        /* --- 主控制台 (玻璃擬態) --- */
+        .glass-console {
             position: relative;
             z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: rgba(10, 20, 40, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 255, 255, 0.05);
+            text-align: center;
+            transition: all 0.5s ease;
+            overflow: hidden;
         }
 
-        /* --- 鹿頭像 --- */
-        .avatar-frame {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto;
-            border-radius: 50%;
-            padding: 3px;
-            background: linear-gradient(180deg, #ec4899, #8b5cf6); /* 粉紅到紫 */
-            box-shadow: 0 0 25px rgba(236, 72, 153, 0.4);
+        /* 裝飾用的科技邊角 */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #22d3ee;
+            opacity: 0.5;
+            transition: all 0.5s;
         }
-        
+        .tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 20px 0 0 0; }
+        .tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 20px 0 0; }
+        .bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 20px; }
+        .br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 20px 0; }
+
+        /* 激活狀態的邊角發光 */
+        .glass-console.active .corner {
+            opacity: 1;
+            box-shadow: 0 0 15px #22d3ee;
+            width: 100%; /* 邊框閉合動畫 */
+            height: 100%;
+            border-radius: 24px;
+        }
+
+        /* --- 區域 1: 鹿頭像 (面部掃描區) --- */
+        .avatar-section {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px auto;
+        }
+
         .avatar-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             border-radius: 50%;
-            border: 3px solid #0f172a;
-            background-color: #0f172a;
+            border: 2px solid rgba(255,255,255,0.1);
+            filter: grayscale(100%) brightness(0.5); /* 初始狀態：灰階暗淡 */
+            transition: all 0.5s;
         }
 
-        /* --- 指紋掃描區 --- */
-        .scanner-wrapper {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            margin: 30px auto;
-            cursor: pointer;
-            transition: transform 0.2s;
+        /* 掃描時的頭像狀態 */
+        .scanning-face .avatar-img {
+            filter: grayscale(0%) brightness(1); /* 恢復色彩 */
+            box-shadow: 0 0 30px rgba(34, 211, 238, 0.3);
+            border-color: #22d3ee;
         }
 
-        .scanner-wrapper:active {
-            transform: scale(0.95);
-        }
-
-        /* 指紋 SVG */
-        .fingerprint-icon {
-            fill: rgba(255, 255, 255, 0.15);
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.1));
-            transition: fill 0.3s, filter 0.3s;
-        }
-
-        /* 掃描時的狀態 */
-        .is-scanning .fingerprint-icon {
-            fill: #22d3ee; /* 青色 */
-            filter: drop-shadow(0 0 15px rgba(34, 211, 238, 0.8));
-            animation: pulse-light 1s infinite alternate;
-        }
-
-        /* 成功時的狀態 */
-        .is-success .fingerprint-icon {
-            fill: #10b981; /* 綠色 */
-            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 1));
-        }
-
-        /* 掃描光束 */
-        .scan-beam {
+        /* 面部掃描網格 (HUD) */
+        .face-hud {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: #22d3ee;
-            box-shadow: 0 0 10px #22d3ee, 0 0 20px #22d3ee;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 1px dashed rgba(34, 211, 238, 0.5);
+            border-radius: 50%;
             opacity: 0;
-            pointer-events: none;
+            transform: scale(0.8);
+            transition: all 0.3s;
         }
-
-        .is-scanning .scan-beam {
-            opacity: 1;
-            animation: scan-move 1.2s linear infinite;
-        }
-
-        /* --- 圓形進度條 SVG --- */
-        .progress-ring {
+        
+        /* 掃描光束 */
+        .face-scan-beam {
             position: absolute;
-            top: -10px;
-            left: -10px;
-            width: 160px;
-            height: 160px;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: #22d3ee;
+            box-shadow: 0 0 15px #22d3ee;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .scanning-face .face-hud {
+            opacity: 1;
+            transform: scale(1);
+            animation: spin-slow 10s linear infinite;
+        }
+
+        .scanning-face .face-scan-beam {
+            opacity: 1;
+            animation: scan-vertical 1.5s ease-in-out infinite;
+        }
+
+        /* --- 區域 2: 指紋 (互動區) --- */
+        .fingerprint-section {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 0.5s;
+        }
+
+        .fingerprint-svg {
+            fill: rgba(255, 255, 255, 0.2);
+            transition: fill 0.3s;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.05));
+        }
+
+        .fingerprint-section:active .fingerprint-svg,
+        .is-scanning .fingerprint-svg {
+            fill: #ec4899; /* 掃描時變粉紅 */
+            filter: drop-shadow(0 0 15px rgba(236, 72, 153, 0.8));
+        }
+
+        /* 成功後指紋隱藏 */
+        .scan-complete .fingerprint-section {
+            transform: scale(0);
+            height: 0;
+            margin: 0;
+            opacity: 0;
+        }
+
+        /* 指紋外圈進度 */
+        .ring-svg {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: 120px; height: 120px;
             transform: rotate(-90deg);
             pointer-events: none;
         }
-        
-        .progress-ring-circle {
+        .ring-circle {
             fill: none;
-            stroke: #22d3ee;
-            stroke-width: 4;
+            stroke: #ec4899;
+            stroke-width: 3;
             stroke-linecap: round;
-            stroke-dasharray: 440; /* 圓周長 */
-            stroke-dashoffset: 440; /* 初始隱藏 */
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
             transition: stroke-dashoffset 0.1s linear;
         }
 
-        .is-success .progress-ring-circle {
-            stroke: #10b981; /* 變綠 */
+        /* --- 區域 3: 系統進度條 (最後出現) --- */
+        .loader-section {
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s;
+            margin-top: 0;
+        }
+        
+        .loader-visible .loader-section {
+            height: auto;
+            opacity: 1;
+            margin-top: 20px;
         }
 
-        /* --- 按鈕樣式 --- */
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #22d3ee, #8b5cf6);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.6);
+            transition: width 0.1s linear;
+        }
+
+        /* --- 文字與按鈕 --- */
+        h1 {
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+        }
+        
+        .status-text {
+            font-family: monospace; /* 電腦終端機風格 */
+            min-height: 24px;
+            color: #94a3b8;
+        }
+
+        .blink { animation: blinker 0.5s infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
         .skip-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.6);
-            transition: all 0.3s;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: 0.3s;
         }
-        .skip-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-color: white;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        }
+        .skip-btn:hover { color: white; }
 
-        /* --- 動畫定義 --- */
-        @keyframes scan-move {
-            0% { top: 5%; opacity: 0; }
+        /* --- Keyframes --- */
+        @keyframes scan-vertical {
+            0% { top: 0%; opacity: 0; }
             20% { opacity: 1; }
             80% { opacity: 1; }
-            100% { top: 95%; opacity: 0; }
+            100% { top: 100%; opacity: 0; }
         }
-
-        @keyframes pulse-light {
-            from { filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.5)); }
-            to { filter: drop-shadow(0 0 20px rgba(34, 211, 238, 1)); }
+        @keyframes spin-slow {
+            100% { transform: rotate(360deg); }
         }
-
-        /* 文字閃爍 */
-        .blink { animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0.3; } }
 
     </style>
 </head>
-<body class="flex items-center justify-center h-screen">
+<body>
 
     <canvas id="canvas-bg"></canvas>
 
-    <div class="glass-panel w-full max-w-sm p-8 rounded-3xl text-center mx-4 flex flex-col items-center">
-        
-        <div class="avatar-frame mb-4 relative z-20">
-            <img src="./icon.png" 
+    <div class="glass-console" id="console-panel">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+
+        <h1 class="text-2xl font-black text-white mb-2">鹿 QA 網站</h1>
+        <p class="text-xs text-cyan-400 font-bold tracking-[0.3em] mb-6">安全訪問系統 2.0</p>
+
+        <div class="avatar-section" id="avatar-section">
+            <div class="face-hud"></div> <div class="face-scan-beam"></div> <img src="./icon.png" 
                  onerror="this.src='https://ui-avatars.com/api/?name=Deer&background=0D8ABC&color=fff&size=128'" 
-                 alt="Deer Icon" 
+                 alt="Deer" 
                  class="avatar-img">
         </div>
 
-        <h1 class="text-2xl font-black text-white mb-1 tracking-wider">鹿🦌的QA網站</h1>
-        <p class="text-pink-400 text-sm font-bold tracking-widest mb-6">系統升級 2026</p>
+        <div id="status-text" class="status-text text-sm mb-6">等待麋鹿指紋驗證...</div>
 
-        <div class="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-4"></div>
-
-        <p class="text-gray-300 text-sm mb-2" id="instruction">長按指紋驗證「麋鹿」身分</p>
-
-        <div id="scanner" class="scanner-wrapper">
-            <svg class="progress-ring">
-                <circle class="progress-ring-circle" cx="80" cy="80" r="70" id="progress-circle"></circle>
+        <div class="fingerprint-section" id="fingerprint-btn">
+            <svg class="ring-svg">
+                <circle class="ring-circle" cx="60" cy="60" r="58" id="fp-ring"></circle>
             </svg>
-
-            <div class="scan-beam"></div>
-            
-            <svg class="fingerprint-icon w-full h-full" viewBox="0 0 24 24">
+            <svg class="fingerprint-svg w-full h-full" viewBox="0 0 24 24">
                 <path d="M17.81,4.43c-2.43-1.89-5.74-2.18-8.23-1.42c-0.5,0.15-0.79,0.68-0.64,1.18c0.15,0.5,0.68,0.79,1.18,0.64
                     c2.06-0.63,4.72-0.4,6.67,1.11c0.42,0.32,1.02,0.25,1.35-0.17C18.46,5.36,18.39,4.75,17.81,4.43z M12,22c-0.55,0-1-0.45-1-1
                     c0-2.45-1.02-3.32-1.92-4.08c-0.84-0.72-1.58-1.35-1.58-2.92c0-2.48,2.02-4.5,4.5-4.5s4.5,2.02,4.5,4.5c0,0.55,0.45,1,1,1
@@ -215,141 +291,196 @@
             </svg>
         </div>
 
-        <p id="status-text" class="text-cyan-400 font-mono font-bold text-lg h-6 mb-8 tracking-widest blink">等待驗證...</p>
+        <div class="loader-section" id="loader-section">
+            <div class="flex justify-between text-xs text-cyan-300 mb-1">
+                <span>SYSTEM LOADING</span>
+                <span id="load-percent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="final-progress"></div>
+            </div>
+        </div>
 
-        <button onclick="goToNewSite()" 
-           class="skip-btn w-full py-3 rounded-xl text-sm tracking-widest cursor-pointer hover:bg-white/10">
-            [ 跳過並直接進入 ]
-        </button>
+        <button onclick="redirectNow()" class="skip-btn">[ 跳過動畫直接進入 ]</button>
     </div>
 
     <script>
         const NEW_URL = "https://wangleoncom.github.io/ldweb";
-        
-        // --- 指紋辨識邏輯 ---
-        const scanner = document.getElementById('scanner');
-        const progressCircle = document.getElementById('progress-circle');
+
+        // DOM 元素
+        const consolePanel = document.getElementById('console-panel');
+        const fpBtn = document.getElementById('fingerprint-btn');
+        const fpRing = document.getElementById('fp-ring');
         const statusText = document.getElementById('status-text');
-        const instruction = document.getElementById('instruction');
+        const avatarSection = document.getElementById('avatar-section');
+        const loaderSection = document.getElementById('loader-section'); // 修正 ID
+        const finalProgress = document.getElementById('final-progress');
+        const loadPercent = document.getElementById('load-percent');
 
-        // 圓周長 = 2 * PI * R (70) ~= 440
-        const circumference = 440;
-        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-        progressCircle.style.strokeDashoffset = circumference;
-
-        let progress = 0;
-        let animationFrame;
+        // 狀態變數
         let isHolding = false;
+        let fpProgress = 0;
+        let animationFrame;
+        let systemState = 0; // 0:指紋, 1:面部, 2:載入
 
-        function startScan(e) {
-            e.preventDefault(); // 防止手機上出現選單
+        // 初始化指紋圈圈
+        const ringCircumference = 377;
+        fpRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
+        fpRing.style.strokeDashoffset = ringCircumference;
+
+        // --- 階段 1: 指紋驗證邏輯 ---
+        function startFpScan(e) {
+            if (systemState !== 0) return;
+            e.preventDefault();
             isHolding = true;
-            scanner.classList.add('is-scanning');
-            statusText.innerText = "驗證麋鹿身分中...";
-            statusText.classList.remove('blink');
-            instruction.style.opacity = '0.5';
-
-            // 手機震動回饋 (如果裝置支援)
+            fpBtn.classList.add('is-scanning');
+            statusText.innerText = "正在讀取生物特徵...";
+            statusText.style.color = "#ec4899"; // 粉紅
+            
             if (navigator.vibrate) navigator.vibrate(50);
-
-            // 開始跑進度
-            tick();
+            tickFp();
         }
 
-        function stopScan() {
+        function stopFpScan() {
+            if (systemState !== 0) return;
             isHolding = false;
             cancelAnimationFrame(animationFrame);
-            
-            // 如果還沒完成就放開，重置
-            if (progress < 100) {
-                scanner.classList.remove('is-scanning');
-                statusText.innerText = "驗證失敗，請重新按壓";
-                statusText.classList.add('blink');
-                statusText.style.color = "#ef4444"; // 紅色
-                instruction.style.opacity = '1';
+            fpBtn.classList.remove('is-scanning');
+
+            if (fpProgress < 100) {
+                // 失敗回退
+                statusText.innerText = "驗證中斷，請重新按壓";
+                statusText.style.color = "#ef4444";
                 
-                // 慢慢退回進度
-                const resetInterval = setInterval(() => {
-                    progress -= 5;
-                    if (progress <= 0) {
-                        progress = 0;
-                        statusText.innerText = "等待驗證...";
-                        statusText.style.color = "#22d3ee"; // 回復青色
-                        clearInterval(resetInterval);
+                let retreat = setInterval(() => {
+                    fpProgress -= 5;
+                    if (fpProgress <= 0) {
+                        fpProgress = 0;
+                        statusText.innerText = "等待麋鹿指紋驗證...";
+                        statusText.style.color = "#94a3b8";
+                        clearInterval(retreat);
                     }
-                    updateCircle(progress);
+                    updateFpRing(fpProgress);
                 }, 10);
             }
         }
 
-        function tick() {
+        function tickFp() {
             if (!isHolding) return;
+            fpProgress += 2; // 指紋速度
+            updateFpRing(fpProgress);
 
-            progress += 1.5; // 調整這個數字可以改變掃描速度
-            
-            // 隨機震動效果 (模擬掃描雜訊)
-            if (navigator.vibrate && Math.random() > 0.7) navigator.vibrate(10);
-
-            if (progress >= 100) {
-                progress = 100;
-                scanComplete();
+            if (fpProgress >= 100) {
+                systemState = 1;
+                finishFpStage();
             } else {
-                updateCircle(progress);
-                animationFrame = requestAnimationFrame(tick);
+                animationFrame = requestAnimationFrame(tickFp);
             }
         }
 
-        function updateCircle(percent) {
-            const offset = circumference - (percent / 100) * circumference;
-            progressCircle.style.strokeDashoffset = offset;
-            // 根據進度顯示百分比
-            if(isHolding) statusText.innerText = `身分分析: ${Math.floor(percent)}%`;
+        function updateFpRing(percent) {
+            const offset = ringCircumference - (percent / 100) * ringCircumference;
+            fpRing.style.strokeDashoffset = offset;
         }
 
-        function scanComplete() {
-            isHolding = false; // 鎖定狀態
-            scanner.classList.remove('is-scanning');
-            scanner.classList.add('is-success');
-            statusText.innerText = "驗證通過：麋鹿確認";
+        function finishFpStage() {
+            // 指紋成功
+            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            statusText.innerText = "指紋確認：符合麋鹿特徵";
             statusText.style.color = "#10b981"; // 綠色
-            statusText.classList.add('blink');
             
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // 成功震動模式
-
-            instruction.innerText = "即將進入鹿 QA 網站...";
-            instruction.style.opacity = '1';
-            instruction.style.color = "#10b981";
-
+            // UI 變換：隱藏指紋，進入面部掃描
+            consolePanel.classList.add('scan-complete'); // 隱藏指紋按鈕
+            
             setTimeout(() => {
-                goToNewSite();
-            }, 1000);
-        }
-
-        // 綁定事件 (支援滑鼠與觸控)
-        scanner.addEventListener('mousedown', startScan);
-        scanner.addEventListener('touchstart', startScan);
-
-        window.addEventListener('mouseup', stopScan);
-        window.addEventListener('touchend', stopScan);
-
-        // --- 核心轉址 ---
-        function goToNewSite() {
-            document.body.style.transition = "opacity 0.8s";
-            document.body.style.opacity = "0";
-            setTimeout(() => {
-                window.location.replace(NEW_URL);
+                startFaceScanStage();
             }, 800);
         }
 
-        // --- 背景粒子特效 (簡化版) ---
+        // --- 階段 2: 面部掃描邏輯 ---
+        function startFaceScanStage() {
+            statusText.innerText = "啟動鹿臉部識別掃描...";
+            statusText.style.color = "#22d3ee"; // 青色
+            
+            // 激活頭像動畫
+            avatarSection.classList.add('scanning-face');
+            
+            // 播放掃描音效感 (視覺)
+            consolePanel.classList.add('active'); // 邊框發光
+
+            // 模擬分析過程 (2秒)
+            let textSteps = ["正在分析鹿角結構...", "比對資料庫...", "確認身分：麋鹿"];
+            let step = 0;
+            
+            let scanInterval = setInterval(() => {
+                if (step < textSteps.length) {
+                    statusText.innerText = textSteps[step];
+                    statusText.classList.add('blink'); // 文字閃爍
+                    setTimeout(() => statusText.classList.remove('blink'), 200);
+                    step++;
+                } else {
+                    clearInterval(scanInterval);
+                    finishFaceScanStage();
+                }
+            }, 800);
+        }
+
+        function finishFaceScanStage() {
+            statusText.innerText = "身分驗證完全通過！";
+            statusText.style.color = "#10b981";
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            setTimeout(() => {
+                startFinalLoadingStage();
+            }, 500);
+        }
+
+        // --- 階段 3: 最終進度條邏輯 ---
+        function startFinalLoadingStage() {
+            systemState = 2;
+            document.body.classList.add('loader-visible'); // CSS Class helper
+            loaderSection.parentElement.classList.add('loader-visible'); // 讓 loader 顯示
+
+            statusText.innerText = "正在初始化新版系統...";
+            statusText.style.color = "white";
+
+            let loadP = 0;
+            let loadTimer = setInterval(() => {
+                loadP += Math.random() * 5; // 隨機速度
+                if (loadP > 100) loadP = 100;
+                
+                finalProgress.style.width = loadP + "%";
+                loadPercent.innerText = Math.floor(loadP) + "%";
+
+                if (loadP === 100) {
+                    clearInterval(loadTimer);
+                    statusText.innerText = "準備傳送...";
+                    setTimeout(redirectNow, 500);
+                }
+            }, 100);
+        }
+
+        // --- 最終跳轉 ---
+        function redirectNow() {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 1s ease';
+            setTimeout(() => {
+                window.location.replace(NEW_URL);
+            }, 1000);
+        }
+
+        // 綁定事件
+        fpBtn.addEventListener('mousedown', startFpScan);
+        fpBtn.addEventListener('touchstart', startFpScan);
+        window.addEventListener('mouseup', stopFpScan);
+        window.addEventListener('touchend', stopFpScan);
+
+        // --- 背景粒子特效 ---
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         let particles = [];
         
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
 
@@ -364,39 +495,31 @@
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                if (this.x > canvas.width) this.x = 0;
-                if (this.x < 0) this.x = canvas.width;
-                if (this.y > canvas.height) this.y = 0;
-                if (this.y < 0) this.y = canvas.height;
+                if (this.x > canvas.width) this.x = 0; else if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0; else if (this.y < 0) this.y = canvas.height;
             }
             draw() {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.fillStyle = 'rgba(34, 211, 238, 0.3)';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
 
-        function initParticles() {
-            for (let i = 0; i < 60; i++) particles.push(new Particle());
-        }
+        function initParticles() { for (let i = 0; i < 80; i++) particles.push(new Particle()); }
         initParticles();
-
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-            }
+            particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animate);
         }
         animate();
 
         // 防回頭
         window.history.pushState(null, "", window.location.href);
-        window.onpopstate = function() {
+        window.onpopstate = () => {
             window.history.pushState(null, "", window.location.href);
-            goToNewSite();
+            redirectNow();
         };
     </script>
 </body>
