@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系統升級中 | Redirecting...</title>
+    <title>鹿 QA | System Link...</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 全局設定 --- */
+        /* --- 基礎設定 --- */
         body {
             margin: 0;
             overflow: hidden;
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #0f172a;
+            background-color: #050b14;
+            color: white;
+            perspective: 1000px; /* 3D 透視深度 */
         }
 
         /* --- 背景 Canvas --- */
@@ -27,209 +29,249 @@
             z-index: 0;
         }
 
-        /* --- 玻璃擬態卡片特效 --- */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
-                        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px);
+        /* --- 3D 互動卡片容器 --- */
+        .tilt-card {
+            background: rgba(20, 30, 60, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 20px rgba(255, 255, 255, 0.05),
+                0 0 20px rgba(99, 102, 241, 0.3); /* 紫光暈 */
+            transform-style: preserve-3d;
+            transform: rotateX(0deg) rotateY(0deg);
+            transition: transform 0.1s ease-out; /* 平滑跟隨 */
         }
 
-        /* --- 酷炫讀取圈 (Loader) --- */
-        .cyber-loader {
+        /* --- 鹿頭像特效 (全像投影感) --- */
+        .avatar-container {
             position: relative;
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 30px;
-        }
-        
-        .cyber-loader::before, .cyber-loader::after {
-            content: "";
-            position: absolute;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
             border-radius: 50%;
-            border: 3px solid transparent;
-        }
-        
-        /* 外圈 */
-        .cyber-loader::before {
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-top-color: #ec4899; /* Pink */
-            border-bottom-color: #8b5cf6; /* Violet */
-            animation: spin 1.5s linear infinite;
-            filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.8));
-        }
-        
-        /* 內圈 */
-        .cyber-loader::after {
-            top: 10px; left: 10px; right: 10px; bottom: 10px;
-            border-left-color: #06b6d4; /* Cyan */
-            border-right-color: #3b82f6; /* Blue */
-            animation: spin-reverse 2s linear infinite;
-            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+            padding: 4px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+            transform: translateZ(40px); /* 3D 突起 */
         }
 
-        /* --- 文字流光特效 --- */
-        .gradient-text {
-            background: linear-gradient(to right, #f472b6, #c084fc, #22d3ee);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            background-size: 200% auto;
-            animation: textShine 3s linear infinite;
-        }
-
-        /* --- 按鈕流光特效 --- */
-        .shine-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .shine-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
+        .avatar-img {
             width: 100%;
             height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
-            transition: 0.5s;
-        }
-        
-        .shine-btn:hover::before {
-            left: 100%;
-            transition: 0.5s;
-        }
-
-        .shine-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-        }
-
-        /* --- 倒數數字心跳 --- */
-        #countdown {
-            display: inline-block;
-            animation: heartbeat 1s ease-in-out infinite;
-            color: #22d3ee;
-            text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
-        }
-
-        /* --- Keyframes 動畫定義 --- */
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes spin-reverse { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
-        
-        @keyframes textShine {
-            to { background-position: 200% center; }
-        }
-
-        @keyframes cardEntrance {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        /* 裝飾用的漂浮光球 */
-        .orb {
-            position: absolute;
+            object-fit: cover;
             border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.6;
-            animation: float 10s infinite ease-in-out;
+            border: 4px solid #0f172a;
+            position: relative;
+            z-index: 2;
         }
-        .orb-1 { width: 300px; height: 300px; background: #4c1d95; top: -50px; left: -50px; animation-delay: 0s; }
-        .orb-2 { width: 400px; height: 400px; background: #be185d; bottom: -100px; right: -100px; animation-delay: -5s; }
 
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(30px, -30px); }
+        /* 掃描線動畫 */
+        .scanner-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, transparent 40%, rgba(34, 211, 238, 0.6) 50%, transparent 60%);
+            background-size: 100% 200%;
+            animation: scan 3s linear infinite;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0.5;
         }
+
+        /* --- 進度條 --- */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            overflow: hidden;
+            height: 6px;
+            margin-top: 20px;
+            position: relative;
+            transform: translateZ(20px);
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ec4899, #8b5cf6, #22d3ee);
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.7);
+            transition: width 0.1s linear;
+        }
+
+        /* --- 文字與按鈕 --- */
+        h1 {
+            font-family: 'Orbitron', sans-serif; /* 科幻字體 */
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            transform: translateZ(30px);
+        }
+
+        .desc {
+            transform: translateZ(25px);
+        }
+
+        .warp-btn {
+            background: linear-gradient(90deg, #db2777, #7c3aed);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            transform: translateZ(35px); /* 按鈕最突出 */
+        }
+        
+        .warp-btn:hover {
+            transform: translateZ(45px) scale(1.05);
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.8);
+        }
+
+        .warp-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .warp-btn:active::after {
+            opacity: 1;
+            transform: scale(1);
+            transition: 0s;
+        }
+
+        /* --- 動畫 Keyframes --- */
+        @keyframes scan {
+            0% { background-position: 0% -100%; }
+            100% { background-position: 0% 200%; }
+        }
+
     </style>
 </head>
-<body class="flex items-center justify-center h-screen relative">
+<body class="flex items-center justify-center h-screen">
 
     <canvas id="canvas-bg"></canvas>
 
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+    <div id="card" class="tilt-card relative z-10 w-full max-w-lg p-10 rounded-3xl text-center mx-4">
+        
+        <div class="avatar-container mb-6">
+            <img src="./icon.png" 
+                 onerror="this.src='https://ui-avatars.com/api/?name=Deer+QA&background=0D8ABC&color=fff&size=128'" 
+                 alt="Deer Logo" 
+                 class="avatar-img">
+            <div class="scanner-line"></div>
+        </div>
 
-    <div class="glass-card relative z-10 max-w-md w-full p-10 rounded-3xl text-center mx-4">
-        
-        <div class="cyber-loader"></div>
-        
-        <h1 class="text-4xl font-black mb-4 tracking-wide text-white drop-shadow-lg">
-            鹿 QA <span class="gradient-text">系統進化</span>
+        <h1 class="text-3xl font-black mb-2 text-white">
+            DEER QA <span class="text-cyan-400">SYSTEM</span>
         </h1>
-        
-        <p class="text-lg text-gray-300 mb-8 font-light leading-relaxed">
-            我們已完成核心升級，正在帶您前往<br>
-            <span class="text-white font-bold">2026 全新體驗版</span> 🚀
+
+        <p class="desc text-gray-300 mb-8 font-light leading-relaxed">
+            系統核心升級完畢。<br>
+            正在建立與 <span class="text-pink-400 font-bold">2026 新版資料庫</span> 的神經連結...
         </p>
-        
-        <div class="mb-10 py-2 px-4 bg-white/5 rounded-lg border border-white/10 inline-block">
-            <p class="text-sm text-gray-400 uppercase tracking-widest mb-1">Redirecting in</p>
-            <span class="text-4xl font-mono font-bold" id="countdown">3</span>
+
+        <div class="flex justify-between text-xs text-cyan-300 font-mono mb-1 tracking-widest px-1">
+            <span id="status-text">INITIALIZING...</span>
+            <span id="percent-text">0%</span>
+        </div>
+
+        <div class="progress-container mb-10">
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
 
         <button onclick="goToNewSite()" 
-           class="shine-btn w-full py-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg border border-white/20 text-lg tracking-wider hover:from-pink-500 hover:to-indigo-500">
-            立即啟航 ➜
+           class="warp-btn w-full py-4 text-white font-bold rounded-xl shadow-lg border border-white/20 text-lg tracking-widest cursor-pointer">
+            立即啟動連結 ➜
         </button>
         
-        <p class="mt-6 text-xs text-gray-500">
-            安全連線建立中 | 自動導向
+        <p class="mt-6 text-xs text-gray-500 font-mono desc">
+            ID: WANG-LEON-2026 // SECURE CONNECTION
         </p>
     </div>
 
     <script>
         const NEW_URL = "https://wangleoncom.github.io/ldweb";
-
-        // --- 核心導向邏輯 ---
+        const DURATION_MS = 10000; // 10秒 (給使用者更多時間玩互動)
+        
+        // --- 核心邏輯：轉址 ---
         function goToNewSite() {
-            document.body.style.opacity = '0'; // 離開前淡出效果
-            document.body.style.transition = 'opacity 0.5s ease';
+            // 點擊時的特效：卡片瞬間縮小再放大，然後淡出
+            const card = document.getElementById('card');
+            card.style.transform = "scale(0.9) rotateX(0) rotateY(0)";
+            card.style.opacity = "0";
+            card.style.transition = "all 0.4s ease-in";
+            
             setTimeout(() => {
                 window.location.replace(NEW_URL);
-            }, 500);
+            }, 400);
         }
 
-        let seconds = 3;
-        const countdownEl = document.getElementById('countdown');
-        
-        const timer = setInterval(() => {
-            seconds--;
-            countdownEl.innerText = seconds;
-            if (seconds <= 0) {
-                clearInterval(timer);
-                goToNewSite();
-            }
-        }, 1000);
+        // --- 核心邏輯：進度條 ---
+        let startTime = null;
+        const progressBar = document.getElementById('progress-bar');
+        const percentText = document.getElementById('percent-text');
+        const statusText = document.getElementById('status-text');
 
-        // 防回頭機制
+        function updateProgress(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            let progress = Math.min(elapsed / DURATION_MS, 1);
+
+            // 更新 UI
+            const percent = Math.floor(progress * 100);
+            progressBar.style.width = percent + '%';
+            percentText.innerText = percent + '%';
+
+            // 更改文字狀態
+            if (progress < 0.3) statusText.innerText = "LOADING ASSETS...";
+            else if (progress < 0.7) statusText.innerText = "SYNCING DATA...";
+            else if (progress < 1.0) statusText.innerText = "FINALIZING...";
+            else {
+                statusText.innerText = "READY TO LAUNCH";
+                goToNewSite(); // 時間到自動跳轉
+                return; 
+            }
+
+            if (progress < 1) requestAnimationFrame(updateProgress);
+        }
+        requestAnimationFrame(updateProgress);
+
+        // --- 防回頭 ---
         window.history.pushState(null, "", window.location.href);
         window.onpopstate = function() {
             window.history.pushState(null, "", window.location.href);
-            window.location.replace(NEW_URL);
+            goToNewSite();
         };
 
-        // --- 背景粒子特效邏輯 (Canvas) ---
+        // --- 互動特效 1: 3D 卡片傾斜 (Tilt Effect) ---
+        const card = document.getElementById('card');
+        
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25; // 除數越小，傾斜越劇烈
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            
+            // 只有當游標在卡片附近時才強烈反應，或全螢幕反應皆可，這裡設為全螢幕反應但幅度小
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        // --- 互動特效 2: Canvas 粒子與滑鼠連線 ---
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         let particles = [];
-        
+        // 紀錄滑鼠位置
+        let mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -242,23 +284,29 @@
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
                 this.size = Math.random() * 2;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.speedY = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.1;
+                this.speedX = (Math.random() * 1.5 - 0.75); // 速度加快一點
+                this.speedY = (Math.random() * 1.5 - 0.75);
             }
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-                if (this.size > 0.2) this.size -= 0.01; // 閃爍效果
-                if (this.size <= 0.2) this.size = Math.random() * 2.5;
 
-                if (this.x > canvas.width) this.x = 0;
-                if (this.x < 0) this.x = canvas.width;
-                if (this.y > canvas.height) this.y = 0;
-                if (this.y < 0) this.y = canvas.height;
+                // 邊界反彈
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+                // 滑鼠互動：如果粒子靠近滑鼠，會稍微被排斥或吸引 (這裡做吸引效果)
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius) {
+                    // 輕微吸引
+                     /* this.x += dx * 0.01;
+                        this.y += dy * 0.01; */
+                }
             }
             draw() {
-                ctx.fillStyle = `rgba(147, 197, 253, ${this.opacity})`; // 淺藍色粒子
+                ctx.fillStyle = '#67e8f9'; // Cyan
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -267,42 +315,53 @@
 
         function initParticles() {
             particles = [];
-            for (let i = 0; i < 100; i++) {
+            let numberOfParticles = (canvas.height * canvas.width) / 9000; // 根據螢幕大小決定數量
+            for (let i = 0; i < numberOfParticles; i++) {
                 particles.push(new Particle());
             }
         }
         initParticles();
 
-        function animate() {
+        function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = 0; i < particles.length; i++) {
                 particles[i].update();
                 particles[i].draw();
             }
-            // 連結線效果
             connectParticles();
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateParticles);
         }
 
         function connectParticles() {
+            let opacityValue = 1;
             for (let a = 0; a < particles.length; a++) {
+                // 1. 粒子之間的連線
                 for (let b = a; b < particles.length; b++) {
-                    let dx = particles[a].x - particles[b].x;
-                    let dy = particles[a].y - particles[b].y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < 100) {
-                        ctx.strokeStyle = `rgba(147, 197, 253, ${0.1 - distance/1000})`;
-                        ctx.lineWidth = 0.5;
+                    let distance = ((particles[a].x - particles[b].x) ** 2) + ((particles[a].y - particles[b].y) ** 2);
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance / 20000);
+                        ctx.strokeStyle = `rgba(103, 232, 249, ${opacityValue * 0.2})`; // 淡藍色線
+                        ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(particles[a].x, particles[a].y);
                         ctx.lineTo(particles[b].x, particles[b].y);
                         ctx.stroke();
                     }
                 }
+                
+                // 2. 粒子與滑鼠的連線 (增加互動感)
+                let mouseDistance = ((particles[a].x - mouse.x) ** 2) + ((particles[a].y - mouse.y) ** 2);
+                if (mouseDistance < 20000) { // 連結範圍
+                    ctx.strokeStyle = `rgba(236, 72, 153, 0.4)`; // 粉紅色線連結滑鼠
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                }
             }
         }
-        animate();
+        animateParticles();
     </script>
 </body>
 </html>
