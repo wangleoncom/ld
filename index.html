@@ -3,62 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>正在前往新版系統...</title>
+    <title>系統升級中 | Redirecting...</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
+        /* --- 全局設定 --- */
         body {
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin: 0;
             overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
         }
-        .loader {
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-left-color: #ec4899;
+
+        /* --- 背景 Canvas --- */
+        #canvas-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* --- 玻璃擬態卡片特效 --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        /* --- 酷炫讀取圈 (Loader) --- */
+        .cyber-loader {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+        }
+        
+        .cyber-loader::before, .cyber-loader::after {
+            content: "";
+            position: absolute;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
+            border: 3px solid transparent;
         }
+        
+        /* 外圈 */
+        .cyber-loader::before {
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-top-color: #ec4899; /* Pink */
+            border-bottom-color: #8b5cf6; /* Violet */
+            animation: spin 1.5s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(236, 72, 153, 0.8));
+        }
+        
+        /* 內圈 */
+        .cyber-loader::after {
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-left-color: #06b6d4; /* Cyan */
+            border-right-color: #3b82f6; /* Blue */
+            animation: spin-reverse 2s linear infinite;
+            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+        }
+
+        /* --- 文字流光特效 --- */
+        .gradient-text {
+            background: linear-gradient(to right, #f472b6, #c084fc, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% auto;
+            animation: textShine 3s linear infinite;
+        }
+
+        /* --- 按鈕流光特效 --- */
+        .shine-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .shine-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transition: 0.5s;
+        }
+        
+        .shine-btn:hover::before {
+            left: 100%;
+            transition: 0.5s;
+        }
+
+        .shine-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+        }
+
+        /* --- 倒數數字心跳 --- */
+        #countdown {
+            display: inline-block;
+            animation: heartbeat 1s ease-in-out infinite;
+            color: #22d3ee;
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+        }
+
+        /* --- Keyframes 動畫定義 --- */
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+        
+        @keyframes textShine {
+            to { background-position: 200% center; }
+        }
+
+        @keyframes cardEntrance {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* 裝飾用的漂浮光球 */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
+        }
+        .orb-1 { width: 300px; height: 300px; background: #4c1d95; top: -50px; left: -50px; animation-delay: 0s; }
+        .orb-2 { width: 400px; height: 400px; background: #be185d; bottom: -100px; right: -100px; animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
     </style>
 </head>
-<body class="text-center p-6">
+<body class="flex items-center justify-center h-screen relative">
 
-    <div class="max-w-md w-full bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl">
-        <div class="loader"></div>
+    <canvas id="canvas-bg"></canvas>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="glass-card relative z-10 max-w-md w-full p-10 rounded-3xl text-center mx-4">
         
-        <h1 class="text-3xl font-bold mb-2">鹿 QA 網站升級囉！</h1>
-        <p class="text-lg text-white/80 mb-6">
-            我們已遷移至 <span class="text-pink-400 font-bold">2026 全新系統</span> 🚀
+        <div class="cyber-loader"></div>
+        
+        <h1 class="text-4xl font-black mb-4 tracking-wide text-white drop-shadow-lg">
+            鹿 QA <span class="gradient-text">系統進化</span>
+        </h1>
+        
+        <p class="text-lg text-gray-300 mb-8 font-light leading-relaxed">
+            我們已完成核心升級，正在帶您前往<br>
+            <span class="text-white font-bold">2026 全新體驗版</span> 🚀
         </p>
         
-        <p class="text-sm text-gray-300 mb-8">
-            正在為您導向新頁面... (<span id="countdown">3</span>)
-        </p>
+        <div class="mb-10 py-2 px-4 bg-white/5 rounded-lg border border-white/10 inline-block">
+            <p class="text-sm text-gray-400 uppercase tracking-widest mb-1">Redirecting in</p>
+            <span class="text-4xl font-mono font-bold" id="countdown">3</span>
+        </div>
 
         <button onclick="goToNewSite()" 
-           class="inline-block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer">
-            立即前往新版網站 ➜
+           class="shine-btn w-full py-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg border border-white/20 text-lg tracking-wider hover:from-pink-500 hover:to-indigo-500">
+            立即啟航 ➜
         </button>
+        
+        <p class="mt-6 text-xs text-gray-500">
+            安全連線建立中 | 自動導向
+        </p>
     </div>
 
     <script>
         const NEW_URL = "https://wangleoncom.github.io/ldweb";
 
-        // 定義跳轉函式：使用 replace 來「替換」歷史紀錄
+        // --- 核心導向邏輯 ---
         function goToNewSite() {
-            window.location.replace(NEW_URL);
+            document.body.style.opacity = '0'; // 離開前淡出效果
+            document.body.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                window.location.replace(NEW_URL);
+            }, 500);
         }
 
-        // 倒數計時邏輯
         let seconds = 3;
         const countdownEl = document.getElementById('countdown');
         
@@ -67,19 +214,95 @@
             countdownEl.innerText = seconds;
             if (seconds <= 0) {
                 clearInterval(timer);
-                goToNewSite(); // 時間到執行替換
+                goToNewSite();
             }
         }, 1000);
 
-        // ★★★ 強制防回頭機制 (額外保險) ★★★
-        // 當這個頁面載入時，先塞一個狀態進去，如果用戶按上一頁，會被這個事件攔截
+        // 防回頭機制
         window.history.pushState(null, "", window.location.href);
         window.onpopstate = function() {
             window.history.pushState(null, "", window.location.href);
-            // 如果用戶硬要按上一頁，直接送他去新網站
             window.location.replace(NEW_URL);
         };
-    </script>
 
+        // --- 背景粒子特效邏輯 (Canvas) ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.01; // 閃爍效果
+                if (this.size <= 0.2) this.size = Math.random() * 2.5;
+
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(147, 197, 253, ${this.opacity})`; // 淺藍色粒子
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            // 連結線效果
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        function connectParticles() {
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a; b < particles.length; b++) {
+                    let dx = particles[a].x - particles[b].x;
+                    let dy = particles[a].y - particles[b].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 100) {
+                        ctx.strokeStyle = `rgba(147, 197, 253, ${0.1 - distance/1000})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        animate();
+    </script>
 </body>
 </html>
