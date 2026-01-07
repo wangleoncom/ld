@@ -3,380 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鹿 QA 系統啟動中...</title>
+    <title>正在前往新版系統...</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <style>
-        /* --- 基礎設定 --- */
         body {
-            background-color: #050505;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
             color: white;
-            /* 優先使用微軟正黑體以確保中文顯示美觀 */
-            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             height: 100vh;
-            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 1200px;
-            user-select: none; /* 防止選取文字 */
-            cursor: progress;
+            overflow: hidden;
         }
-
-        /* --- Canvas --- */
-        canvas {
-            position: absolute;
-            top: 0; left: 0;
-            z-index: 0;
-            opacity: 0.8;
-            transition: filter 0.2s;
-        }
-
-        /* --- 核心容器 --- */
-        .hud-container {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 500px; /* 稍微加寬以容納中文 */
-            transition: transform 0.1s;
-        }
-
-        /* --- 麋鹿反應堆 --- */
-        .reactor-core {
-            position: relative;
-            width: 140px; height: 140px;
-            margin-bottom: 2rem;
-            transform-style: preserve-3d;
-        }
-
-        .avatar-img {
-            width: 100%; height: 100%;
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #ec4899;
             border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 50px rgba(236, 72, 153, 0.4);
-            position: relative; z-index: 2;
-            animation: float 4s ease-in-out infinite;
-            transition: box-shadow 0.2s;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
         }
-
-        .energy-ring {
-            position: absolute; top: -10%; left: -10%;
-            width: 120%; height: 120%;
-            border-radius: 50%;
-            border: 1px dashed rgba(255, 255, 255, 0.3);
-            border-top: 1px solid rgba(236, 72, 153, 0.8);
-            border-bottom: 1px solid rgba(168, 85, 247, 0.8);
-            animation: spin 10s linear infinite;
-            z-index: 1;
-        }
-
-        .scanner-line {
-            position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(180deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%, transparent 55%);
-            background-size: 100% 200%;
-            animation: scan 3s linear infinite;
-            z-index: 3; pointer-events: none; mix-blend-mode: overlay;
-        }
-
-        /* --- 動畫定義 --- */
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes scan { 0% { background-position: 0% 0%; } 100% { background-position: 0% 200%; } }
-
-        /* 故障雜訊文字效果 */
-        .glitch-text {
-            position: relative;
-        }
-        .glitch-text::before, .glitch-text::after {
-            content: attr(data-text);
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505;
-        }
-        .glitch-text::before {
-            left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim 5s infinite linear alternate-reverse;
-        }
-        .glitch-text::after {
-            left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim2 5s infinite linear alternate-reverse;
-        }
-
-        @keyframes glitch-anim {
-            0% { clip: rect(30px, 9999px, 10px, 0); }
-            5% { clip: rect(80px, 9999px, 90px, 0); }
-            100% { clip: rect(10px, 9999px, 60px, 0); }
-        }
-        @keyframes glitch-anim2 {
-            0% { clip: rect(10px, 9999px, 80px, 0); }
-            5% { clip: rect(90px, 9999px, 10px, 0); }
-            100% { clip: rect(40px, 9999px, 20px, 0); }
-        }
-
-        /* 加速狀態特效 */
-        .boosting .energy-ring { animation-duration: 1s; border-color: #fff; box-shadow: 0 0 30px #fff; }
-        .boosting .avatar-img { box-shadow: 0 0 80px cyan; }
-        .boosting canvas { filter: brightness(1.5); }
-        
-        /* 光速發射 */
-        .warp-launch { animation: launch 0.8s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards; }
-        @keyframes launch {
-            0% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
-            40% { transform: scale(0.9) translateY(20px); opacity: 1; filter: brightness(2) drop-shadow(5px 0px 0px red) drop-shadow(-5px 0px 0px blue); } 
-            100% { transform: scale(0.1) translateY(-2000px); opacity: 0; filter: brightness(5); }
-        }
-
-        /* --- UI 元素 --- */
-        .status-text {
-            /* 狀態文字字體 */
-            font-weight: 700;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            color: #a5f3fc;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 10px rgba(165, 243, 252, 0.5);
-        }
-        .main-title {
-            font-weight: 900; font-size: 2.2rem;
-            background: linear-gradient(to right, #f472b6, #c084fc, #818cf8);
-            -webkit-background-clip: text; color: transparent;
-            margin-bottom: 2rem; opacity: 0.9;
-            /* 修正中文標題的換行與間距 */
-            white-space: nowrap;
-        }
-        .progress-bar {
-            width: 200px; height: 4px; background: rgba(255,255,255,0.1);
-            border-radius: 2px; overflow: hidden; margin-bottom: 1rem;
-        }
-        .progress-fill {
-            height: 100%; width: 0%;
-            background: linear-gradient(90deg, #ec4899, #8b5cf6);
-            box-shadow: 0 0 10px #ec4899;
-            transition: width 0.1s linear;
-        }
-        
-        .hint-text {
-            font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-bottom: 2rem;
-            animation: pulse 2s infinite; font-weight: bold;
-        }
-        @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
-
-        .skip-btn {
-            padding: 10px 24px; background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px;
-            color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; font-weight: bold;
-            backdrop-filter: blur(5px); transition: all 0.3s; cursor: pointer;
-            letter-spacing: 1px; z-index: 50;
-        }
-        .skip-btn:hover {
-            background: rgba(255, 255, 255, 0.15); color: white; transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255,255,255,0.1);
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body>
+<body class="text-center p-6">
 
-    <canvas id="starfield"></canvas>
-
-    <div class="hud-container">
-        <div id="ship" class="reactor-core">
-            <div class="energy-ring"></div>
-            <div class="scanner-line"></div>
-            <img src="./icon.png" alt="Icon" class="avatar-img" 
-                 onerror="this.style.display='none'; document.querySelector('.energy-ring').style.background='#333'">
-        </div>
-
-        <div id="status" class="status-text">系統檢測中...</div>
+    <div class="max-w-md w-full bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl">
+        <div class="loader"></div>
         
-        <h1 class="main-title glitch-text" data-text="鹿🦌的QA網站 2.0">鹿🦌的QA網站 2.0</h1>
-
-        <div class="progress-bar">
-            <div id="progress" class="progress-fill"></div>
-        </div>
+        <h1 class="text-3xl font-bold mb-2">鹿 QA 網站升級囉！</h1>
+        <p class="text-lg text-white/80 mb-6">
+            我們已遷移至 <span class="text-pink-400 font-bold">2026 全新系統</span> 🚀
+        </p>
         
-        <div class="hint-text">⚡ 按住螢幕加速充能 ⚡</div>
+        <p class="text-sm text-gray-300 mb-8">
+            正在為您導向新頁面... (<span id="countdown">3</span>)
+        </p>
 
-        <div id="countdown" class="text-sm text-gray-500 font-bold mb-8 opacity-60">
-            距離發射 <span id="timer-num" class="font-mono text-base">7.00</span> 秒
-        </div>
-
-        <button onclick="warpNow()" class="skip-btn">
-            立即傳送 ➜
+        <button onclick="goToNewSite()" 
+           class="inline-block w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer">
+            立即前往新版網站 ➜
         </button>
     </div>
 
     <script>
-        const TARGET_URL = "https://wangleoncom.github.io/ldweb";
-        const TOTAL_SECONDS = 7;
+        const NEW_URL = "https://wangleoncom.github.io/ldweb";
+
+        // 定義跳轉函式：使用 replace 來「替換」歷史紀錄
+        function goToNewSite() {
+            window.location.replace(NEW_URL);
+        }
+
+        // 倒數計時邏輯
+        let seconds = 3;
+        const countdownEl = document.getElementById('countdown');
         
-        // --- 1. 星際粒子系統 ---
-        const canvas = document.getElementById('starfield');
-        const ctx = canvas.getContext('2d');
-        let width, height, stars = [];
-        let warpSpeed = false;
-        let isBoosting = false; // 是否正在加速
-
-        function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Star {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = (Math.random() - 0.5) * width * 2;
-                this.y = (Math.random() - 0.5) * height * 2;
-                this.z = Math.random() * width;
-                this.pz = this.z;
+        const timer = setInterval(() => {
+            seconds--;
+            countdownEl.innerText = seconds;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                goToNewSite(); // 時間到執行替換
             }
-            update() {
-                // 加速時速度變成 40，光速時 80，平常 2
-                let baseSpeed = warpSpeed ? 80 : (isBoosting ? 40 : 2); 
-                this.z -= baseSpeed;
-                if (this.z < 1) {
-                    this.reset();
-                    this.z = width;
-                    this.pz = width;
-                }
-            }
-            draw() {
-                let x = (this.x / this.z) * width/2 + width/2;
-                let y = (this.y / this.z) * height/2 + height/2;
-                let px = (this.x / this.pz) * width/2 + width/2;
-                let py = (this.y / this.pz) * height/2 + height/2;
-                this.pz = this.z;
+        }, 1000);
 
-                ctx.beginPath();
-                ctx.strokeStyle = isBoosting ? "cyan" : "rgba(255, 255, 255, 0.8)"; // 加速時變青色
-                
-                if (warpSpeed || isBoosting) {
-                    ctx.lineWidth = (1 - this.z / width) * 3;
-                    ctx.moveTo(px, py);
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
-                } else {
-                    let r = (1 - this.z / width) * 2;
-                    ctx.fillStyle = "white";
-                    ctx.arc(x, y, r, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-        }
-        for(let i=0; i<400; i++) stars.push(new Star());
-
-        function animateStars() {
-            ctx.fillStyle = isBoosting ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.3)";
-            ctx.fillRect(0, 0, width, height);
-            stars.forEach(star => { star.update(); star.draw(); });
-            requestAnimationFrame(animateStars);
-        }
-        animateStars();
-
-
-        // --- 2. 互動加速邏輯 ---
-        // 支援滑鼠按住與手機長按
-        document.body.addEventListener('mousedown', () => startBoost());
-        document.body.addEventListener('mouseup', () => stopBoost());
-        document.body.addEventListener('touchstart', () => startBoost());
-        document.body.addEventListener('touchend', () => stopBoost());
-
-        function startBoost() {
-            if(warpSpeed) return; // 已經發射就不需要了
-            isBoosting = true;
-            document.querySelector('.hud-container').classList.add('boosting');
-            document.querySelector('.hint-text').innerText = ">>> 引擎全速運轉 <<<";
-            document.querySelector('.hint-text').style.color = "cyan";
-        }
-
-        function stopBoost() {
-            isBoosting = false;
-            document.querySelector('.hud-container').classList.remove('boosting');
-            document.querySelector('.hint-text').innerText = "⚡ 按住螢幕加速充能 ⚡";
-            document.querySelector('.hint-text').style.color = "rgba(255,255,255,0.4)";
-        }
-
-
-        // --- 3. 時間控制 ---
-        const statusEl = document.getElementById('status');
-        const progressEl = document.getElementById('progress');
-        const timerNumEl = document.getElementById('timer-num');
-        const shipEl = document.getElementById('ship');
-        const titleEl = document.querySelector('.main-title');
-        
-        // 中文化狀態訊息
-        const steps = [
-            { t: 6.5, msg: "核心系統初始化..." },
-            { t: 5.0, msg: "資料庫同步中..." },
-            { t: 3.5, msg: "推進器充能中..." },
-            { t: 2.0, msg: "導航路徑已鎖定..." },
-            { t: 1.0, msg: "準備發射！" }
-        ];
-
-        let remaining = TOTAL_SECONDS;
-        let lastTime = Date.now();
-        
-        function updateLogic() {
-            let now = Date.now();
-            let delta = (now - lastTime) / 1000;
-            lastTime = now;
-
-            // 如果正在加速，時間流逝速度變 5 倍
-            if(isBoosting && remaining > 0.5) {
-                delta *= 5; 
-            }
-
-            remaining = Math.max(0, remaining - delta);
-            
-            timerNumEl.innerText = remaining.toFixed(2);
-            let percent = Math.min(100, ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100);
-            progressEl.style.width = percent + "%";
-
-            // 更新狀態文字
-            for (let step of steps) {
-                if (remaining <= step.t) statusEl.innerText = step.msg;
-            }
-
-            // 震動
-            if (remaining < 2 && remaining > 0.5) {
-                if(!shipEl.classList.contains('shake-hard')) shipEl.classList.add('shake-hard');
-                statusEl.style.color = "#f472b6"; // 警告紅
-            }
-
-            // 發射
-            if (remaining < 0.5 && !warpSpeed) {
-                warpSpeed = true;
-                shipEl.classList.remove('shake-hard');
-                shipEl.classList.add('warp-launch');
-                titleEl.style.opacity = 0;
-                // 標題放大消失特效
-                titleEl.style.transform = "scale(2)";
-                titleEl.style.filter = "blur(10px)";
-                document.querySelector('.hint-text').style.opacity = 0;
-            }
-
-            if (remaining <= 0) {
-                setTimeout(() => { window.location.href = TARGET_URL; }, 500);
-                return;
-            }
-
-            requestAnimationFrame(updateLogic);
-        }
-        
-        updateLogic();
-
-        function warpNow() {
-            remaining = 0.4; // 強制設定時間快結束，觸發發射動畫
-            isBoosting = true; // 開啟加速特效
-        }
-
+        // ★★★ 強制防回頭機制 (額外保險) ★★★
+        // 當這個頁面載入時，先塞一個狀態進去，如果用戶按上一頁，會被這個事件攔截
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href);
+            // 如果用戶硬要按上一頁，直接送他去新網站
+            window.location.replace(NEW_URL);
+        };
     </script>
+
 </body>
 </html>
