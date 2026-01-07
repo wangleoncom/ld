@@ -8,7 +8,7 @@
     <style>
         /* --- 基礎設定 --- */
         body {
-            background-color: #050505; /* 深邃宇宙黑 */
+            background-color: #050505;
             color: white;
             font-family: 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
@@ -16,16 +16,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            perspective: 1200px; /* 3D 景深 */
+            perspective: 1200px;
+            user-select: none; /* 防止選取文字 */
+            cursor: progress;
         }
 
-        /* --- 背景 Canvas (星空) --- */
+        /* --- Canvas --- */
         canvas {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             z-index: 0;
             opacity: 0.8;
+            transition: filter 0.2s;
         }
 
         /* --- 核心容器 --- */
@@ -37,145 +39,135 @@
             align-items: center;
             width: 100%;
             max-width: 400px;
-        }
-
-        /* --- 麋鹿反應堆 (頭像) --- */
-        .reactor-core {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            margin-bottom: 2rem;
-            transform-style: preserve-3d;
             transition: transform 0.1s;
         }
 
-        /* 頭像本體 */
+        /* --- 麋鹿反應堆 --- */
+        .reactor-core {
+            position: relative;
+            width: 140px; height: 140px;
+            margin-bottom: 2rem;
+            transform-style: preserve-3d;
+        }
+
         .avatar-img {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 0 50px rgba(236, 72, 153, 0.4); /* 粉紅光暈 */
-            position: relative;
-            z-index: 2;
+            box-shadow: 0 0 50px rgba(236, 72, 153, 0.4);
+            position: relative; z-index: 2;
             animation: float 4s ease-in-out infinite;
+            transition: box-shadow 0.2s;
         }
 
-        /* 旋轉能量環 (外圈) */
         .energy-ring {
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
+            position: absolute; top: -10%; left: -10%;
+            width: 120%; height: 120%;
             border-radius: 50%;
             border: 1px dashed rgba(255, 255, 255, 0.3);
             border-top: 1px solid rgba(236, 72, 153, 0.8);
             border-bottom: 1px solid rgba(168, 85, 247, 0.8);
             animation: spin 10s linear infinite;
             z-index: 1;
-            box-shadow: 0 0 15px rgba(236, 72, 153, 0.2);
         }
 
-        /* 掃描線 (內圈) */
         .scanner-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
             border-radius: 50%;
             background: linear-gradient(180deg, transparent 50%, rgba(255, 255, 255, 0.1) 50%, transparent 55%);
             background-size: 100% 200%;
             animation: scan 3s linear infinite;
-            z-index: 3;
-            pointer-events: none;
-            mix-blend-mode: overlay;
+            z-index: 3; pointer-events: none; mix-blend-mode: overlay;
         }
 
-        /* --- 動畫關鍵影格 --- */
+        /* --- 動畫定義 --- */
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes scan { 0% { background-position: 0% 0%; } 100% { background-position: 0% 200%; } }
 
-        /* 發射時的震動 */
-        .shake-hard { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
+        /* 故障雜訊文字效果 */
+        .glitch-text {
+            position: relative;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505;
+        }
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
         }
 
-        /* 發射時的光速飛離 */
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); }
+            5% { clip: rect(80px, 9999px, 90px, 0); }
+            100% { clip: rect(10px, 9999px, 60px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(10px, 9999px, 80px, 0); }
+            5% { clip: rect(90px, 9999px, 10px, 0); }
+            100% { clip: rect(40px, 9999px, 20px, 0); }
+        }
+
+        /* 加速狀態特效 */
+        .boosting .energy-ring { animation-duration: 1s; border-color: #fff; box-shadow: 0 0 30px #fff; }
+        .boosting .avatar-img { box-shadow: 0 0 80px cyan; }
+        .boosting canvas { filter: brightness(1.5); }
+        
+        /* 光速發射 */
         .warp-launch { animation: launch 0.8s cubic-bezier(0.6, 0.04, 0.98, 0.335) forwards; }
         @keyframes launch {
             0% { transform: scale(1) translateY(0); opacity: 1; filter: brightness(1); }
-            40% { transform: scale(0.8) translateY(20px); opacity: 1; filter: brightness(2); } /* 蓄力 */
-            100% { transform: scale(0.1) translateY(-2000px); opacity: 0; filter: brightness(5); } /* 光速消失 */
+            40% { transform: scale(0.9) translateY(20px); opacity: 1; filter: brightness(2) drop-shadow(5px 0px 0px red) drop-shadow(-5px 0px 0px blue); } 
+            100% { transform: scale(0.1) translateY(-2000px); opacity: 0; filter: brightness(5); }
         }
 
-        /* --- 文字與 UI --- */
+        /* --- UI 元素 --- */
         .status-text {
-            font-family: 'Courier New', monospace; /* 科幻字體 */
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            color: #a5f3fc;
-            margin-bottom: 0.5rem;
+            font-family: 'Courier New', monospace; letter-spacing: 2px; text-transform: uppercase;
+            font-size: 0.85rem; color: #a5f3fc; margin-bottom: 0.5rem;
             text-shadow: 0 0 10px rgba(165, 243, 252, 0.5);
         }
-
         .main-title {
-            font-weight: 900;
-            font-size: 2rem;
+            font-weight: 900; font-size: 2rem;
             background: linear-gradient(to right, #f472b6, #c084fc, #818cf8);
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+            -webkit-background-clip: text; color: transparent;
+            margin-bottom: 2rem; opacity: 0.9;
         }
-
-        /* 進度條容器 */
         .progress-bar {
-            width: 200px;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 3rem;
+            width: 200px; height: 4px; background: rgba(255,255,255,0.1);
+            border-radius: 2px; overflow: hidden; margin-bottom: 1rem;
         }
-        /* 進度條本體 */
         .progress-fill {
-            height: 100%;
-            width: 0%;
+            height: 100%; width: 0%;
             background: linear-gradient(90deg, #ec4899, #8b5cf6);
             box-shadow: 0 0 10px #ec4899;
             transition: width 0.1s linear;
         }
+        
+        .hint-text {
+            font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
 
-        /* 跳轉按鈕 (玻璃質感) */
         .skip-btn {
-            padding: 12px 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.8rem;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s;
-            cursor: pointer;
-            z-index: 50; /* 確保在最上層 */
-            letter-spacing: 1px;
+            padding: 10px 24px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50px;
+            color: rgba(255, 255, 255, 0.6); font-size: 0.75rem;
+            backdrop-filter: blur(5px); transition: all 0.3s; cursor: pointer;
+            letter-spacing: 1px; z-index: 50;
         }
         .skip-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.15); color: white; transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.1);
         }
     </style>
 </head>
@@ -187,39 +179,40 @@
         <div id="ship" class="reactor-core">
             <div class="energy-ring"></div>
             <div class="scanner-line"></div>
-            <img src="./icon.png" alt="Deer" class="avatar-img" 
+            <img src="./icon.png" alt="Icon" class="avatar-img" 
                  onerror="this.style.display='none'; document.querySelector('.energy-ring').style.background='#333'">
         </div>
 
         <div id="status" class="status-text">SYSTEM CHECK...</div>
-
-        <h1 class="main-title">DEER QA v2.0</h1>
+        
+        <h1 class="main-title glitch-text" data-text="DEER QA v2.0">DEER QA v2.0</h1>
 
         <div class="progress-bar">
             <div id="progress" class="progress-fill"></div>
         </div>
+        
+        <div class="hint-text">⚡ HOLD SCREEN TO BOOST ⚡</div>
 
         <div id="countdown" class="text-xs text-gray-500 font-mono mb-8 opacity-50">
             T-MINUS <span id="timer-num">7.00</span>s
         </div>
 
         <button onclick="warpNow()" class="skip-btn">
-            SKIP SEQUENCE ➜
+            WARP NOW ➜
         </button>
     </div>
 
     <script>
         const TARGET_URL = "https://wangleoncom.github.io/ldweb";
-        const TOTAL_SECONDS = 7; // 設定總時間 7 秒
+        const TOTAL_SECONDS = 7;
         
-        // --- 1. 星際粒子系統 (Canvas) ---
+        // --- 1. 星際粒子系統 ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
-        let width, height;
-        let stars = [];
-        let warpSpeed = false; // 是否進入光速模式
+        let width, height, stars = [];
+        let warpSpeed = false;
+        let isBoosting = false; // 是否正在加速
 
-        // 初始化畫布
         function resize() {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -229,23 +222,18 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // 星星物件
         class Star {
-            constructor() {
-                this.reset();
-            }
+            constructor() { this.reset(); }
             reset() {
-                this.x = (Math.random() - 0.5) * width * 2; // 寬廣分佈
+                this.x = (Math.random() - 0.5) * width * 2;
                 this.y = (Math.random() - 0.5) * height * 2;
-                this.z = Math.random() * width; // 深度
-                this.pz = this.z; // 上一幀的深度 (用於畫線)
+                this.z = Math.random() * width;
+                this.pz = this.z;
             }
             update() {
-                // 移動速度：warpSpeed 時極快，否則慢速
-                let speed = warpSpeed ? 80 : 2; 
-                this.z -= speed;
-
-                // 如果星星跑到螢幕後方，重置到遠處
+                // 加速時速度變成 40，光速時 80，平常 2
+                let baseSpeed = warpSpeed ? 80 : (isBoosting ? 40 : 2); 
+                this.z -= baseSpeed;
                 if (this.z < 1) {
                     this.reset();
                     this.z = width;
@@ -253,123 +241,132 @@
                 }
             }
             draw() {
-                // 3D 投影公式
                 let x = (this.x / this.z) * width/2 + width/2;
                 let y = (this.y / this.z) * height/2 + height/2;
-                
-                // 計算上一幀的位置 (用於拉出光速線條)
                 let px = (this.x / this.pz) * width/2 + width/2;
                 let py = (this.y / this.pz) * height/2 + height/2;
-
                 this.pz = this.z;
 
-                // 繪製
                 ctx.beginPath();
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+                ctx.strokeStyle = isBoosting ? "cyan" : "rgba(255, 255, 255, 0.8)"; // 加速時變青色
                 
-                if (warpSpeed) {
-                    // 光速模式：畫線
+                if (warpSpeed || isBoosting) {
                     ctx.lineWidth = (1 - this.z / width) * 3;
                     ctx.moveTo(px, py);
                     ctx.lineTo(x, y);
                     ctx.stroke();
                 } else {
-                    // 普通模式：畫點
-                    let r = (1 - this.z / width) * 2; // 越近越大
+                    let r = (1 - this.z / width) * 2;
                     ctx.fillStyle = "white";
                     ctx.arc(x, y, r, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
         }
-
-        // 產生 400 顆星星
         for(let i=0; i<400; i++) stars.push(new Star());
 
-        // 動畫迴圈
         function animateStars() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.3)"; // 拖影效果
+            ctx.fillStyle = isBoosting ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.3)";
             ctx.fillRect(0, 0, width, height);
-            
-            stars.forEach(star => {
-                star.update();
-                star.draw();
-            });
+            stars.forEach(star => { star.update(); star.draw(); });
             requestAnimationFrame(animateStars);
         }
         animateStars();
 
 
-        // --- 2. 倒數與流程控制 ---
+        // --- 2. 互動加速邏輯 ---
+        // 支援滑鼠按住與手機長按
+        document.body.addEventListener('mousedown', () => startBoost());
+        document.body.addEventListener('mouseup', () => stopBoost());
+        document.body.addEventListener('touchstart', () => startBoost());
+        document.body.addEventListener('touchend', () => stopBoost());
+
+        function startBoost() {
+            if(warpSpeed) return; // 已經發射就不需要了
+            isBoosting = true;
+            document.querySelector('.hud-container').classList.add('boosting');
+            document.querySelector('.hint-text').innerText = ">>> OVERDRIVE ENGAGED <<<";
+            document.querySelector('.hint-text').style.color = "cyan";
+        }
+
+        function stopBoost() {
+            isBoosting = false;
+            document.querySelector('.hud-container').classList.remove('boosting');
+            document.querySelector('.hint-text').innerText = "⚡ HOLD SCREEN TO BOOST ⚡";
+            document.querySelector('.hint-text').style.color = "rgba(255,255,255,0.3)";
+        }
+
+
+        // --- 3. 時間控制 ---
         const statusEl = document.getElementById('status');
         const progressEl = document.getElementById('progress');
         const timerNumEl = document.getElementById('timer-num');
         const shipEl = document.getElementById('ship');
         const titleEl = document.querySelector('.main-title');
         
-        // 階段性文案
         const steps = [
-            { t: 6.5, msg: "INITIALIZING..." },
-            { t: 5.0, msg: "CONNECTING TO DATABASE..." },
-            { t: 3.5, msg: "GATHERING ENERGY..." },
-            { t: 2.0, msg: "CALIBRATING NAVIGATION..." },
-            { t: 1.0, msg: "ENGAGING WARP DRIVE!" }
+            { t: 6.5, msg: "INITIALIZING CORE..." },
+            { t: 5.0, msg: "SYNCING DATABASE..." },
+            { t: 3.5, msg: "CHARGING THRUSTERS..." },
+            { t: 2.0, msg: "NAVIGATION SET..." },
+            { t: 1.0, msg: "READY TO LAUNCH!" }
         ];
 
-        let startTime = Date.now();
+        let remaining = TOTAL_SECONDS;
+        let lastTime = Date.now();
         
         function updateLogic() {
-            let elapsed = (Date.now() - startTime) / 1000;
-            let remaining = Math.max(0, TOTAL_SECONDS - elapsed);
+            let now = Date.now();
+            let delta = (now - lastTime) / 1000;
+            lastTime = now;
+
+            // 如果正在加速，時間流逝速度變 5 倍
+            if(isBoosting && remaining > 0.5) {
+                delta *= 5; 
+            }
+
+            remaining = Math.max(0, remaining - delta);
             
-            // 更新數字與進度條
             timerNumEl.innerText = remaining.toFixed(2);
-            let percent = Math.min(100, (elapsed / TOTAL_SECONDS) * 100);
+            let percent = Math.min(100, ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100);
             progressEl.style.width = percent + "%";
 
-            // 更新文字狀態
+            // 更新狀態文字
             for (let step of steps) {
                 if (remaining <= step.t) statusEl.innerText = step.msg;
             }
 
-            // 特效觸發點：
-            // 剩下 2 秒：開始震動
+            // 震動
             if (remaining < 2 && remaining > 0.5) {
-                shipEl.classList.add('shake-hard');
-                statusEl.style.color = "#f472b6"; // 變紅
+                if(!shipEl.classList.contains('shake-hard')) shipEl.classList.add('shake-hard');
+                statusEl.style.color = "#f472b6";
             }
 
-            // 剩下 0.5 秒：光速啟動
+            // 發射
             if (remaining < 0.5 && !warpSpeed) {
-                warpSpeed = true; // 星星變線條
+                warpSpeed = true;
                 shipEl.classList.remove('shake-hard');
-                shipEl.classList.add('warp-launch'); // 飛船消失
+                shipEl.classList.add('warp-launch');
                 titleEl.style.opacity = 0;
-                titleEl.style.transform = "scale(1.5)";
-                titleEl.style.transition = "all 0.5s";
+                // 標題放大消失特效
+                titleEl.style.transform = "scale(2)";
+                titleEl.style.filter = "blur(10px)";
+                document.querySelector('.hint-text').style.opacity = 0;
             }
 
-            // 時間到：跳轉
             if (remaining <= 0) {
-                setTimeout(() => {
-                    window.location.href = TARGET_URL;
-                }, 500); // 給一點白屏緩衝
-                return; 
+                setTimeout(() => { window.location.href = TARGET_URL; }, 500);
+                return;
             }
 
             requestAnimationFrame(updateLogic);
         }
         
-        // 啟動邏輯
         updateLogic();
 
-        // 跳過按鈕功能
         function warpNow() {
-            warpSpeed = true;
-            shipEl.classList.add('warp-launch');
-            document.body.style.transition = "opacity 0.5s";
-            document.body.style.opacity = 0;
-            setTimeout(() => window.location.href = TARGET_URL, 500);
+            remaining = 0.4; // 強制設定時間快結束，觸發發射動畫
+            isBoosting = true; // 開啟加速特效
         }
 
     </script>
